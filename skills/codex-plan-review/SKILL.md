@@ -1,0 +1,126 @@
+---
+name: codex-plan-review
+description: Review an implementation plan using OpenAI Codex before coding. Use this skill after /research produces a plan, when the user says "codex plan review", "review the plan", "get codex opinion on this plan", or wants a second opinion on an implementation approach before starting work.
+---
+
+# Codex Plan Review
+
+Ask Codex to review an implementation plan against the actual codebase before implementation begins.
+
+## When to use
+
+- After `/research` produces an implementation plan
+- When you want a second opinion on architectural decisions before writing code
+- To catch design-level issues that are cheaper to fix before implementation
+
+## Procedure
+
+### 1. Build the prompt
+
+Use the XML-block template below. Each block is optional — drop any block that does not fit the task, but keep the order stable so Codex sees a predictable structure.
+
+Gather first:
+- The implementation plan (from the current conversation)
+- The list of repository files Codex should read before evaluating
+- 2–4 specific evaluation questions (not "what do you think?")
+
+Template:
+
+```xml
+<task>
+Review the following implementation plan against this repository.
+Read the referenced source files before evaluating.
+Assess whether the plan will correctly achieve its stated goal without breaking existing behavior.
+
+Plan:
+<PLAN_TEXT>
+
+Files to inspect first:
+<FILE_LIST>
+
+Specific questions:
+<EVALUATION_QUESTIONS>
+</task>
+
+<grounding_rules>
+Ground every concern in code you have actually read from this repository.
+Do not invent file names, function signatures, or behaviors.
+If a point is an inference rather than a verified fact, label it as such.
+</grounding_rules>
+
+<structured_output_contract>
+Return:
+1. verdict — one of: approve / approve with conditions / reject
+2. findings ordered by severity, each tagged [P1/P2/P3] with file:line where applicable
+3. supporting evidence for each finding (quoted code or exact file reference)
+4. open questions you could not resolve from the repository alone
+Keep the output compact. Do not restate the plan.
+</structured_output_contract>
+
+<dig_deeper_nudge>
+Beyond the first obvious concern, check for:
+- format or type mismatch between producers and consumers the plan touches
+- branching logic that conflates distinct inputs or failure modes
+- missing validation at API or module boundaries
+- inconsistency between the plan and existing patterns in this codebase
+</dig_deeper_nudge>
+
+<missing_context_gating>
+Do not guess project constraints, YAGNI scope, or stakeholder intent.
+If a finding depends on such context, list it under open questions instead of findings.
+</missing_context_gating>
+
+<verification_loop>
+Before finalizing, verify that each finding is material (would cause incorrect behavior or a real regression) and anchored in code you actually read.
+Drop speculative or stylistic nits.
+</verification_loop>
+```
+
+Block selection rationale:
+- `grounding_rules`: plan review drifts into invented code otherwise
+- `structured_output_contract`: forces a shape that maps directly to the triage step in §3
+- `dig_deeper_nudge`: without it Codex tends to stop at the first plausible concern
+- `missing_context_gating`: redirects scope/YAGNI speculation into open questions instead of findings
+- `verification_loop`: trims speculative nits before they reach the user
+- No `action_safety`: plan review is read-only
+- No `completeness_contract`: one pass is sufficient; the plan is small
+
+### 2. Run Codex
+
+```bash
+codex exec "<prompt>" < /dev/null -o /tmp/codex-plan-review.md
+```
+
+**Important:**
+- Always use `< /dev/null` to prevent stdin hanging in background/automated contexts
+- Set timeout to 600000ms (10 minutes)
+- Use `-o` to capture output to a file for reliable retrieval
+
+### 3. Triage the feedback
+
+Codex evaluates the plan against the code it reads, but lacks project context (design decisions, scope constraints, YAGNI boundaries). Apply the same triage discipline as `/codex-review`:
+
+- **Actionable**: A real design flaw that would cause bugs or incorrect behavior
+- **False positive**: A concern that doesn't apply given project constraints (e.g., suggesting generalization when only one case exists)
+- **Defer**: Valid but out of scope for the current task
+
+Present the triage to the user, not the raw output.
+
+### 4. Update the plan
+
+If actionable findings exist, revise the plan in the conversation and re-present to the user for approval. Do NOT re-run Codex on the revised plan unless the user asks — one round is typically sufficient.
+
+## What Codex is good at catching in plans
+
+- Format mismatches between producer and consumer functions
+- Filtering/branching logic that conflates distinct failure modes
+- Missing validation at API boundaries
+- Inconsistency between the plan and existing code patterns
+
+## What Codex is bad at in plan review
+
+- Scope judgment (will suggest over-engineering)
+- Project-specific constraints (doesn't know what's YAGNI)
+- Trade-off decisions (will flag every simplification as a risk)
+
+The user makes these calls, not Codex.
