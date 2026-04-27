@@ -5,11 +5,20 @@ description: Full automated review pipeline — commit, codex review, fix loop, 
 
 # Review Pipeline
 
-Orchestrate the full flow from local changes to a reviewed PR. This skill ties together three sub-skills — invoke each by name.
+Orchestrate the full flow from local changes to a reviewed PR. This skill ties together four sub-skills — invoke each by name.
 
 ## Pipeline
 
 ```
+  ┌─────────────────────────────────────────────────┐
+  │  Phase 0: Done-check loop (local, pre-commit)   │
+  │                                                 │
+  │  /done-check                                    │
+  │       ↓                                         │
+  │  any ⚠ concerns? ──yes──→ fix → loop back       │
+  │       ↓ no                                      │
+  └───────┼─────────────────────────────────────────┘
+          ↓
   ┌─────────────────────────────────────────────┐
   │  Phase 1: Codex review loop (local)         │
   │                                             │
@@ -46,6 +55,18 @@ Orchestrate the full flow from local changes to a reviewed PR. This skill ties t
         Done
 ```
 
+## Phase 0: Done-check loop
+
+0a. Run `/done-check` against the current diff (committed + staged + unstaged + untracked)
+0b. Triage the audit table — every `⚠` concern is actionable
+0c. If concerns exist:
+   - Fix the code
+   - Run `/done-check` again (fresh, full audit — same rule as the codex review loop: do not bias the next pass with the previous concerns list)
+   - Re-triage
+0d. Repeat until all rows are `✅` or `⊘ N/A`
+
+Done-check runs **before** any commit. Resolving its concerns post-commit produces noisy fix-up commits in the codex review history; resolving them pre-commit keeps each commit a meaningful unit.
+
 ## Phase 1: Codex review loop
 
 1. Run `/stage-commit-push` to stage, commit, and push local changes
@@ -79,6 +100,7 @@ After all reviews are clean and fixes are committed:
 
 ## Rules
 
+- **Never skip done-check.** Even for small fixes, walk through the full checklist. The audit catches missing tests / lint / debug-output / impact-list issues before they become noisy fix-up commits in Phase 1.
 - **Never skip codex review.** Even for small fixes, run the full loop. Codex review catches things that are invisible in the diff alone.
 - **Never inject previous review comments into the next review prompt.** Each review iteration must be fresh and unbiased, so it can catch both regressions from the fix and new problems.
 - **Every commit goes through `/stage-commit-push`.** Do not manually run git add/commit/push during the pipeline. The skill ensures consistent commit message generation.
