@@ -70,6 +70,34 @@ After all subagents complete, synthesize their findings into a single implementa
 - Conflicts or dependencies between hypotheses (if any)
 - Any unresolved questions for the user
 
+### Filter unresolved questions before listing them
+
+Before listing a sub-decision as "unresolved for the user", first try to
+resolve it from available evidence:
+
+1. **Workspace patterns**. Search the workspace (`rg`, `fd`) for analogous
+   constructs already in use — error types, API shapes, naming
+   conventions, dependency choices. If the workspace consistently does X,
+   that is the answer; do not ask which of {X, Y, Z} the user prefers.
+2. **Memory and prior conversation**. Check available memory entries and
+   recent turns for decisions on the same axis (e.g., "the user already
+   ruled out backwards-compat shims while pre-release", "we already
+   established the FFI-completeness rule one commit ago"). Apply those.
+3. **Subagent reports**. Re-read the subagent outputs from Step 2. If a
+   subagent has decisively recommended one option with reasoning, treat
+   it as resolved unless the reasoning conflicts with another source.
+
+A sub-decision is genuinely unresolved only when the above sources are
+**silent or contradictory**. "More than one technically-viable option
+exists" is not, by itself, an unresolved question — it is an analysis
+task you owe the user. Listing options with pros/cons in the plan when
+the evidence already points to one of them wastes the user's bandwidth
+and signals that you skipped the analysis.
+
+When you do escalate a question, state explicitly what you checked and
+what was contradictory or silent — this makes the user's decision
+informed rather than a tiebreaker on data you didn't gather.
+
 Report the plan back to the main context.
 
 ## Step 4 — Post plan to GitHub
