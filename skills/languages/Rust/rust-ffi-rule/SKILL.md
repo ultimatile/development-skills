@@ -1,5 +1,5 @@
 ---
-name: ffi-rule
+name: rust-ffi-rule
 description: >
   Rules for implementing a Rust safe wrapper around an external
   (C / Fortran / FFI) call. Read this before writing `unsafe { foo_c(...) }`
@@ -8,7 +8,7 @@ description: >
   binding, or implement a safe wrapper around an external library.
 ---
 
-# FFI Rule (Rust)
+# Rust FFI Rule
 
 ## Procedure
 
