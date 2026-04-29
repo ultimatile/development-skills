@@ -69,7 +69,7 @@ input that exposes the purpose.
 If a pattern was copied from existing code (sibling module, prior
 wrapper, parallel type), evaluate (a) whether the source pattern is
 itself correct, and (b) whether the source's context applies to the
-current usage. Inheriting a pattern's bugs OR mis-applying a correct
+current usage. Inheriting a pattern's bugs OR misapplying a correct
 pattern to a different context are both concerns.
 
 **N/A:** no pattern was reused; the change is a fresh design.
@@ -114,6 +114,12 @@ helper, not per-type duplication.
 - Implementation has error / cleanup paths but only the happy path is
   tested
 - Multiple near-identical per-type tests instead of a generic helper
+- New code populates state (a field, slot, storage, output buffer)
+  but no test reads that state directly. Transitive consistency — a
+  test that happens to pass through an unrelated helper while the
+  new state is never observed — does not satisfy this. For each
+  newly written-to location, point to at least one assertion that
+  reads it.
 
 **N/A:** the diff is purely mechanical (rename, formatting, file
 move) or documentation-only.
@@ -184,9 +190,8 @@ where there is no test surface to exercise.
 
 ### 9. Completion hygiene
 
-Project-standard format / lint / type / build commands ran clean
-against the diff. Use the project's actual commands as documented in
-`CLAUDE.md` / `README` / build config. Examples by ecosystem:
+Project-standard format / lint / type-check / build commands ran
+clean against the diff. Use the project's actual commands; examples:
 
 - Rust: `cargo clippy --all-targets -- -D warnings`,
   `cargo fmt --check`, `cargo build`
@@ -206,6 +211,70 @@ Debug-only artifacts removed: `dbg!`, trace `println!` / `print(...)` /
 
 **N/A:** documentation-only changes with no code touched.
 
+### 10. Architectural boundary integrity
+
+If the project has an architectural rule about dependency direction
+or module boundaries — layered ordering, hexagonal / clean
+inward-pointing, a documented module DAG, a public / internal split
+— verify the diff respects it:
+
+- New imports / `use` / `#include` cross a boundary in the
+  disallowed direction.
+- New package dep entry creates a disallowed edge.
+- New `pub` / `export` widens access beyond what the rule allows.
+
+**Concern conditions:**
+
+- Diff introduces an import / dep edge contradicting the rule
+- Public exposure widened beyond the rule
+
+**N/A:** the project has no architectural rule, or the diff
+introduces no relevant imports / dep edges / public symbols.
+
+### 11. Textual-drift sweep
+
+Renames, removals, and module-structure changes have to be
+threaded through every textual surface that names them. Going
+through only the primary identifier (the function definition,
+the type, the moved file) is not enough — secondary surfaces
+keep referring to the old shape and silently rot.
+
+For each rename / removal in the diff:
+
+- `rg <old-identifier>` over the touched crate(s).  Resolve every
+  remaining hit: panic / `expect` / `assert!` messages, error
+  format strings, inline comments, doctest code blocks, rustdoc
+  links, error-variant `detail` strings, `format!` payloads,
+  README / module-level prose.
+- For each `mod` / `pub mod` add / remove / rename: re-read the
+  parent module's `//!` (or equivalent) docstring against the
+  current set of children.  Stale "lands in a subsequent phase",
+  "currently exposes X" claims after Y was added are concerns.
+- For each removed item: confirm no docstring elsewhere still
+  references it.
+
+Naming-as-claim is **also** in scope: a new identifier whose
+name asserts a property the implementation does not in fact
+provide — e.g. `random_right_canonical_*` that calls
+`canonicalize(_, 0)` and produces `Mixed { center: 0 }` instead
+— is a concern.  Helpers that wrap a parametrized API call
+should be named after the parameter values they pin, not after
+the operational role they happen to serve.
+
+**Concern conditions:**
+
+- A renamed / removed identifier is still mentioned by its old
+  name in a comment, panic message, error string, doctest, or
+  module-level prose
+- A `mod` add / remove / rename leaves the parent module's
+  module-level docstring stale
+- A new identifier's name claims a property the implementation
+  does not enforce / does not produce
+
+**N/A:** the diff renames / removes nothing, adds / removes /
+renames no modules, and adds no identifiers whose name
+encodes a behavioral claim.
+
 ## Output format
 
 ```
@@ -214,14 +283,16 @@ self-audit: <commit-range or "uncommitted">
 | # | Item                          | Result | Evidence                                | Note                                           |
 |---|-------------------------------|--------|-----------------------------------------|------------------------------------------------|
 | 1 | Invariant derivation          | ⚠      | read: src/foo.rs:42                     | <what's wrong / what to fix>                   |
-| 2 | Purpose verification          | ✅      | manual: ran example with input X        |                                                |
-| 3 | Pattern audit                 | ✅      | re-derived f32 path; sibling f64 ok     |                                                |
+| 2 | Purpose verification          | ✅     | manual: ran example with input X        |                                                |
+| 3 | Pattern audit                 | ✅     | re-derived f32 path; sibling f64 ok     |                                                |
 | 4 | Scope discipline              | ⊘ N/A  |                                         | no findings dismissed                          |
-| 5 | Behavior coverage             | ✅      | cargo test (incl. error_path tests)     |                                                |
+| 5 | Behavior coverage             | ✅     | cargo test (incl. error_path tests)     |                                                |
 | 6 | Implementation guards         | ⚠      | read: src/foo.rs:120                    | new invariant only commented, no assert        |
 | 7 | Impact / caller verification  | ⊘ N/A  |                                         | no public symbol changed                       |
-| 8 | Test execution                | ✅      | cargo test: 84 passed, 0 failed         |                                                |
-| 9 | Completion hygiene            | ✅      | cargo clippy clean, cargo fmt --check   |                                                |
+| 8 | Test execution                | ✅     | cargo test: 84 passed, 0 failed         |                                                |
+| 9 | Completion hygiene            | ✅     | cargo clippy clean, cargo fmt --check   |                                                |
+|10 | Architectural boundary        | ⊘ N/A  |                                         | no new imports / dep edges / pub widening      |
+|11 | Textual-drift sweep           | ✅     | rg <old-name>; parent //! re-read       |                                                |
 ```
 
 If any ⚠ remains, fix before proceeding. State concretely what will
