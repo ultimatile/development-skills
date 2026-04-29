@@ -1,6 +1,6 @@
 ---
 name: codex-plan-review
-description: Review an implementation plan using OpenAI Codex before coding. Use this skill after /research produces a plan, when the user says "codex plan review", "review the plan", "get codex opinion on this plan", or wants a second opinion on an implementation approach before starting work.
+description: Review an implementation plan using OpenAI Codex before coding. Use this skill when an implementation plan exists and the user wants a second opinion before starting work, says things like "codex plan review", "review the plan", "get codex opinion on this plan", or "second opinion on this plan".
 ---
 
 # Codex Plan Review
@@ -9,7 +9,6 @@ Ask Codex to review an implementation plan against the actual codebase before im
 
 ## When to use
 
-- After `/research` produces an implementation plan
 - When you want a second opinion on architectural decisions before writing code
 - To catch design-level issues that are cheaper to fix before implementation
 
