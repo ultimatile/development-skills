@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "End-to-end development workflow skills for Claude Code — research, implement, review, PR",
-    "version": "2026.4.6"
+    "version": "2026.4.7"
   },
   "plugins": [
     {
@@ -26,7 +26,8 @@
         "./skills/bug-to-contract",
         "./skills/driftreaper",
         "./skills/done-check",
-        "./skills/languages/Rust/rust-ffi-rule"
+        "./skills/languages/Rust/rust-ffi-rule",
+        "./skills/plan-and-spawn"
       ]
     }
   ]
