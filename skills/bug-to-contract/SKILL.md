@@ -11,25 +11,24 @@ A single fix prevents one bug. A contract test prevents the entire class.
 
 ## Inputs
 
-This skill works from two kinds of input, depending on context:
+This skill works from two kinds of input:
 
-| Context | Input | How to obtain |
-|---|---|---|
-| Review pipeline (Phase 3) | Review findings from codex/Copilot review | The triage output from Phase 1/2 — especially actionable findings that required fixes |
-| Standalone use | Fix commits on the branch | `git log main..HEAD --oneline --grep="fix" -i` or `git diff HEAD~1` |
+| Input | What to collect |
+|---|---|
+| Review findings | Actionable findings from any review pass (codex, Copilot, human reviewer) that resulted in code changes. The reviewer's framing of the issue. |
+| Fix commits | Branch commits whose subject signals a fix: `git log main..HEAD --oneline --grep="fix" -i`, then `git show <sha>`. |
 
-In the review pipeline, the primary input is **review findings that led to code changes**, not just fix commits. A reviewer saying "this doesn't handle column-major layout" is a stronger signal than a commit message.
+When both are available, prefer review findings — a reviewer saying "this doesn't handle column-major layout" is a stronger signal than a commit message.
 
 ## Core procedure
 
 ### 1. Collect signals
 
-**From review pipeline:**
-- List all actionable findings from Phase 1 (codex) and Phase 2 (Copilot) that resulted in code changes
-- For each finding, note: what was the issue, what was changed
+**From review findings:**
+- For each actionable finding that resulted in a code change, note what the issue was and what changed.
 
-**Standalone:**
-- Examine fix commit diffs:
+**From fix commits:**
+- Examine the diff of each fix commit:
   ```bash
   git log main..HEAD --oneline --grep="fix" -i
   git show <commit-sha>
@@ -92,22 +91,6 @@ Present to the user:
 2. **Whether it was already tested** (yes/no + evidence)
 3. **Proposed contract test** (code or description)
 4. **Related contracts** that may also be untested
-
-## Integration with review pipeline
-
-bug-to-contract is Phase 3 of the review pipeline — after all reviews are clean:
-
-```
-Phase 1: Codex review loop → fixes
-Phase 2: Copilot review loop → fixes
-Phase 3: /bug-to-contract
-  Input: all actionable findings from Phase 1 and 2
-  Output: contract tests for implicit specifications
-```
-
-The key insight is that review findings are **direct evidence of missing contracts**. If a reviewer had to point out an issue, it means the test suite didn't catch it, which means either:
-- The contract was tested but the test was too narrow (specific case only)
-- The contract was not tested at all (implicit specification gap)
 
 ## Important principles
 
