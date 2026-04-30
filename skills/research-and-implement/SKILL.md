@@ -34,24 +34,24 @@ Before research begins, establish the working branch.
 3. **Decision gate:**
 
    - If the current branch is the default branch (`main` / `master`),
-     **stop and propose a feature branch** to the user. Do not start
-     research on the default branch. Suggest a name based on the
+     pick a conventional `<type>/<issue#>-<slug>` name based on the
      issue (e.g., `feat/195-dmrg-envs`, `fix/187-arpack-info`,
-     `chore/<short-slug>`). Wait for explicit user approval before
-     creating the branch.
-   - If the current branch is already a non-default branch, confirm
-     with the user that this is the intended branch for the issue
-     (it may be a leftover from prior work). Proceed only after
-     confirmation.
+     `chore/<short-slug>`), create it, and proceed. Do not poll the
+     user for the name — branch names are throwaway closed-PR
+     metadata. Announce the chosen name in one line so the user can
+     intervene if they object, then continue without waiting.
+   - If the current branch is already a non-default branch, treat it
+     as the intended branch and proceed. Only stop if the branch name
+     plainly contradicts the issue (e.g., on `feat/100-foo` while
+     working #200) — in that case announce the mismatch and ask.
 
 4. Once the branch is settled, record it (and any switch / creation
    action you took) in the Phase 1 research notes so the implement
    phase can pick it up unambiguously.
 
 This phase exists to keep direct pushes off the default branch by
-making the question deterministic at the start of the work, not a
-remembered behavioral rule. Default → branch unless the user
-explicitly waives.
+making the question deterministic at the start of the work. Default →
+branch automatically; do not block on the user for naming.
 
 ## PHASE 1 — RESEARCH
 
