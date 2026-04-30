@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "End-to-end development workflow skills for Claude Code — research, implement, review, PR",
-    "version": "2026.4.16"
+    "version": "2026.4.17"
   },
   "plugins": [
     {
@@ -18,6 +18,9 @@
         "./skills/research-and-implement",
         "./skills/research",
         "./skills/implement",
+        "./skills/research-and-implement-egel",
+        "./skills/research-eg",
+        "./skills/implement-el",
         "./skills/codex-plan-review",
         "./skills/review-pipeline",
         "./skills/stage-commit-push",
