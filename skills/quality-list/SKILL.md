@@ -239,6 +239,16 @@ the old shape and silently rot.
   parent module's `//!` (or equivalent) docstring against the
   current set of children. Stale "lands in a subsequent phase",
   "currently exposes X" claims after Y was added are concerns.
+- For each new public callsite that produces, returns, or attaches
+  behavior to an existing public type (new function / method,
+  added trait implementation, added subclass / extension, etc.),
+  re-read that type's own definition-level docstring against the
+  current producer set. Definition-level docstrings often list
+  producers / consumers / sources of an instance (e.g. "raised
+  by X", "returned by X", "produced by X", "consumed by X") and
+  silently rot when the list grows. Same shape as the
+  parent-module docstring sweep one bullet up, applied to
+  type-level prose.
 - For each removed item: confirm no docstring elsewhere still
   references it.
 
@@ -273,6 +283,9 @@ is N/A — do not invent paired repos.
   any same-crate textual surface
 - `mod` add / remove / rename leaves the parent module's docstring
   stale
+- New producer / consumer / extension of a public type leaves the
+  type's definition-level docstring stale (e.g. "raised by X" /
+  "returned by X" / "consumed by X" that omits the new callsite)
 - New identifier's name claims a property the implementation does
   not enforce / does not produce
 - Same-repo paired artifact (`examples/`, `README.md`, doctest,
