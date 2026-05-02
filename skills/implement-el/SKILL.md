@@ -37,6 +37,11 @@ From the plan, extract:
 - **Impact list** (callers expected to be touched)
 - **Implementation guards** (assertions, paired APIs, constructor
   validations)
+- **Derivations** (specific examples and their deductive properties,
+  already verified in `research-eg` Step 2.B). The list of examples
+  whose properties have been derived defines the **derivationally
+  cleared example set** — examples not on this list are unverified
+  by the plan, regardless of how obvious their properties may seem.
 - **Inconclusive items** with their `probe` and `expected branches`
 - **Deferred items** with their `reason` and `resolution-point`
 
@@ -47,6 +52,14 @@ If the plan has no `Inconclusive / Deferred items` section at all,
 treat that as a research gap and stop. Do not synthesize the section
 yourself — silently filling it in defeats its purpose. Re-run
 `/research-eg` or ask the user to update the plan.
+
+If the plan has no `Derivations` section but the work involves
+specific-example fixtures (concrete Hamiltonians, concrete protocol
+messages, named worked cases, etc.), treat that as a research gap
+on the derivational axis and stop the same way. The absence of a
+`Derivations` section means no specific example has been
+derivationally cleared — implementing fixtures in that state is
+exactly the failure mode the gate exists to prevent.
 
 ## Step 3 — Run execution-loop
 
@@ -95,6 +108,56 @@ This rule prevents silent drift between plan and implementation. The
 plan's Inconclusive section is the only sanctioned channel for
 mid-implementation surprises.
 
+### 3.2.1 Specific-example derivation gate
+
+The Step 3.2 rule above covers behavioral / structural surprises. A
+parallel gate covers **the introduction of a new specific example**
+during implementation, review, or test addition — even when no
+"unexpected fact" has surfaced. This includes:
+
+- A concrete Hamiltonian, fixture, or input case being added to
+  satisfy a test plan that named only the abstract spec.
+- A worked numerical case being chosen to instantiate a property
+  the plan stated abstractly ("multi-sector W bond" → a particular
+  choice of operators that supposedly realizes it).
+- A protocol message, schema, or replay sequence being filled in
+  for a placeholder.
+- A test fixture acquiring concrete parameter values where the plan
+  only constrained their qualitative properties.
+
+For every such example, before adding the implementation:
+
+1. **Check the derivationally cleared example set** (extracted in
+   Step 2 from the plan's `Derivations` section). If the example is
+   on the list, it has already been derivationally verified during
+   research; proceed.
+2. **If the example is not on the list, halt.** Do not add it on
+   the strength of its properties feeling obvious. Properties that
+   feel obvious are exactly the ones that bypass derivation and
+   surface as fixture-construction bugs.
+3. **Required action when halted:** Surface to the user with: the
+   proposed example, the deductive properties it is being relied on
+   to satisfy (e.g., "this Hamiltonian must be U(1)-symmetric, must
+   be Hermitian, must be non-diagonal in the chosen basis, must
+   exercise the multi-sector path"), and the request to extend the
+   plan's `Derivations` section before proceeding. The derivation
+   itself is performed in `research-eg` Step 2.B, not in
+   implementation.
+
+A `rejected` derivational outcome (the example does not in fact
+satisfy the claimed properties) is a plan bug — return to research
+and choose a different example. Patching the example
+mid-implementation is the failure mode this gate exists to prevent.
+
+Typical failure mode this gate catches: a fixture is chosen during
+implementation on the strength of its "obvious" properties, the
+properties turn out to be either false (the example violates the
+class the test was supposed to constrain it to) or vacuous (the
+example is a degenerate case that fails to exercise the path the
+test was supposed to cover), and the bug surfaces only at fixture
+construction or test-output inspection. The derivation step would
+have rejected the example before any code was written.
+
 ### 3.3 Quality items during Execute / Review
 
 The substantive rules for implementation guards, test fixture design,
@@ -103,9 +166,14 @@ plan-vs-actual reconciliation all live in `quality-list` (items 5, 6,
 7, 11, 12). Honor whichever items the Step 3.0 preflight marked
 active for the current unit.
 
-The wrapper-specific contribution beyond `quality-list` is the
-**discovery handling** rule in Step 3.2 above: unlisted discoveries
-halt rather than getting ad-hoc-patched.
+The wrapper-specific contributions beyond `quality-list` are:
+
+- **Discovery handling** (Step 3.2): unlisted behavioral / structural
+  discoveries halt rather than getting ad-hoc-patched.
+- **Specific-example derivation gate** (Step 3.2.1): new concrete
+  examples introduced during implementation halt unless the plan's
+  `Derivations` section already covers them, regardless of how
+  obvious their properties seem.
 
 ## Step 4 — Run done-check
 
