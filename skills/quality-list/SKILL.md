@@ -254,14 +254,32 @@ the old shape and silently rot.
   "currently exposes X" claims after Y was added are concerns.
 - For each new public callsite that produces, returns, or attaches
   behavior to an existing public type (new function / method,
-  added trait implementation, added subclass / extension, etc.),
-  re-read that type's own definition-level docstring against the
-  current producer set. Definition-level docstrings often list
-  producers / consumers / sources of an instance (e.g. "raised
-  by X", "returned by X", "produced by X", "consumed by X") and
-  silently rot when the list grows. Same shape as the
-  parent-module docstring sweep one bullet up, applied to
-  type-level prose.
+  added trait implementation, added subclass / extension, etc.):
+  - Re-read that type's own definition-level docstring against the
+    current producer set. Definition-level docstrings often list
+    producers / consumers / sources of an instance (e.g. "raised
+    by X", "returned by X", "produced by X", "consumed by X") and
+    silently rot when the list grows.
+  - **Additionally, run a file-scoped grep over the shared type's
+    source file for the existing sibling's identifier.** When a
+    sibling function / method / handler / impl already exists, that
+    file frequently names it in surfaces that are *not* the type's
+    primary docstring:
+    - doc cross-references / link macros (rustdoc `[`X`]`, Sphinx
+      `:func:`X``, JSDoc `{@link X}`, KDoc `[X]`, etc.)
+    - user-facing message strings (formatter / `__str__` / `Display`
+      output, error messages, log lines, exception messages)
+    - per-case docs inside enumerated types (enum variants, sum-type
+      cases, discriminated-union members)
+    - example or "raised by" / "returned by" snippets in module-level
+      / namespace-level prose
+    Each hit must be evaluated for whether the new sibling should
+    also be named. Patching only the surfaces an external review
+    tool happens to flag is the failure mode this bullet exists to
+    prevent — review iterations on shared-type docs typically
+    cluster by surface kind (link macros one round, message strings
+    the next, format payloads the round after) and converge slowly
+    without a proactive grep.
 - For each removed item: confirm no docstring elsewhere still
   references it.
 
@@ -326,6 +344,26 @@ implementation without recording how it relates to the plan — is a
 concern. The plan's `Inconclusive / Deferred items` section is the
 only sanctioned channel for mid-implementation surprises.
 
+**Plan-enumeration completeness.** When the plan enumerates discrete
+artifacts to produce — test sub-cases, error variants, files to add,
+API methods to expose, fixture builders, sub-tasks in a checklist —
+every listed item must have a corresponding artifact in the diff.
+
+The default audit semantics for a plan enumeration is **exhaustive**:
+an N-item list demands N matching artifacts in the diff, mapped 1-to-1.
+Plan authors who intend a list to be **representative** (a sample, not
+the full set) must declare that inline (`(representative)` /
+`(illustrative)` / equivalent annotation on the list). Without an
+explicit annotation, the audit treats the list as exhaustive.
+
+This is the inverse failure mode of the silent-extra-divergence
+concern above: instead of the implementation adding work the plan did
+not anticipate, the implementation silently ships fewer artifacts than
+the plan promised. Both are plan-vs-actual concerns and both must be
+surfaced to the user before merge — either by completing the missing
+artifacts, marking them deferred with a follow-up, or annotating the
+plan list as representative.
+
 **Concern conditions:**
 
 - Implementation diverges from the plan and the divergence is not
@@ -336,6 +374,9 @@ only sanctioned channel for mid-implementation surprises.
   yes, this is incomplete work)
 - Plan was retroactively edited to match the implementation without
   user-visible surfacing
+- Plan enumerated N discrete artifacts (without `(representative)`
+  annotation) but the diff contains fewer than N, with no deferral
+  note explaining the gap
 
 **N/A:** there is no plan (ad-hoc edit, typo fix, no preceding
 research phase).
