@@ -79,9 +79,17 @@ that is not in the umbrella. Do not paraphrase load-bearing language.
   description.
 - **Scope** — bullets drawn from the umbrella's phase row plus any
   sub-table comment the umbrella references for that phase.
-- **Out of scope** — bullets drawn from (a) umbrella-level deferrals
-  pinned to this phase or downstream phases, plus (b) phase-row-
-  specific deferrals already noted in the umbrella.
+- **Out of scope** — bullets drawn from umbrella sub-table rows for
+  **unspawned sibling phases later than the chosen one**, formatted
+  as `<topic> (Phase <id>)`. The point is to pin scope-creep
+  boundaries against work the umbrella has already promised to a
+  future sub-issue. Umbrella-level deferrals shared across all
+  phases (e.g. "1-site DMRG", "opsum DSL") are NOT copied — they
+  live on the parent issue, and duplicating them adds noise without
+  information. Already-completed earlier phases are also not
+  listed (the boundary is forward-looking; nobody re-runs a closed
+  phase by accident). If no later-than-self phase remains
+  unspawned, omit the section entirely.
 - **Acceptance** — bullets drawn from the umbrella's phase row
   acceptance criteria.
 
