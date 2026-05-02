@@ -247,6 +247,12 @@ Runs only after the user has merged.
 - **Never skip codex review.** Even for small fixes, run the full loop. Codex review catches things that are invisible in the diff alone.
 - **Never inject previous review comments into the next review prompt.** Each review iteration must be fresh and unbiased, so it can catch both regressions from the fix and new problems.
 - **Every commit goes through `/stage-commit-push`.** Do not manually run git add/commit/push during the pipeline. The skill ensures consistent commit message generation.
+- **Pre-commit branch gate.** Before each `/stage-commit-push` invocation in this pipeline, verify the current branch is not the repo's default branch:
+
+      test "$(git symbolic-ref --short HEAD)" != \
+           "$(git symbolic-ref --short refs/remotes/origin/HEAD | sed 's@^origin/@@')"
+
+  Halt and surface to user if equal. The session-start branch baseline (e.g. `research-and-implement-egel` Phase 0) is one-shot and does not catch silent mid-session branch switches.
 - **Reply to Copilot comments individually**, not as a single PR comment. Use `gh api .../pulls/{number}/comments -X POST -F in_reply_to={comment_id}` for each.
 - **Triage is mandatory.** Never present raw review output to the user. Classify findings and lead with actionable items.
 - **Sub-classify actionable findings before fixing.** Not all actionable findings warrant the same response:
