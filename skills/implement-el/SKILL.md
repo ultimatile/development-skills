@@ -148,6 +148,46 @@ becomes part of the discovery contract — a unit that violates an
 active memory rule is treated the same way as a unit that violates
 a `quality-list` item.
 
+### 3.0.3 Project documentation recall
+
+Once per session, sweep the repository root and any obvious
+docs / convention directories for documents the project explicitly
+maintains as guidance for contributors or AI agents. Read each found
+document end-to-end (these are short by design — a contributor /
+agent guidance doc that is too long to read is broken regardless).
+
+Documents to look for (presence varies per repo — none of these are
+required to exist):
+
+- `CLAUDE.md` — Claude-specific operating notes / conventions.
+- `AGENTS.md` — generic AI-agent operating notes.
+- `CONTRIBUTING.md` — coding conventions and contributor rules.
+- `STYLE.md` / `STYLEGUIDE.md` — code style guide.
+- `HACKING.md` — internal developer notes.
+- `docs/CODING_GUIDELINES.md` / `docs/conventions/` — explicit
+  conventions directory.
+- `README.md` — only if it carries non-trivial contribution guidance
+  (most don't, but check).
+
+Procedure:
+
+1. List the repository root and the standard docs directories
+   (`docs/`, top-level only — do not crawl deeply).
+2. For each document found from the list above, read it.
+3. Thread the constraints / conventions into the plan's per-unit
+   checks the same way as Step 3.0.2 memory recall — violations
+   are discovery-contract violations.
+
+Documents not on the list above are skipped (e.g. `CHANGELOG.md`,
+`LICENSE`, design docs in subdirectories that are not labeled as
+contributor / agent guidance). Reading the entire `docs/` tree is
+out of scope; this step is about the documents whose explicit
+purpose is to bind contributor / agent behavior.
+
+The list above is canonical examples, not exhaustive. If a project
+maintains a clearly-labeled contributor / agent guidance document
+under a non-standard name, treat it as in-scope for this step.
+
 ### 3.1 Baseline
 
 Before any code change, build and run existing tests to record
