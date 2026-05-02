@@ -76,11 +76,57 @@ checks already include them. Re-invoke `todo-check` between units when
 the next unit changes the active item set (e.g., it introduces a new
 public API → items 7 and 11 become active).
 
+### 3.0.1 Pre-commit hook recall
+
+Once per session (cache for the duration of the conversation), read
+the project's pre-commit configuration to identify the constraints
+each hook will enforce. Typical config locations:
+`.pre-commit-config.yaml`, `lefthook.yml`, `.husky/`, the `[hooks]`
+section of a project task runner (e.g. `Makefile.toml` /
+`Justfile`).
+
+For each hook, summarize what it enforces. Do not memorize hook
+internals — the goal is to anticipate which checks will run at
+commit time, not to reproduce them. Pay particular attention to:
+
+- **Line-count / file-size limits.** Hooks that reject commits when
+  a file exceeds a threshold (production vs test, src vs vendored,
+  etc.). The correct response to a line-count violation is **file
+  split first, content trim only when the trimmed text is genuinely
+  redundant** — see `quality-list` item 9. Knowing the limit ahead
+  of time avoids the round-trip where a feature lands at the limit,
+  pre-commit rejects, and an emergency restructure follows.
+- **Linter constraints** that gate commits (e.g., warnings-as-errors
+  flags). These need to be visible during implementation, not
+  surfaced only at commit time. They feed into Step 3.1 Baseline.
+- **Custom checks** specific to the project (banned imports, header
+  enforcement, schema validation). Note their existence so the
+  implementation does not trip them.
+
+Formatter hooks (rustfmt, prettier, black, clang-format) do not
+need anticipation — they reformat in place at commit time, which is
+not a meaningful constraint on implementation choices.
+
+Output: a short summary of the binding constraints. Do not paste the
+configuration into context.
+
 ### 3.1 Baseline
 
 Before any code change, build and run existing tests to record
 pre-existing failures. Compare against this baseline at every
 verification step so new failures are distinguishable from prior state.
+
+Also run the project's linter (e.g., `cargo clippy`, `clang-tidy`,
+`ruff check`, `eslint`) and record pre-existing warnings. Linter
+output overlaps the test baseline conceptually — both establish what
+"clean" means before the work begins, so a new warning introduced by
+the change is distinguishable from one that was already present.
+Linters that are gated by pre-commit (Step 3.0.1) are particularly
+important to baseline, since the gate will reject the commit on any
+new violation regardless of pre-existing state.
+
+Formatters are excluded from baseline: they reformat in place at
+commit time and produce no warnings to track.
 
 ### 3.2 Discovery handling during Execute
 
