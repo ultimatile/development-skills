@@ -118,20 +118,35 @@ Subagent contract:
    inventing a reason. Shallow grep-only verification is permitted only
    for trivially mechanical hypotheses (existence checks, file
    locations).
-4. **Boundary cases**: trace minimal/maximal input sizes, type
+4. **Runtime probe (preferred for behavioral claims).** When the
+   hypothesis is about observable behavior — output ordering, return
+   shape, panic / error-path return, side-effect timing, ABI / FFI
+   layout, signal handling, performance characteristic, anything the
+   runtime decides rather than the source — construct a minimal
+   reproducer and execute it. Reading API docs / source comments is
+   corroboration, not verification. The reproducer should be small (a
+   short scratch program, an out-of-tree project, an ad-hoc invocation
+   of an existing example) — if a small reproducer is not enough, the
+   hypothesis probably needs to be split. Ensure the probe does not
+   harm the workspace: scratch files belong outside the project tree
+   (e.g. under `/tmp/`), and the probe must not modify project
+   sources, dependencies, configuration, persistent stores, or
+   external services. The probe should leave the workspace state
+   unchanged regardless of outcome.
+5. **Boundary cases**: trace minimal/maximal input sizes, type
    variations, single-element containers. These are common
    plan-vs-actual divergence sources.
-5. **For "what could break" hypotheses**: classify the change as
+6. **For "what could break" hypotheses**: classify the change as
    compile-breaking (new required trait method, type change) or
    silently semantic (same signature, different behavior). Semantic
    changes need caller-by-caller contract verification — the compiler
    will not catch them.
-6. **For safety-critical paths**: if any public API has unchecked
+7. **For safety-critical paths**: if any public API has unchecked
    internal assumptions (pointer arithmetic trusting an offset, a
    serializer trusting field order, an index trusting contiguity), flag
    it. A boundary contract violation propagates silently into these
    internals.
-7. Return a **Decision** in one of four states:
+8. Return a **Decision** in one of four states:
    - `confirmed` — supporting probe succeeded AND disconfirming probe
      was attempted and failed to refute
    - `rejected` — disconfirming probe yielded counter-evidence
@@ -139,7 +154,7 @@ Subagent contract:
      remaining `probe:` needed to resolve
    - `deferred` — real concern but outside current scope; attach reason
      and resolution-point
-8. Report back with concise file paths, line numbers, function
+9. Report back with concise file paths, line numbers, function
    signatures, and probe results.
 
 **Subagent granularity**: hypotheses requiring only existence checks or
