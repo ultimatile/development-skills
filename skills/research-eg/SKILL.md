@@ -37,8 +37,27 @@ task).
    free text.
 2. Skim the project layout (directory tree, CLAUDE.md, key entry
    points). Do NOT deep-read files yet; that is the subagent's job.
-3. **Establish a baseline**: build and run existing tests. Record
-   pre-existing failures so later regressions can be distinguished.
+3. **Establish baselines.**
+   - **Test baseline**: build and run existing tests. Record
+     pre-existing failures so later regressions can be distinguished.
+   - **Memory recall baseline**: read `MEMORY.md` (the index only),
+     and for each feedback / convention entry whose one-line
+     description plausibly intersects the work being scoped, open
+     the full entry and read it. Memory is passively loaded into
+     context but agents do not reliably recall passive context when
+     forming hypotheses, so this step makes the recall deliberate.
+     Representative triggers: adding new `pub` symbols (visibility
+     entries), adding or modifying tests (test convention entries),
+     pre-release work touching deprecation / aliases / shims
+     (backwards-compat policy), naming new helpers (naming-as-claim
+     entries), referencing prior issues / phases (issue-number-in-
+     code bans), touching repo / dev-docs boundaries (documentation
+     channel entries). Scope filter: if a memory entry does not
+     plausibly intersect the work, it is not active for this
+     research pass. The active list shapes hypothesis formation in
+     Step 1.4 and onward — a hypothesis that contradicts an active
+     memory rule is rejected at formation rather than carried into
+     probing.
 4. Form hypotheses across three aspects:
    - **What needs to change**: required code modifications
    - **What invariants must hold**: contracts / preconditions /

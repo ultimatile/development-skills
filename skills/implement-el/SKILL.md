@@ -110,6 +110,44 @@ not a meaningful constraint on implementation choices.
 Output: a short summary of the binding constraints. Do not paste the
 configuration into context.
 
+### 3.0.2 Memory recall
+
+Memory is loaded into context passively at session start, but agents
+do not reliably recall passive context when actually writing code —
+rules that "everyone knows" still get violated when a hot path
+through a code change does not actively reference them. This step
+exists to turn passive presence into a deliberate read once per
+session, scoped to the current work.
+
+Procedure:
+
+1. Read `MEMORY.md` (the index only; not every linked entry).
+2. For each feedback / convention entry whose one-line description
+   plausibly intersects the diff scope (the units listed in the plan
+   checklist from Step 2), open the full entry and read it.
+   Representative triggers:
+   - Adding new `pub` symbols → entries on visibility / public
+     surface.
+   - Adding or modifying tests → entries on test conventions.
+   - Writing anything that might reference prior issues / phases
+     → entries banning issue numbers / phase markers in code /
+     comments / test names.
+   - Pre-release work that touches deprecation, aliases, or shims
+     → entries on backwards-compat policy.
+   - Naming a new helper or wrapper → entries on naming-as-claim.
+   - Touching repo conventions → entries on documentation channel
+     boundaries (e.g., dev-docs vs main repo).
+3. Scope filter: if the unit's description does not plausibly invoke
+   the entry's surface, the entry is not active for that unit. Do
+   not exhaustively read every memory entry.
+
+Output: a short list of the memory rules active for the current
+work, threaded into the plan's per-unit checks alongside the
+`quality-list` items extracted by `todo-check`. The active list
+becomes part of the discovery contract — a unit that violates an
+active memory rule is treated the same way as a unit that violates
+a `quality-list` item.
+
 ### 3.1 Baseline
 
 Before any code change, build and run existing tests to record
