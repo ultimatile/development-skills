@@ -15,9 +15,10 @@ description: >
 
 # spawn-subissue
 
-Spawn one next sub-issue from an umbrella tracking issue with body
-sections extracted verbatim from the umbrella. No research, no plan
-review, no derivation — verification belongs to the leaf cycle.
+Spawn one next sub-issue from an umbrella tracking issue, with body
+sections extracted from the umbrella and reformulated for leaf scope.
+No research, no plan review, no derivation — verification belongs to
+the leaf cycle.
 
 ## When to use vs `plan-and-spawn`
 
@@ -67,11 +68,12 @@ If every listed phase already has a sub-issue, ask the user whether
 new phases need to be added to the umbrella or whether the umbrella
 should be closed.
 
-### Step 2 — Extract sections verbatim from the umbrella
+### Step 2 — Extract sections from the umbrella, reformulated for leaf scope
 
-For each section below, extract content from the umbrella **verbatim**
-where the umbrella speaks to the chosen phase. Do not invent content
-that is not in the umbrella. Do not paraphrase load-bearing language.
+Extract umbrella content for the chosen phase and reformulate it for
+the leaf's scope. Drop program-level framing ("subsequently", "across
+phases"). Do not invent content the umbrella did not promise. Do not
+weaken load-bearing technical terms.
 
 - **Parent reference** — `Parent: #<umbrella>` on the first line.
   Always included.
@@ -117,6 +119,8 @@ Present the extracted sections to the user. The user can:
   time is wanted after all.
 
 ### Step 4 — Spawn the sub-issue
+
+Follow the conventions defined in `file-issue`.
 
 ```bash
 gh issue create \
