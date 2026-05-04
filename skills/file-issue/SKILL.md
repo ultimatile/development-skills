@@ -1,6 +1,6 @@
 ---
 name: file-issue
-description: Draft and file a GitHub issue following the user's conventions. Use this skill whenever the user wants to create, draft, or file a GitHub issue, or when an investigation or discussion needs to be captured as a tracked issue. Enforces formatting rules (semantic line breaks, LaTeX math, no local references, English by default, concise but complete) before invoking `gh issue create`.
+description: Draft and file a GitHub issue following the user's conventions. Use this skill whenever the user wants to create, draft, or file a GitHub issue, or when an investigation or discussion needs to be captured as a tracked issue. Enforces formatting rules (semantic line breaks, GitHub/LaTeX-safe math, no local references, English by default, concise but complete) before invoking `gh issue create`.
 ---
 
 # File Issue
@@ -27,9 +27,13 @@ These rules are non-negotiable defaults. Apply them unless the user overrides ex
 
 ### Math
 
-- Use LaTeX notation for mathematical expressions, rendered with GitHub's `$...$` (inline) and `$$...$$` (display) math syntax.
+- Use LaTeX notation for mathematical expressions, rendered with GitHub's `` $`...`$ `` syntax for inline math and `$$...$$` syntax for display math.
+- Prefer `` $`...`$ `` over `$...$` for inline math in GitHub issues; it avoids common Markdown parsing conflicts.
 - Plain text inside backticks is fine when the symbol must match a code identifier verbatim (e.g., `` `alpha_t` `` referring to a variable named `alpha_t` in the code).
-- Do NOT write raw Unicode math characters (α, β, ⊗, ∑, ∇, †, etc.) in prose. Use `$\alpha$`, `$\otimes$`, `$\sum$`, `$\nabla$`, `$\dagger$` instead. Unicode-math-in-prose is the user's strongest formatting dislike.
+- Do NOT write raw Unicode math characters (α, β, ⊗, ∑, ∇, †, etc.) in prose. Use `` $`\alpha`$ ``, `` $`\otimes`$ ``, `` $`\sum`$ ``, `` $`\nabla`$ ``, `` $`\dagger`$ `` instead. Unicode-math-in-prose is the user's strongest formatting dislike.
+- Avoid `\_` in GitHub/LaTeX math. Use `` $`\mathrm{\textunderscore}`$ `` when an underscore glyph is required in math mode.
+- Do NOT use `\textunderscore` inside `\text{...}` or `\texttt{...}`; GitHub's LaTeX-style math rendering does not accept it there. Restructure the expression, or put the literal identifier in Markdown backticks outside math when exact code spelling matters.
+- When two inline math spans are separated by punctuation, put a space before the second math opener so GitHub recognizes it. Write `` $`K_1`$/ $`K_2`$ ``, not `` $`K_1`$/$`K_2`$ ``.
 
 ### References
 
