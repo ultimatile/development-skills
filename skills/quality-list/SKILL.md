@@ -22,9 +22,27 @@ referenced by:
 When you change an item here, both skills pick up the change. Do not
 copy these rules into other skills.
 
+## Audit lanes
+
+Each item is tagged for which audit lane it belongs to in
+`done-check`'s split between fresh-context subagent audit and
+main-context audit:
+
+- **mechanical** — judgable from literal diff text + literal code
+  text + literal rule text alone, with no need for conversation
+  history, plan context, or actual command execution. Delegated to a
+  fresh-context subagent in `done-check` Step 2 to neutralize the
+  author's blindspot for what their own comments and code actually
+  say (vs what they meant them to say).
+- **contextual** — requires plan / intent / review history that only
+  the main context has, OR requires running a command against the
+  working tree to gather evidence. Stays in main context.
+
+Tags are listed inline on each item below.
+
 ---
 
-## 1. Invariant derivation (when fixing)
+## 1. Invariant derivation (when fixing) [contextual]
 
 For any fix in response to a bug, review finding, or failing test
 classified as **invariant-bearing**, derive complete necessary-and-
@@ -39,7 +57,7 @@ persistence consistency, security / permission boundaries.
 **N/A:** the change is a typo, stale comment, doc tweak, or other
 surface fix where the conclusion is self-evident from the diff.
 
-## 2. Purpose verification
+## 2. Purpose verification [contextual]
 
 The change must accomplish its stated purpose, not just compile and
 pass existing tests. Exercise the new behavior end-to-end against an
@@ -47,7 +65,7 @@ input that exposes the purpose.
 
 **N/A:** strictly mechanical changes (rename, file move, formatting).
 
-## 3. Pattern audit
+## 3. Pattern audit [contextual]
 
 If a pattern was copied from existing code (sibling module, prior
 wrapper, parallel type), evaluate (a) whether the source pattern is
@@ -57,7 +75,7 @@ pattern to a different context are both concerns.
 
 **N/A:** no pattern was reused; the change is a fresh design.
 
-## 4. Scope discipline
+## 4. Scope discipline [contextual]
 
 Review findings and design concerns must be evaluated against the
 code's actual role, not narrowed to the originating task. Dismissing
@@ -65,7 +83,7 @@ a real defect with "out of scope for this issue" is a concern.
 
 **N/A:** no findings or concerns were raised during the work.
 
-## 5. Behavior coverage
+## 5. Behavior coverage [mechanical]
 
 Tests must exercise the **implemented behavior**, not just trip the
 code paths. Cover both representatives of the realistic input space
@@ -113,7 +131,7 @@ helper, not per-type duplication.
 **N/A:** the diff is purely mechanical (rename, formatting, file
 move) or documentation-only.
 
-## 6. Implementation guards
+## 6. Implementation guards [mechanical]
 
 Invariants that must hold at runtime are encoded as **assertions**
 (`assert!` / `debug_assert!` / equivalent), not docstring claims or
@@ -135,7 +153,7 @@ field, not a heuristic.
 **N/A:** the change introduces no new invariants (pure data movement,
 simple delegation, formatting).
 
-## 7. Impact / caller verification
+## 7. Impact / caller verification [mechanical]
 
 If the change has a planned impact list (from research or design
 notes), verify it against the actual diff:
@@ -158,7 +176,7 @@ callers and confirm each remains consistent with the change.
 **N/A:** the change touches no symbol with cross-module callers
 (internal helper with single use site, isolated test, etc.).
 
-## 8. Test execution
+## 8. Test execution [contextual]
 
 The relevant test suite was actually run, the results were observed,
 and any failures were investigated. "Compiles clean" or "existing
@@ -177,7 +195,7 @@ regressions are concerns regardless of the project's prior state.
 **N/A:** truly mechanical changes (rename, formatting, file move)
 where there is no test surface to exercise.
 
-## 9. Completion hygiene
+## 9. Completion hygiene [contextual]
 
 Project-standard format / lint / type-check / build commands ran
 clean against the diff. Use the project's actual commands; examples:
@@ -213,7 +231,7 @@ documentation that would have explained the unit is gone).
 
 **N/A:** documentation-only changes with no code touched.
 
-## 10. Architectural boundary integrity
+## 10. Architectural boundary integrity [mechanical]
 
 If the project has an architectural rule about dependency direction
 or module boundaries — layered ordering, hexagonal / clean
@@ -233,7 +251,7 @@ inward-pointing, a documented module DAG, a public / internal split
 **N/A:** the project has no architectural rule, or the diff
 introduces no relevant imports / dep edges / public symbols.
 
-## 11. Textual / paired-artifact drift sweep
+## 11. Textual / paired-artifact drift sweep [mechanical]
 
 Renames, removals, and module-structure changes have to be threaded
 through every textual surface that names them. Going through only
@@ -392,7 +410,7 @@ claims (specific numbers, identifiers, properties, or notation),
 and touches no API / schema / contract surface paired artifacts
 could mirror.
 
-## 12. Discovery surfacing (plan-vs-actual)
+## 12. Discovery surfacing (plan-vs-actual) [contextual]
 
 If a research plan exists for this work, every divergence between
 the plan and the implementation must trace to one of:
