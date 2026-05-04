@@ -290,6 +290,57 @@ produces `Mixed { center: 0 }` instead — is a concern. Helpers that
 wrap a parametrized API call should be named after the parameter
 values they pin, not after the operational role they happen to serve.
 
+**New-comment claim sweep (author-blindspot mitigation).** Authors
+read what they meant their comments to say; reviewers read the
+literal text. The two diverge silently. For every comment / docstring
+**newly added or modified** in the diff, perform a literal-vs-code
+cross-check before marking item 11 ✅. This is the lane that catches
+"comment says `rel_tol = 1e-9` but code uses `1e-4`" / "doc says
+`SU(2)` but generator produces `U(2)`" / "doc says `V_g^T H_2 V_g` but
+code computes `V_g^† H_2 V_g`" / "doc says `simultaneously
+diagonalizes` but code only does so up to a clustering tolerance" —
+all of which are the author's intent leaking past the literal text.
+
+For each new / modified comment, extract:
+
+- **Numeric literals** (`1e-9`, `tol = 1e-12`, `m >= 2`, `O(1e-4)`,
+  threshold names with values). Cross-check that every such number
+  appears verbatim somewhere in the same translation unit / module
+  / file scope. If the comment names a `tol` value, the corresponding
+  `constexpr` / `const` / parameter should use the same literal.
+- **Identifiers and code-like spans** (function names, variable
+  names, type names, mathematical notation like `V_g^T`, `V^†`, `M^*`,
+  `\dagger`, `^T`, conjugate vs transpose). For each, verify the code
+  it refers to is spelled / behaves the same way. `^T` vs `^†` /
+  `transpose` vs `adjoint` are easy to slip when the operands are
+  real (so the two coincide numerically) but the comment is read
+  literally.
+- **Set / distribution / property claims** (`SU(2)`, `Haar`,
+  `traceless`, `unitary`, `Hermitian`, `non-zero trace`,
+  `simultaneously diagonalizes`, `orthogonal`, `non-degenerate`,
+  `uniformly distributed`, `bounded`, `monotone`, `convergent`).
+  For each, verify the code provably enforces the claim or — if it
+  only enforces the claim *up to a tolerance / under a precondition*
+  — verify the qualifier is in the comment too. "X is Hermitian" in
+  a comment over code that constructs X by independent
+  accumulations of `(a,b)` and `(b,a)` is a concern unless the code
+  also enforces symmetry (e.g., mirrors a triangle); the qualifier
+  ("up to ULP-level noise" or "after explicit symmetrization") must
+  be present or the construction must enforce the claim
+  structurally.
+
+The check is mechanical, not heuristic: if the comment names a
+specific value / identifier / property, the code must back it up at
+the level of literal text. Vague hand-waving that has no extractable
+claim is fine; specific assertions are the failure surface.
+
+**Cold-read pass.** After the literal-vs-code sweep, re-read each
+new / modified comment as if you had never seen the code — trying
+to construct what the code would have to do to make the comment
+true. If the construction differs from what the code actually does,
+the comment is misleading regardless of whether any specific
+literal is wrong.
+
 **Same-repo paired artifacts.** API / schema / contract changes
 ripple beyond the crate. Sweep these surfaces in the same repo:
 
@@ -319,6 +370,16 @@ is N/A — do not invent paired repos.
   "returned by X" / "consumed by X" that omits the new callsite)
 - New identifier's name claims a property the implementation does
   not enforce / does not produce
+- New / modified comment names a specific numeric literal, identifier,
+  set / distribution / property, or mathematical notation that does
+  not match the code (e.g. `rel_tol = 1e-9` in a comment vs `1e-4`
+  in code; `SU(2)` in a comment vs `U(2)` from the generator;
+  `V_g^T` in a comment vs `V_g^†` in code without a real-V_g
+  qualifier; `simultaneously diagonalizes` without the clustering-
+  tolerance qualifier when the code only does so up to tolerance)
+- New / modified comment makes a claim that a cold-read of the
+  comment alone would lead a reader to expect different behavior
+  than the code actually produces
 - Same-repo paired artifact (`examples/`, `README.md`, doctest,
   migration) references the old API and was not updated
 - Declared cross-repo paired artifact diverged and was not updated
@@ -326,8 +387,10 @@ is N/A — do not invent paired repos.
 
 **N/A:** the diff renames / removes nothing, adds / removes /
 renames no modules, adds no identifiers whose name encodes a
-behavioral claim, and touches no API / schema / contract surface
-paired artifacts could mirror.
+behavioral claim, adds / modifies no comments that make extractable
+claims (specific numbers, identifiers, properties, or notation),
+and touches no API / schema / contract surface paired artifacts
+could mirror.
 
 ## 12. Discovery surfacing (plan-vs-actual)
 
