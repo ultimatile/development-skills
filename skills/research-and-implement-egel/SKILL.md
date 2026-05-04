@@ -49,10 +49,56 @@ The plan posted to the issue MUST include the `Inconclusive / Deferred
 items` section (or `Inconclusive / Deferred items: none identified`).
 This section is the discovery contract Phase 2 will enforce.
 
+## PHASE 1.5 — PLAN REVIEW GATE (mandatory)
+
+Plan review is consistently mishandled when left to ad-hoc judgement —
+trivial changes skip it (fine), risky changes also skip it (not fine),
+and the decision is made on the basis of how confident the plan author
+feels rather than how exposed the plan is. The gate makes the decision
+deterministic.
+
+After the plan is posted in Phase 1 and before implementation begins:
+
+1. **Always offer `codex-plan-review`** — never silently skip. Phrase it
+   as a recommendation, not a question:
+
+   > "Plan posted. Recommend running `/codex-plan-review` before
+   > implementation; type `skip` to bypass, or anything else to run it."
+
+   Bypassing is a deliberate user choice, not the default.
+
+2. **If review runs**: triage the findings.
+   - **Implementation concerns** (algorithm details, error handling,
+     test coverage gaps, naming): patch the plan in place, post a
+     short revision comment to the issue, and proceed to Phase 2.
+   - **Premise concerns** (the assumed root cause may be wrong, the
+     described mechanism doesn't match how the code actually fails,
+     a fixture's claimed properties may not hold, an "obvious"
+     derivation is unproven): **re-enter `/research-eg` from Step 1**.
+     Do not patch the plan in place — the hypothesis set itself is
+     suspect, and incremental edits perpetuate the bad premise across
+     iterations.
+
+   Distinguishing the two: an implementation concern asks "given the
+   plan's assumptions, is the proposed approach sound?"; a premise
+   concern asks "are the plan's assumptions actually true?". If the
+   reviewer would have given a different answer with empirical
+   evidence in hand, it's a premise concern.
+
+3. **If a plan revision results from review** (either lane), the
+   revised plan is the new contract. Re-post it as a fresh comment
+   on the issue (not an edit) so the discovery contract trail is
+   auditable. If `/research-eg` was re-entered, it overwrites the
+   prior plan automatically per its own Step 5 rules.
+
+The cost of running `codex-plan-review` once per cycle is minutes; the
+cost of carrying a wrong-premise plan through implementation is
+hours-to-days of rework. Bias toward running it.
+
 ## PHASE 2 — IMPLEMENT
 
-After Phase 1 completes and the user approves the plan, execute
-`/implement-el $ARGUMENTS`.
+After Phase 1.5 settles and the user approves the (possibly revised)
+plan, execute `/implement-el $ARGUMENTS`.
 
 Phase 2 will halt rather than ad-hoc-patch any mid-implementation
 discovery that is not listed in the plan's discovery contract. If that
