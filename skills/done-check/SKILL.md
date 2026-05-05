@@ -52,7 +52,7 @@ not this file, when adding or modifying items.
      below)
    - the literal text of the codebase you can read with your tools
 
-   For each of items 5, 6, 7, 10, 11 below, return one of:
+   For each of items 5, 6, 7, 10, 11, 13 below, return one of:
 
    - ✅ pass — with concrete evidence (file:line, identifier, or
      literal-text match) that the rule is satisfied
@@ -67,15 +67,25 @@ not this file, when adding or modifying items.
    "intended" — if the literal text says one thing and the code does
    another, that is a ⚠.
 
+   For item 13 (license compliance for ported code), grep the diff
+   for textual signals — "ported from", "derived from", "based on",
+   "adapted from", "from $project", and any external project name in
+   new comments — and verify that any such signal is matched by an
+   attribution comment naming source URL, upstream copyright, and
+   license. If a NOTICE / THIRD_PARTY-style file is added or
+   modified, follow the upstream URL it cites and confirm the
+   upstream actually has the file the derivative claims to mirror.
+
    Report concisely (under 600 words):
-   - one row per item (5, 6, 7, 10, 11) with Result + Evidence + Note
+   - one row per item (5, 6, 7, 10, 11, 13) with Result + Evidence +
+     Note
    - a final list of any cross-cutting concerns spanning multiple
      items
    ```
 
    Embed the actual diff (committed + staged + unstaged) and the full
-   text of items 5, 6, 7, 10, 11 from `quality-list` directly in the
-   prompt — the subagent has no access to the parent's context.
+   text of items 5, 6, 7, 10, 11, 13 from `quality-list` directly in
+   the prompt — the subagent has no access to the parent's context.
 
    The subagent runs in parallel with main-context steps 3 below; do
    not block waiting for it unless step 4 requires the result.
@@ -91,11 +101,21 @@ not this file, when adding or modifying items.
    - 3 (pattern audit) — needs awareness of which patterns were
      consciously copied vs independently reinvented
 
+   Item 13 (license compliance for ports) is dual-lane: the subagent
+   handles the *declared* case (literal grep for "ported from" /
+   "derived from" / external project names → verify attribution);
+   main context handles the *undeclared* case where the conversation
+   history shows research surfaced an external implementation that
+   the diff structurally mirrors but no comment names. If research
+   identified an upstream reference and the diff looks like it
+   followed it, demand attribution even if no comment marks the
+   port.
+
    Mark each as **✅ pass**, **⚠ concern**, or **⊘ N/A** with
    evidence as in step 4 below.
 
 4. **Merge results.** When the subagent (step 2) returns, integrate
-   its 5 rows with main-context's 7 rows into a single 12-row table.
+   its 6 rows with main-context's 7 rows into a single 13-row table.
    For each ⚠ from the subagent, decide:
 
    - **True positive** — fix before proceeding (same as a main-context
@@ -149,6 +169,7 @@ self-audit: <commit-range or "uncommitted">
 | 10 | Architectural boundary            | ⊘ N/A  |                                         | no new imports / dep edges / pub widening      |
 | 11 | Textual / paired-artifact drift   | ✅     | rg <old-name>; parent //! re-read       |                                                |
 | 12 | Discovery surfacing               | ⊘ N/A  |                                         | no plan exists                                 |
+| 13 | License / attribution for ports   | ⊘ N/A  |                                         | no external code ported                        |
 ```
 
 Item numbering and titles must follow `quality-list` exactly. If the
