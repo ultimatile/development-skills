@@ -300,6 +300,18 @@ the old shape and silently rot.
     without a proactive grep.
 - For each removed item: confirm no docstring elsewhere still
   references it.
+- **For each *deleted code block within a function body*** (loop
+  removed, branch dropped, intermediate variable inlined away),
+  re-read every comment **inside the same function** against the
+  post-deletion control flow. Authors routinely visually skim past
+  comments that sit immediately above or below the deletion site
+  during a structural change, leaving them describing a flow that
+  no longer exists ("the V_canon column-reorder absorbs the
+  permutation" after the permutation loop was deleted; "in the next
+  step we shift cz back" after the shift was hoisted out). The
+  rg-by-identifier sweep catches this only when the deleted code
+  introduced a *named* artifact; structural deletions need an
+  explicit re-read of the function-local commentary.
 
 **Naming-as-claim.** A new identifier whose name asserts a property
 the implementation does not in fact provide — e.g.
@@ -370,6 +382,13 @@ ripple beyond the crate. Sweep these surfaces in the same repo:
 - migration / schema files if the change affects persistence
 - generated artifacts that should be regenerated (e.g., protobuf,
   bindgen output)
+- **the PR description itself**, if a PR is open or imminent. PR
+  bodies routinely re-state numeric tolerances, identifier names,
+  and structural claims from the code's docstrings (`atol ≈ 2.2e-12`
+  in the PR body vs `≈ 2.2e-10` in the docstring). The PR body and
+  the code are separately editable surfaces; whenever a numeric
+  literal, identifier, or property claim from the code appears in
+  the PR body, the two must agree at the level of literal text.
 
 **Cross-repo paired artifacts (opt-in).** If the repo declares
 external paired artifacts (e.g., a reference implementation in another
@@ -400,6 +419,11 @@ is N/A — do not invent paired repos.
   than the code actually produces
 - Same-repo paired artifact (`examples/`, `README.md`, doctest,
   migration) references the old API and was not updated
+- A code block was deleted inside a function and a same-function
+  comment still describes the deleted control flow / variable /
+  intermediate result
+- The PR description and the code disagree on a numeric literal,
+  identifier, or property claim that appears in both
 - Declared cross-repo paired artifact diverged and was not updated
   or re-declared as deferred
 
