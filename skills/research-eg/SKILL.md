@@ -86,6 +86,25 @@ task).
    exist, would the claim still have a definite truth value?" Yes →
    derivational. No → empirical.
 
+   **Numerical verification stays derivational.** A hypothesis whose
+   resolution path is "construct a candidate (formula, fixture,
+   matrix) → check it numerically against an existing oracle (a
+   spec, a reference value, a closed-form ground truth)" is
+   **derivational**, not empirical. The candidate construction is
+   deterministic from public sources, and the verification touches
+   no runtime state of the codebase under research. Such a
+   hypothesis is resolved in Step 2.B by running a scratch script
+   (numpy / sympy / out-of-tree program) against the oracle, not by
+   writing production code in the project tree.
+
+   The signal that a probe has been misclassified: its action is
+   "write code in the project, then check whether it works." That
+   action is neither empirical (it does not observe runtime) nor a
+   proper derivational step (it produces production-code drift
+   instead of a derivation artifact). It is a derivational gap
+   dressed as an empirical probe — re-classify and resolve in
+   Step 2.B before the plan exits research.
+
 7. **Specific-example claim sweep (REQUIRED when applicable).** If
    the plan proposes a specific concrete example (a particular
    Hamiltonian, a particular input fixture, a particular protocol
@@ -186,11 +205,27 @@ evidence-gated-review ledger; the main context will merge them.
 ### Step 2.B — Derivational hypotheses (deductive verification in main context)
 
 Each `derivational` hypothesis is resolved by working out the
-deduction explicitly, not by reading code. Subagents are not
-appropriate here — the derivation lives in the plan, not in the
-codebase, and a subagent dispatched to "check" it will either
-(a) re-grep the code (irrelevant) or (b) attempt the same derivation
-the main context owes the user (no advantage over doing it directly).
+deduction explicitly, not by reading code. The deduction may take
+either form:
+
+- **Symbolic** — pen-and-paper algebra, formal manipulation of
+  defining equations, type-law rewriting, protocol-axiom
+  application.
+- **Numerical** — when the closed form is too messy for pen-and-
+  paper but reduces to a numerical identity verifiable against an
+  existing oracle (a published reference matrix, a closed-form
+  spec, a ground-truth value), run a scratch script (numpy / sympy
+  / out-of-tree program) and compare to the oracle. The numerical
+  run **is part of the derivation**, performed in research, and is
+  not a deferred implementation probe. Production code in the
+  project tree is not written for this lane — only out-of-tree
+  scratch artifacts.
+
+Both stay in research. Subagents are not appropriate here — the
+derivation lives in the plan, not in the codebase, and a subagent
+dispatched to "check" it will either (a) re-grep the code
+(irrelevant) or (b) attempt the same derivation the main context
+owes the user (no advantage over doing it directly).
 
 For each derivational hypothesis:
 
@@ -213,9 +248,15 @@ For each derivational hypothesis:
    - `rejected` — counterexample constructed (the claim is false;
      plan needs revision before continuing)
    - `inconclusive` — derivation incomplete due to missing axiom /
-     ambiguous spec; attach the missing piece as a `probe:` (this
-     probe is now empirical — locate the missing axiom — and routes
-     back through Step 2.A)
+     ambiguous spec / unresolved sign or convention conflict between
+     sources; attach the missing piece as a `probe:` (this probe is
+     now empirical — locate the missing axiom or canonical reference
+     — and routes back through Step 2.A). **"The algebra is too messy
+     / I will code it up in the project and check at implementation
+     time" is not a valid `inconclusive` state.** That is a
+     derivational gap and must be resolved by the numerical-derivation
+     lane above (scratch script, out of tree, against an oracle)
+     before the plan exits research.
    - `deferred` — outside current scope; attach reason and
      resolution-point
 
