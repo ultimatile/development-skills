@@ -390,6 +390,43 @@ ripple beyond the crate. Sweep these surfaces in the same repo:
   literal, identifier, or property claim from the code appears in
   the PR body, the two must agree at the level of literal text.
 
+**User-visible-concept spread (drip-mitigation).** A user-visible
+concept — an output / log key (`peak_bp_sweep=`, `level=info`), a
+CLI flag (`--debug_bp_diagnostics`), a CLI option's *description
+text* (the `add_option` / `add_flag` help string), a runtime warning
+or error message string, a test format-string assertion (`out.find(
+"X=") != npos`) — typically lives across many surfaces at once.
+Adding such a concept, renaming it, or changing its semantics
+ripples beyond the producer code. Sweep these surfaces in the same
+fix iteration:
+
+- the producer site (the code that emits it)
+- CLI help text — the `add_option` / `add_flag` *description* string
+  that ships with `--help`. This is a user-facing contract, distinct
+  from `docs/` prose and routinely overlooked when prose is updated
+  in isolation.
+- runtime warning / error / log strings that name the concept
+- regression-test format-string assertions — tests that lock the
+  surface to a specific spelling. Every key the production path
+  emits must be in the assertion set for the diagnostic format to
+  be regression-guarded; partial assertion sets silently allow
+  later additions to drift.
+- the PR description and **commit messages staged for the current
+  fix iteration**. Commit messages are immutable post-push, so a
+  rename / wording change must be picked up before the next
+  `git commit`.
+
+Repeated review rounds that each surface a single new finding
+pointing to a different paired artifact (CLI help text, then docs,
+then test assert, then commit message, etc.) are the typical
+signal that this sweep was incomplete: each round finds another
+surface that still describes the prior shape. The mechanical
+version of this sweep is `rg <concept-name>` (case-sensitive, with
+and without the trailing `=` / `:` separator as appropriate) over
+the touched directories plus the staged commit messages and PR
+body — exhaustive enumeration is preferable to selectively
+patching the surfaces an external reviewer happens to flag.
+
 **Cross-repo paired artifacts (opt-in).** If the repo declares
 external paired artifacts (e.g., a reference implementation in another
 language, a client library expected to track this API, a published
@@ -424,6 +461,11 @@ is N/A — do not invent paired repos.
   intermediate result
 - The PR description and the code disagree on a numeric literal,
   identifier, or property claim that appears in both
+- A user-visible concept (output key, CLI flag, runtime warning,
+  log key, error message string, test format-string assertion) was
+  added / renamed / re-spelled in one surface but a sibling surface
+  (CLI help text, docs, doxygen, regression-test asserts, staged
+  commit message) still names the prior shape
 - Declared cross-repo paired artifact diverged and was not updated
   or re-declared as deferred
 
