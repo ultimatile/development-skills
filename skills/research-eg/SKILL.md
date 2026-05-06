@@ -345,9 +345,56 @@ state what you checked.
 
 Report the plan back to the main context.
 
+## Step 3.5 — Plan review gate (mandatory offer)
+
+Plan review is consistently mishandled when left to ad-hoc judgement —
+trivial changes skip it (fine), risky changes also skip it (not fine),
+and the decision is made on the basis of how confident the plan author
+feels rather than how exposed the plan is. The gate makes the decision
+deterministic. Running review before Step 5 (GitHub post) keeps the
+issue trail clean: only the reviewed plan is ever posted, so a premise
+problem caught here does not produce a noisy "first plan / revised
+plan" sequence on the issue.
+
+After Step 3 produces a plan and before Step 4 collects user approval:
+
+1. **Always offer `codex-plan-review`** — never silently skip. Phrase it
+   as a recommendation, not a question:
+
+   > "Plan ready. Recommend running `/codex-plan-review` before
+   > approval; type `skip` to bypass, or anything else to run it."
+
+   Bypassing is a deliberate user choice, not the default.
+
+2. **If review runs**: triage the findings.
+   - **Implementation concerns** (algorithm details, error handling,
+     test coverage gaps, naming): patch the plan in place and
+     proceed to Step 4 with the revised plan.
+   - **Premise concerns** (the assumed root cause may be wrong, the
+     described mechanism doesn't match how the code actually fails,
+     a fixture's claimed properties may not hold, an "obvious"
+     derivation is unproven): **return to Step 1**. Do not patch the
+     plan in place — the hypothesis set itself is suspect, and
+     incremental edits perpetuate the bad premise across iterations.
+
+   Distinguishing the two: an implementation concern asks "given the
+   plan's assumptions, is the proposed approach sound?"; a premise
+   concern asks "are the plan's assumptions actually true?". If the
+   reviewer would have given a different answer with empirical
+   evidence in hand, it's a premise concern.
+
+3. **The plan that exits this step is the contract.** Step 5 will post
+   that plan once. Revisions happen here, before posting; there is no
+   "post then revise" loop.
+
+The cost of running `codex-plan-review` once per cycle is minutes; the
+cost of carrying a wrong-premise plan through implementation is
+hours-to-days of rework. Bias toward running it.
+
 ## Step 4 — User approval
 
-Present the plan and ask for approval before posting to GitHub.
+Present the plan (after any Step 3.5 revisions) and ask for approval
+before posting to GitHub.
 
 ## Step 5 — Post plan to GitHub
 
