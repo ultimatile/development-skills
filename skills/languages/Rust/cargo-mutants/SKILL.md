@@ -30,6 +30,10 @@ Output lives in `mutants.out/`:
 | `outcomes.json` | Machine-readable outcomes for the whole run |
 | `mutants.json` | All mutants the planner generated, including filtered ones |
 
+## Forbidden flag: `--in-place`
+
+**Never pass `--in-place`.** It mutates the working tree directly, so any abnormal termination leaves the source holding the last applied mutation, and subsequent `cargo` commands operate on corrupted source. Default mode copies the workspace to a temp directory before mutating, leaving the original tree untouched.
+
 ## Mutant name format — the trap
 
 `exclude_re` matches against the **full mutant name string** as printed by `cargo mutants --list`. The string format depends on the mutation kind:
