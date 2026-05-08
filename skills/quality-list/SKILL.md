@@ -143,7 +143,7 @@ cannot be reliably inferred from existing fields get an explicit
 field, not a heuristic.
 
 **Public-function entry validation.** The constructor rule above
-generalises to every public function. Any parameter that gates
+generalizes to every public function. Any parameter that gates
 downstream allocation, iteration, or arithmetic — sizes, counts,
 ranks, dimensions, integer exponents that feed `2^n` / `4^n` /
 similar overflow-prone arithmetic, finite collections that must be
