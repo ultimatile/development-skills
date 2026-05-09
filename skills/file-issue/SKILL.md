@@ -15,52 +15,24 @@ Skip this skill if the user is just discussing — only invoke when the intent i
 
 ## Conventions
 
-These rules are non-negotiable defaults. Apply them unless the user overrides explicitly.
+Apply the rules in `gh-body-conventions` to the title and body. The
+two issue-specific points to reinforce:
 
-### Formatting
-
-- **Semantic line breaks, not column wrapping.** Do NOT hard-wrap to 72/80 columns the way commit message bodies do. Break lines at sentence boundaries, clause boundaries, or paragraph boundaries — wherever the structure of the prose suggests. The reader uses a wide viewport; column-wrapped issue bodies read as random ragged text.
-  - One sentence per line, OR
-  - One clause per line for long sentences, OR
-  - Plain paragraphs with blank-line separation.
-- Pick whichever of the three above is most readable for the content; do not mix styles within one section.
-
-### Math
-
-- Use LaTeX notation for mathematical expressions, rendered with GitHub's `` $`...`$ `` syntax for inline math and `$$...$$` syntax for display math.
-- Prefer `` $`...`$ `` over `$...$` for inline math in GitHub issues; it avoids common Markdown parsing conflicts.
-- Plain text inside backticks is fine when the symbol must match a code identifier verbatim (e.g., `` `alpha_t` `` referring to a variable named `alpha_t` in the code).
-- Do NOT write raw Unicode math characters (α, β, ⊗, ∑, ∇, †, etc.) in prose. Use `` $`\alpha`$ ``, `` $`\otimes`$ ``, `` $`\sum`$ ``, `` $`\nabla`$ ``, `` $`\dagger`$ `` instead. Unicode-math-in-prose is the user's strongest formatting dislike.
-- Avoid `\_` in GitHub/LaTeX math. Use `` $`\mathrm{\textunderscore}`$ `` when an underscore glyph is required in math mode.
-- Do NOT use `\textunderscore` inside `\text{...}` or `\texttt{...}`; GitHub's LaTeX-style math rendering does not accept it there. Restructure the expression, or put the literal identifier in Markdown backticks outside math when exact code spelling matters.
-- When two inline math spans are separated by punctuation, put a space before the second math opener so GitHub recognizes it. Write `` $`K_1`$/ $`K_2`$ ``, not `` $`K_1`$/$`K_2`$ ``.
-
-### References
-
-- Do NOT cite local file paths, line numbers, local notes, HPC cluster paths, or anything an external reader cannot open.
-- If the substance of a local reference matters, inline its content (quote, paraphrase, or reproduce the relevant snippet) so the issue is self-contained.
-- External references (arXiv, DOI, public repo URLs, public docs, other issues/PRs in the same or public repos) are fine.
-- Cross-repo references to *private* repos are also off-limits — same reason.
-
-### Language
-
-- Default to English for the title and body.
-- Use Japanese only when the user explicitly asks for it, or when the surrounding repo's existing issues are predominantly Japanese.
+- **Semantic line breaks, not column wrapping.** Most-violated rule
+  on issue bodies — do not hard-wrap at 72/80 the way commit bodies
+  do.
+- **Line numbers are forbidden in the issue body.** Issue bodies
+  refer to the default branch's `HEAD` implicitly, which moves; cited
+  line numbers go stale. Inline a code snippet instead. (PR bodies,
+  governed by `file-pullreq`, are different — they are anchored to
+  specific commits, so line refs there do not rot.)
 
 ### Length
 
-- Be concise but do not omit explanation. Say what is needed and stop.
-- Aim for: problem statement, minimal reproduction or evidence, proposed direction (if any). Skip narrative scaffolding ("As we discussed...", "Following up on..."), restated context the reader can see from the repo, and exhaustive option enumeration when one option is clearly preferred.
-- A typical issue is 5–25 lines of body. Longer is fine when warranted (e.g., a design proposal with alternatives) — but every paragraph should be earning its place.
-
-### Exclusions
-
-The body must NOT contain:
-- Local filesystem paths (`/Users/...`, `~/...`, absolute paths).
-- Line numbers from local files.
-- HPC cluster names, hostnames, queue names, or scheduler-specific context that is irrelevant to the upstream reader.
-- References to the user's private repos, skills, or workflow internals.
-- Phase/step numbers from the working session ("Phase 2 of the umbrella", "Step 3 of the plan") unless the issue is *itself* an umbrella sub-issue where that structure is public.
+A typical issue body is 5–25 lines. Longer is fine when warranted
+(e.g., a design proposal with alternatives), but every paragraph
+should earn its place. Aim for: problem statement, minimal
+reproduction or evidence, proposed direction (if any).
 
 ## Procedure
 
@@ -97,13 +69,26 @@ Produce a title and body following the conventions above.
 
 Section headings are optional for short issues — a 5-line body often needs no headings at all.
 
-### 3. Show for approval
+### 3. Laundering pass
 
-Present the draft to the user verbatim before filing. Do not file without confirmation.
+Before showing the draft, run the cold re-read across the five axes
+(References / Tone / Language / Structure / Trigger-flag — see
+CLAUDE.md "Two-surface boundary and laundering before publishing").
+Mandatory before every `gh issue create` / `gh issue comment`. The
+mechanical exclusions in `gh-body-conventions` cover known leak
+shapes; the cold re-read catches novel ones.
+
+Trigger flag: if the chat just used private framing (internal phase
+numbers, project nicknames, JP clauses, private path references,
+"as we discussed"), assume priming and re-read more carefully.
+
+### 4. Show for approval
+
+Present the laundered draft to the user verbatim before filing. Do not file without confirmation.
 
 If the user requests changes, revise and re-show. Do not file partially — the next step runs only after explicit approval.
 
-### 4. File
+### 5. File
 
 ```bash
 gh issue create \
@@ -119,7 +104,7 @@ Always use HEREDOC for the body to preserve formatting and avoid shell escaping 
 
 If labels or assignees are appropriate and the user mentioned them, add `--label` / `--assignee` flags. Do not invent labels — only use ones the user named or that are obviously required by the repo's template.
 
-### 5. Report
+### 6. Report
 
 After filing, show the user:
 - The issue number and URL.
