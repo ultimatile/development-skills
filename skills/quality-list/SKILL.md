@@ -177,6 +177,14 @@ actually called.
   call's error message rather than one naming the entry they invoked
 - A piece of state is reconstructed from heuristics on existing
   fields rather than tracked explicitly
+- A function whose docstring documents a runtime contract (panics,
+  raises, aborts, throws on invalid input) uses an assertion that is
+  compiled out / disabled in release / optimized / production builds
+  for the contract-triggering check. The documented contract is
+  silently unenforced where the assertion is disabled. Language
+  instances: Rust `debug_assert!`, C/C++ `assert()` under NDEBUG,
+  Python `assert` under `-O`, Java `assert` (off by default), Julia
+  `@boundscheck` under `@inbounds` / `--check-bounds=no`.
 
 **N/A:** the change introduces no new invariants (pure data movement,
 simple delegation, formatting).
