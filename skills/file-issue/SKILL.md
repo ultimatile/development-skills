@@ -15,24 +15,14 @@ Skip this skill if the user is just discussing — only invoke when the intent i
 
 ## Conventions
 
-Apply the rules in `gh-body-conventions` to the title and body. The
-two issue-specific points to reinforce:
+Apply the rules in `gh-body-conventions` to the title and body. The two issue-specific points to reinforce:
 
-- **Semantic line breaks, not column wrapping.** Most-violated rule
-  on issue bodies — do not hard-wrap at 72/80 the way commit bodies
-  do.
-- **Line numbers are forbidden in the issue body.** Issue bodies
-  refer to the default branch's `HEAD` implicitly, which moves; cited
-  line numbers go stale. Inline a code snippet instead. (PR bodies,
-  governed by `file-pullreq`, are different — they are anchored to
-  specific commits, so line refs there do not rot.)
+- **Semantic line breaks, not column wrapping.** Most-violated rule on issue bodies — do not hard-wrap at 72/80 the way commit bodies do.
+- **Line numbers are forbidden in the issue body.** Issue bodies refer to the default branch's `HEAD` implicitly, which moves; cited line numbers go stale. Inline a code snippet instead. (PR bodies, governed by `file-pullreq`, are different — they are anchored to specific commits, so line refs there do not rot.)
 
 ### Length
 
-A typical issue body is 5–25 lines. Longer is fine when warranted
-(e.g., a design proposal with alternatives), but every paragraph
-should earn its place. Aim for: problem statement, minimal
-reproduction or evidence, proposed direction (if any).
+A typical issue body is 5–25 lines. Longer is fine when warranted (e.g., a design proposal with alternatives), but every paragraph should earn its place. Aim for: problem statement, minimal reproduction or evidence, proposed direction (if any).
 
 ## Procedure
 
@@ -71,16 +61,9 @@ Section headings are optional for short issues — a 5-line body often needs no 
 
 ### 3. Laundering pass
 
-Before showing the draft, run the cold re-read across the five axes
-(References / Tone / Language / Structure / Trigger-flag — see
-CLAUDE.md "Two-surface boundary and laundering before publishing").
-Mandatory before every `gh issue create` / `gh issue comment`. The
-mechanical exclusions in `gh-body-conventions` cover known leak
-shapes; the cold re-read catches novel ones.
+Before showing the draft, run the cold re-read across the five axes (References / Tone / Language / Structure / Trigger-flag — see CLAUDE.md "Two-surface boundary and laundering before publishing"). Mandatory before every `gh issue create` / `gh issue comment`. The mechanical exclusions in `gh-body-conventions` cover known leak shapes; the cold re-read catches novel ones.
 
-Trigger flag: if the chat just used private framing (internal phase
-numbers, project nicknames, JP clauses, private path references,
-"as we discussed"), assume priming and re-read more carefully.
+Trigger flag: if the chat just used private framing (internal phase numbers, project nicknames, JP clauses, private path references, "as we discussed"), assume priming and re-read more carefully.
 
 ### 4. Show for approval
 

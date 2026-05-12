@@ -14,20 +14,14 @@ description: >
 
 # Codex Contract-Test Review
 
-A focused Codex pass that asks one question: **does this test express
-the contract its name/comment claims?** Secondary: any critical bug in
-the test code itself.
+A focused Codex pass that asks one question: **does this test express the contract its name/comment claims?** Secondary: any critical bug in the test code itself.
 
-This is *not* a full review — alternative test designs, additional
-test suggestions, and stylistic nits are explicitly out of scope.
+This is *not* a full review — alternative test designs, additional test suggestions, and stylistic nits are explicitly out of scope.
 
 ## When to use
 
-- After `bug-to-contract` adds a test, before merging in a context
-  where the full codex-review / copilot-review loop is too heavy
-  (review-pipeline Phase 3)
-- When you want a second opinion on whether a contract test actually
-  catches the bug class it claims to catch
+- After `bug-to-contract` adds a test, before merging in a context where the full codex-review / copilot-review loop is too heavy (review-pipeline Phase 3)
+- When you want a second opinion on whether a contract test actually catches the bug class it claims to catch
 
 ## Procedure
 
@@ -43,8 +37,7 @@ test suggestions, and stylistic nits are explicitly out of scope.
 
 ### 2. Build the prompt
 
-Use the XML-block template below. Drop blocks that do not fit; keep
-order stable.
+Use the XML-block template below. Drop blocks that do not fit; keep order stable.
 
 ```xml
 <task>
@@ -136,20 +129,13 @@ findings to fill the slots.
 ```
 
 Block selection rationale:
-- `grounding_rules`: prevents the reviewer from trusting the test
-  name / docstring instead of reading the assertions
-- `structured_output_contract`: hard caps (max 3 primary, max 2
-  secondary, max 5 total) keep the output narrow and triageable
-- `dig_deeper_nudge`: enumerates the failure modes that contract
-  tests typically fall into — without this list the reviewer tends
-  to stop at the first plausible concern
-- `missing_context_gating`: forbids "you should also test X" creep
-  — depth control's main lever
-- `verification_loop`: explicit early-exit clause — without it the
-  reviewer will manufacture findings to fill the structured slots
+- `grounding_rules`: prevents the reviewer from trusting the test name / docstring instead of reading the assertions
+- `structured_output_contract`: hard caps (max 3 primary, max 2 secondary, max 5 total) keep the output narrow and triageable
+- `dig_deeper_nudge`: enumerates the failure modes that contract tests typically fall into — without this list the reviewer tends to stop at the first plausible concern
+- `missing_context_gating`: forbids "you should also test X" creep — depth control's main lever
+- `verification_loop`: explicit early-exit clause — without it the reviewer will manufacture findings to fill the structured slots
 - No `action_safety`: read-only review
-- No `completeness_contract`: scope is one test addition; one pass
-  is sufficient
+- No `completeness_contract`: scope is one test addition; one pass is sufficient
 
 ### 3. Run Codex
 
@@ -157,33 +143,24 @@ Block selection rationale:
 codex exec "<prompt>" < /dev/null -o /tmp/codex-contract-test-review.md
 ```
 
-- Always use `< /dev/null` to prevent stdin hanging in
-  background / automated contexts
+- Always use `< /dev/null` to prevent stdin hanging in background / automated contexts
 - Set timeout to 600000ms (10 minutes); typical run is 30s–2min
 - Use `-o` to capture output for reliable retrieval
 
 ### 4. Triage the feedback
 
-Apply the same triage discipline as `codex-review` and
-`codex-plan-review`:
+Apply the same triage discipline as `codex-review` and `codex-plan-review`:
 
-- **Actionable**: a real contract-expression flaw or critical bug
-  that would let the original bug class through
-- **False positive**: a concern that doesn't apply given project
-  context the reviewer can't see
-- **Defer**: out of scope for the current contract test
-  (e.g., expanding to a different contract)
+- **Actionable**: a real contract-expression flaw or critical bug that would let the original bug class through
+- **False positive**: a concern that doesn't apply given project context the reviewer can't see
+- **Defer**: out of scope for the current contract test (e.g., expanding to a different contract)
 
 Present the triage to the user, not the raw output.
 
 ### 5. Apply or push
 
-- If actionable findings exist: revise the test, then re-run this
-  skill once. One re-review iteration is the cap — repeated
-  iteration on a single contract test signals the contract itself
-  is unclear; escalate to the user instead of looping.
-- If clean: proceed to `/stage-commit-push` (or whatever the
-  caller's commit step is).
+- If actionable findings exist: revise the test, then re-run this skill once. One re-review iteration is the cap — repeated iteration on a single contract test signals the contract itself is unclear; escalate to the user instead of looping.
+- If clean: proceed to `/stage-commit-push` (or whatever the caller's commit step is).
 
 ## What this skill is good at catching
 
@@ -195,7 +172,5 @@ Present the triage to the user, not the raw output.
 ## What this skill is bad at
 
 - Project-specific scope decisions (will defer to open questions)
-- Trade-off judgments about test coverage breadth (the user makes
-  these calls)
-- Anything outside the test-vs-contract relationship — for full
-  diff review, use `codex-review` instead
+- Trade-off judgments about test coverage breadth (the user makes these calls)
+- Anything outside the test-vs-contract relationship — for full diff review, use `codex-review` instead

@@ -5,15 +5,9 @@ description: Full automated review pipeline — done-check, codex review, fix lo
 
 # Review Pipeline
 
-Orchestrate the full flow from local changes through PR review, user
-merge, postmortem elevation, and umbrella drift join. This skill ties
-together several sub-skills — invoke each by name.
+Orchestrate the full flow from local changes through PR review, user merge, postmortem elevation, and umbrella drift join. This skill ties together several sub-skills — invoke each by name.
 
-The pipeline crosses a **user-controlled merge gate**: the user (not
-Claude) merges the PR. Phases before the gate run on the PR branch;
-phases after the gate run on `main` and on tracking issues. The
-`← user merges PR ←` line in the diagram marks the boundary
-explicitly so Claude pauses there.
+The pipeline crosses a **user-controlled merge gate**: the user (not Claude) merges the PR. Phases before the gate run on the PR branch; phases after the gate run on `main` and on tracking issues. The `← user merges PR ←` line in the diagram marks the boundary explicitly so Claude pauses there.
 
 ## Pipeline
 
@@ -102,13 +96,10 @@ explicitly so Claude pauses there.
 
 ## Phase 0: Done-check loop
 
-0a. Run `/done-check` against the current diff (committed + staged + unstaged + untracked)
-0b. Triage the audit table — every `⚠` concern is actionable
-0c. If concerns exist:
+0a. Run `/done-check` against the current diff (committed + staged + unstaged + untracked) 0b. Triage the audit table — every `⚠` concern is actionable 0c. If concerns exist:
    - Fix the code
    - Run `/done-check` again (fresh, full audit — same rule as the codex review loop: do not bias the next pass with the previous concerns list)
-   - Re-triage
-0d. Repeat until all rows are `✅` or `⊘ N/A`
+   - Re-triage 0d. Repeat until all rows are `✅` or `⊘ N/A`
 
 Done-check runs **before** any commit. Resolving its concerns post-commit produces noisy fix-up commits in the codex review history; resolving them pre-commit keeps each commit a meaningful unit.
 
@@ -127,8 +118,7 @@ Done-check runs **before** any commit. Resolving its concerns post-commit produc
 
 ## Phase 2: Copilot review
 
-6a. Run `/file-pullreq` in **gate mode** — drafts the PR title + body following `gh-body-conventions` and the egel-aligned skeleton, runs the laundering pass, and gets the user's approval. The skill stops at approval and emits the approved title + body for the next step. It does NOT create the PR itself.
-6b. Run `/copilot-review`, passing the approved title + body — this creates the PR with `--reviewer @copilot` and polls until the review arrives.
+6a. Run `/file-pullreq` in **gate mode** — drafts the PR title + body following `gh-body-conventions` and the egel-aligned skeleton, runs the laundering pass, and gets the user's approval. The skill stops at approval and emits the approved title + body for the next step. It does NOT create the PR itself. 6b. Run `/copilot-review`, passing the approved title + body — this creates the PR with `--reviewer @copilot` and polls until the review arrives.
 7. Triage the review — filter to the latest review's comments only (by `pull_request_review_id`)
 8. Reply to each inline comment individually via `gh api .../pulls/{number}/comments -X POST -F in_reply_to={id}`
 9. If actionable findings exist:
@@ -141,47 +131,24 @@ Done-check runs **before** any commit. Resolving its concerns post-commit produc
 
 ## Phase 3: Postmortem elevation (pre-merge)
 
-After Phase 1 + 2 are clean, before the user merges, fold review
-findings into durable artifacts:
+After Phase 1 + 2 are clean, before the user merges, fold review findings into durable artifacts:
 
-11. **`/bug-to-contract`** — for each actionable finding from Phase 1
-    and 2 (not just fix commits), ask whether an implicit contract
-    was violated and whether it is now tested. Any finding that
-    required a code change is evidence of a missing contract,
-    regardless of whether the fix was a one-line doc tweak or a
-    multi-file refactor.
+11. **`/bug-to-contract`** — for each actionable finding from Phase 1 and 2 (not just fix commits), ask whether an implicit contract was violated and whether it is now tested. Any finding that required a code change is evidence of a missing contract, regardless of whether the fix was a one-line doc tweak or a multi-file refactor.
 
-12. **`/codex-contract-test-review`** — for each contract test added
-    in Step 11, run a narrow Codex pass that asks: does the test
-    actually express the claimed contract, and would it fail on the
-    original buggy implementation? This is a lighter substitute for
-    a full re-run of Phase 1 + 2 on the contract-test commits, which
-    would otherwise be excessive.
+12. **`/codex-contract-test-review`** — for each contract test added in Step 11, run a narrow Codex pass that asks: does the test actually express the claimed contract, and would it fail on the original buggy implementation? This is a lighter substitute for a full re-run of Phase 1 + 2 on the contract-test commits, which would otherwise be excessive.
 
-    - If actionable findings: revise the test and re-run this step
-      **once**. Repeated iteration signals the contract itself is
-      unclear — escalate to the user.
+    - If actionable findings: revise the test and re-run this step **once**. Repeated iteration signals the contract itself is unclear — escalate to the user.
     - If clean: continue.
 
-13. **`/finding-to-audit`** — for findings whose detection would have
-    been **diff-inspectable** (import direction, `pub` widening,
-    missing standard trait impl, debug artifacts, hardcoded values,
-    FFI output dropped, etc.), elevate to a pre-commit audit rule in
-    the `done-check` skill (or the relevant host skill). This edits
-    the `development-skills` repo, which is independent of the
-    project's merge gate — commits land without waiting on Phase 4.
+13. **`/finding-to-audit`** — for findings whose detection would have been **diff-inspectable** (import direction, `pub` widening, missing standard trait impl, debug artifacts, hardcoded values, FFI output dropped, etc.), elevate to a pre-commit audit rule in the `done-check` skill (or the relevant host skill). This edits the `development-skills` repo, which is independent of the project's merge gate — commits land without waiting on Phase 4.
 
-14. **`/stage-commit-push`** — push the contract-test commits in the
-    project repo.
+14. **`/stage-commit-push`** — push the contract-test commits in the project repo.
 
-A finding can map to either `bug-to-contract`, `finding-to-audit`,
-both, or neither. Use both when both apply.
+A finding can map to either `bug-to-contract`, `finding-to-audit`, both, or neither. Use both when both apply.
 
 ## Phase 4a: PR description delta (pre-merge)
 
-Skip when the work is not tied to an umbrella tracking issue.
-Trigger only when the merged-bound PR or its `Closes #N` references
-a sub-issue with a `Parent: #<umbrella>` line.
+Skip when the work is not tied to an umbrella tracking issue. Trigger only when the merged-bound PR or its `Closes #N` references a sub-issue with a `Parent: #<umbrella>` line.
 
 15. **Find the parent reference.** Read the sub-issue body:
 
@@ -191,38 +158,21 @@ a sub-issue with a `Parent: #<umbrella>` line.
 
     No match → skip Phase 4a and 4b entirely.
 
-16. **Derive the plan-vs-actual delta.** Compare the sub-issue's
-    Scope / Out of scope / Acceptance against the merged-bound PR's
-    actual diff and behavior. Cover:
-    - Scope additions (work that landed but was not in the
-      original Scope) — was it justified, or scope creep?
-    - Scope subtractions (Scope items that were deferred or
-      dropped) — were they punted to a follow-up issue?
-    - Out-of-scope churn (deferrals that became in-scope, or new
-      deferrals discovered during implementation)
-    - Acceptance criteria that were tightened, loosened, or
-      reworded during review
+16. **Derive the plan-vs-actual delta.** Compare the sub-issue's Scope / Out of scope / Acceptance against the merged-bound PR's actual diff and behavior. Cover:
+    - Scope additions (work that landed but was not in the original Scope) — was it justified, or scope creep?
+    - Scope subtractions (Scope items that were deferred or dropped) — were they punted to a follow-up issue?
+    - Out-of-scope churn (deferrals that became in-scope, or new deferrals discovered during implementation)
+    - Acceptance criteria that were tightened, loosened, or reworded during review
 
-    A "no delta" outcome (everything matched) is a valid answer —
-    record it explicitly so the join step is auditable.
+    A "no delta" outcome (everything matched) is a valid answer — record it explicitly so the join step is auditable.
 
-17. **Edit the PR description.** Append a `## Plan-vs-actual delta`
-    section to the existing body — full delta with file/line
-    evidence and links to the relevant review iterations. This is
-    the most detailed surface; it stays attached to the merged PR
-    for future bisect readers. Done pre-merge so the merge commit's
-    link to the PR has the complete context.
+17. **Edit the PR description.** Append a `## Plan-vs-actual delta` section to the existing body — full delta with file/line evidence and links to the relevant review iterations. This is the most detailed surface; it stays attached to the merged PR for future bisect readers. Done pre-merge so the merge commit's link to the PR has the complete context.
 
-    Apply `gh-body-conventions` to the appended section — same
-    semantic line breaks, same exclusions, same laundering pass as
-    the original body. Line refs into this PR's diff are permitted
-    (the PR is anchored to specific commits and will not rot).
+    Apply `gh-body-conventions` to the appended section — same semantic line breaks, same exclusions, same laundering pass as the original body. Line refs into this PR's diff are permitted (the PR is anchored to specific commits and will not rot).
 
 ## ← user merges PR ←
 
-Stop here. The user merges the PR via the GitHub UI or
-`gh pr merge`. Do not attempt the merge from Claude unless the user
-explicitly asks.
+Stop here. The user merges the PR via the GitHub UI or `gh pr merge`. Do not attempt the merge from Claude unless the user explicitly asks.
 
 After the user confirms the merge has landed, continue to Phase 4b.
 
@@ -230,22 +180,11 @@ After the user confirms the merge has landed, continue to Phase 4b.
 
 Runs only after the user has merged.
 
-18. **Sub-issue closing comment.** Post a compressed delta
-    (≈ 5–10 lines) plus the merged PR link via
-    `gh issue comment <leaf#>`, then close the sub-issue with
-    `gh issue close <leaf#>`.
+18. **Sub-issue closing comment.** Post a compressed delta (≈ 5–10 lines) plus the merged PR link via `gh issue comment <leaf#>`, then close the sub-issue with `gh issue close <leaf#>`.
 
-19. **Umbrella body update.** Edit only when the delta changes a
-    **parent-level design assumption** — a new deferral that
-    affects another phase, a scope shift that invalidates the
-    Phases table, a decision that contradicts the umbrella's
-    "Decisions captured" section. A clean implementation with no
-    parent-level implications gets no umbrella edit.
+19. **Umbrella body update.** Edit only when the delta changes a **parent-level design assumption** — a new deferral that affects another phase, a scope shift that invalidates the Phases table, a decision that contradicts the umbrella's "Decisions captured" section. A clean implementation with no parent-level implications gets no umbrella edit.
 
-20. **Do not edit the sub-issue body.** It was the frozen
-    plan-confirmed contract; the closing comment is the journal
-    entry. Editing the body rewrites history that other surfaces
-    (PR title, commit messages) already point to.
+20. **Do not edit the sub-issue body.** It was the frozen plan-confirmed contract; the closing comment is the journal entry. Editing the body rewrites history that other surfaces (PR title, commit messages) already point to.
 
 ## Rules
 
@@ -259,8 +198,7 @@ Runs only after the user has merged.
 - **Every commit goes through `/stage-commit-push`.** Do not manually run git add/commit/push during the pipeline. The skill ensures consistent commit message generation.
 - **Pre-commit branch gate.** Before each `/stage-commit-push` invocation in this pipeline, verify the current branch is not the repo's default branch:
 
-      test "$(git symbolic-ref --short HEAD)" != \
-           "$(git symbolic-ref --short refs/remotes/origin/HEAD | sed 's@^origin/@@')"
+      test "$(git symbolic-ref --short HEAD)" != \ "$(git symbolic-ref --short refs/remotes/origin/HEAD | sed 's@^origin/@@')"
 
   Halt and surface to user if equal. The session-start branch baseline (e.g. `research-and-implement-egel` Phase 0) is one-shot and does not catch silent mid-session branch switches.
 - **Reply to Copilot comments individually**, not as a single PR comment. Use `gh api .../pulls/{number}/comments -X POST -F in_reply_to={comment_id}` for each.

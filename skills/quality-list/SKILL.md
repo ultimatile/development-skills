@@ -11,32 +11,19 @@ description: >
 
 # Quality List (SSOT)
 
-This skill is **a definition file, not a runnable procedure**. It is
-referenced by:
+This skill is **a definition file, not a runnable procedure**. It is referenced by:
 
-- `done-check` — applies each item as a post-hoc audit against the
-  current diff (✅ / ⚠ / ⊘ N/A).
-- `todo-check` — applies each item as a preflight before / during
-  implementation, asking what to set up so the item will pass.
+- `done-check` — applies each item as a post-hoc audit against the current diff (✅ / ⚠ / ⊘ N/A).
+- `todo-check` — applies each item as a preflight before / during implementation, asking what to set up so the item will pass.
 
-When you change an item here, both skills pick up the change. Do not
-copy these rules into other skills.
+When you change an item here, both skills pick up the change. Do not copy these rules into other skills.
 
 ## Audit lanes
 
-Each item is tagged for which audit lane it belongs to in
-`done-check`'s split between fresh-context subagent audit and
-main-context audit:
+Each item is tagged for which audit lane it belongs to in `done-check`'s split between fresh-context subagent audit and main-context audit:
 
-- **mechanical** — judgable from literal diff text + literal code
-  text + literal rule text alone, with no need for conversation
-  history, plan context, or actual command execution. Delegated to a
-  fresh-context subagent in `done-check` Step 2 to neutralize the
-  author's blindspot for what their own comments and code actually
-  say (vs what they meant them to say).
-- **contextual** — requires plan / intent / review history that only
-  the main context has, OR requires running a command against the
-  working tree to gather evidence. Stays in main context.
+- **mechanical** — judgable from literal diff text + literal code text + literal rule text alone, with no need for conversation history, plan context, or actual command execution. Delegated to a fresh-context subagent in `done-check` Step 2 to neutralize the author's blindspot for what their own comments and code actually say (vs what they meant them to say).
+- **contextual** — requires plan / intent / review history that only the main context has, OR requires running a command against the working tree to gather evidence. Stays in main context.
 
 Tags are listed inline on each item below.
 
@@ -44,183 +31,93 @@ Tags are listed inline on each item below.
 
 ## 1. Invariant derivation (when fixing) [contextual]
 
-For any fix in response to a bug, review finding, or failing test
-classified as **invariant-bearing**, derive complete necessary-and-
-sufficient conditions from first principles before committing.
-Incremental "patch the symptom" fixes are concerns.
+For any fix in response to a bug, review finding, or failing test classified as **invariant-bearing**, derive complete necessary-and-sufficient conditions from first principles before committing. Incremental "patch the symptom" fixes are concerns.
 
-Representative invariant-bearing classes: boundary conditions, type /
-unit / width conversions, numerical computation, concurrency, state
-transitions, protocol or spec contracts, external API contracts, data
-persistence consistency, security / permission boundaries.
+Representative invariant-bearing classes: boundary conditions, type / unit / width conversions, numerical computation, concurrency, state transitions, protocol or spec contracts, external API contracts, data persistence consistency, security / permission boundaries.
 
-**N/A:** the change is a typo, stale comment, doc tweak, or other
-surface fix where the conclusion is self-evident from the diff.
+**N/A:** the change is a typo, stale comment, doc tweak, or other surface fix where the conclusion is self-evident from the diff.
 
 ## 2. Purpose verification [contextual]
 
-The change must accomplish its stated purpose, not just compile and
-pass existing tests. Exercise the new behavior end-to-end against an
-input that exposes the purpose.
+The change must accomplish its stated purpose, not just compile and pass existing tests. Exercise the new behavior end-to-end against an input that exposes the purpose.
 
 **N/A:** strictly mechanical changes (rename, file move, formatting).
 
 ## 3. Pattern audit [contextual]
 
-If a pattern was copied from existing code (sibling module, prior
-wrapper, parallel type), evaluate (a) whether the source pattern is
-itself correct, and (b) whether the source's context applies to the
-current usage. Inheriting a pattern's bugs OR misapplying a correct
-pattern to a different context are both concerns.
+If a pattern was copied from existing code (sibling module, prior wrapper, parallel type), evaluate (a) whether the source pattern is itself correct, and (b) whether the source's context applies to the current usage. Inheriting a pattern's bugs OR misapplying a correct pattern to a different context are both concerns.
 
 **N/A:** no pattern was reused; the change is a fresh design.
 
 ## 4. Scope discipline [contextual]
 
-Review findings and design concerns must be evaluated against the
-code's actual role, not narrowed to the originating task. Dismissing
-a real defect with "out of scope for this issue" is a concern.
+Review findings and design concerns must be evaluated against the code's actual role, not narrowed to the originating task. Dismissing a real defect with "out of scope for this issue" is a concern.
 
 **N/A:** no findings or concerns were raised during the work.
 
 ## 5. Behavior coverage [mechanical]
 
-Tests must exercise the **implemented behavior**, not just trip the
-code paths. Cover both representatives of the realistic input space
-and the corner cases the implementation handles — neither alone is
-sufficient. Identity matrix only, size-1 only, all-zero or all-equal
-only, diagonal-only when the implementation handles general matrices:
-these do not visit the behavior the change introduced. (Size-1 / 1×1
-is often itself a corner case, not a representative.)
+Tests must exercise the **implemented behavior**, not just trip the code paths. Cover both representatives of the realistic input space and the corner cases the implementation handles — neither alone is sufficient. Identity matrix only, size-1 only, all-zero or all-equal only, diagonal-only when the implementation handles general matrices: these do not visit the behavior the change introduced. (Size-1 / 1×1 is often itself a corner case, not a representative.)
 
-For tensor-network / structured-data code in particular, the smallest
-non-trivial fixture must include at least one bulk (non-edge) unit. A
-2-site MPS has only edge tensors; use 3+ sites so a bulk tensor is
-exercised. Apply the same rule to other domains: the smallest fixture
-that still exercises every code path the change introduced.
+For tensor-network / structured-data code in particular, the smallest non-trivial fixture must include at least one bulk (non-edge) unit. A 2-site MPS has only edge tensors; use 3+ sites so a bulk tensor is exercised. Apply the same rule to other domains: the smallest fixture that still exercises every code path the change introduced.
 
-When the implementation has error / failure paths (I/O, network,
-concurrency, fallible operations, cleanup), tests must cover those
-too — not just the happy path.
+When the implementation has error / failure paths (I/O, network, concurrency, fallible operations, cleanup), tests must cover those too — not just the happy path.
 
-Contract-style tests (asserting the invariant the implementation
-must satisfy, not just its output on one example) automatically
-satisfy this. Trivial output-comparison tests on identity inputs do
-not.
+Contract-style tests (asserting the invariant the implementation must satisfy, not just its output on one example) automatically satisfy this. Trivial output-comparison tests on identity inputs do not.
 
-When multiple types share semantics — and the language / test
-framework supports it — generalize via a single type-parametric
-helper, not per-type duplication.
+When multiple types share semantics — and the language / test framework supports it — generalize via a single type-parametric helper, not per-type duplication.
 
 **Concern conditions:**
 
 - Behavior was added or changed but no test was added
-- Tests only exercise trivial / degenerate inputs (no representative
-  case)
+- Tests only exercise trivial / degenerate inputs (no representative case)
 - Representative cases tested but corner cases skipped
-- Implementation has error / cleanup paths but only the happy path is
-  tested
+- Implementation has error / cleanup paths but only the happy path is tested
 - Multiple near-identical per-type tests instead of a generic helper
-- New code populates state (a field, slot, storage, output buffer)
-  but no test reads that state directly. Transitive consistency — a
-  test that happens to pass through an unrelated helper while the
-  new state is never observed — does not satisfy this. For each
-  newly written-to location, point to at least one assertion that
-  reads it.
+- New code populates state (a field, slot, storage, output buffer) but no test reads that state directly. Transitive consistency — a test that happens to pass through an unrelated helper while the new state is never observed — does not satisfy this. For each newly written-to location, point to at least one assertion that reads it.
 
-**N/A:** the diff is purely mechanical (rename, formatting, file
-move) or documentation-only.
+**N/A:** the diff is purely mechanical (rename, formatting, file move) or documentation-only.
 
 ## 6. Implementation guards [mechanical]
 
-Invariants that must hold at runtime are encoded as **assertions**
-(`assert!` / `debug_assert!` / equivalent), not docstring claims or
-comments. When a guard is added to one API method, its paired /
-sibling methods get the same guard for consistency. Constructors
-validate every parameter they accept at construction time — never
-defer validation to a setter or to the caller. Properties that
-cannot be reliably inferred from existing fields get an explicit
-field, not a heuristic.
+Invariants that must hold at runtime are encoded as **assertions** (`assert!` / `debug_assert!` / equivalent), not docstring claims or comments. When a guard is added to one API method, its paired / sibling methods get the same guard for consistency. Constructors validate every parameter they accept at construction time — never defer validation to a setter or to the caller. Properties that cannot be reliably inferred from existing fields get an explicit field, not a heuristic.
 
-**Public-function entry validation.** The constructor rule above
-generalizes to every public function. Any parameter that gates
-downstream allocation, iteration, or arithmetic — sizes, counts,
-ranks, dimensions, integer exponents that feed `2^n` / `4^n` /
-similar overflow-prone arithmetic, finite collections that must be
-non-empty (Kraus operators, basis matrices, sample lists), shape
-constraints (square / matching dimensions) — is validated at the
-function entry with a clear, semantic error type (`ArgumentError`,
-`ValueError`, `IllegalArgumentException`, equivalent), not deferred
-to a downstream call. Deferring fails the user in two ways: the
-surfaced error names the inner function instead of the user-called
-entry, and certain bad inputs (overflowed bounds → empty range,
-silently-allocated zero buffer) bypass error paths entirely and
-produce *wrong* output instead of failing. When several public
-functions share the same parameter shape (`n`-qubit count, batch
-size, dimensionality), validate each at its own entry with the
-same predicate — even if the inner call would catch it — so that
-the user-facing error message points at the function the user
-actually called.
+**Public-function entry validation.** The constructor rule above generalizes to every public function. Any parameter that gates downstream allocation, iteration, or arithmetic — sizes, counts, ranks, dimensions, integer exponents that feed `2^n` / `4^n` / similar overflow-prone arithmetic, finite collections that must be non-empty (Kraus operators, basis matrices, sample lists), shape constraints (square / matching dimensions) — is validated at the function entry with a clear, semantic error type (`ArgumentError`, `ValueError`, `IllegalArgumentException`, equivalent), not deferred to a downstream call. Deferring fails the user in two ways: the surfaced error names the inner function instead of the user-called entry, and certain bad inputs (overflowed bounds → empty range, silently-allocated zero buffer) bypass error paths entirely and produce *wrong* output instead of failing. When several public functions share the same parameter shape (`n`-qubit count, batch size, dimensionality), validate each at its own entry with the same predicate — even if the inner call would catch it — so that the user-facing error message points at the function the user actually called.
 
 **Concern conditions:**
 
 - A new invariant is documented in a comment but not asserted in code
 - One sibling method has a guard, others don't
 - Constructor accepts a parameter but defers validation downstream
-- Public non-constructor function accepts a size / count / rank /
-  dimension / exponent / non-empty-collection / shape parameter
-  without validating it at the entry, deferring the failure to a
-  downstream call (or, worse, allowing the bad input to silently
-  produce empty / overflowed / wrong-shaped output)
-- Multiple public entries share a parameter constraint but only a
-  subset validate it; users of the unguarded entries see the inner
-  call's error message rather than one naming the entry they invoked
-- A piece of state is reconstructed from heuristics on existing
-  fields rather than tracked explicitly
-- A function whose docstring documents a runtime contract (panics,
-  raises, aborts, throws on invalid input) uses an assertion that is
-  compiled out / disabled in release / optimized / production builds
-  for the contract-triggering check. The documented contract is
-  silently unenforced where the assertion is disabled. Language
-  instances: Rust `debug_assert!`, C/C++ `assert()` under NDEBUG,
-  Python `assert` under `-O`, Java `assert` (off by default), Julia
-  `@boundscheck` under `@inbounds` / `--check-bounds=no`.
+- Public non-constructor function accepts a size / count / rank / dimension / exponent / non-empty-collection / shape parameter without validating it at the entry, deferring the failure to a downstream call (or, worse, allowing the bad input to silently produce empty / overflowed / wrong-shaped output)
+- Multiple public entries share a parameter constraint but only a subset validate it; users of the unguarded entries see the inner call's error message rather than one naming the entry they invoked
+- A piece of state is reconstructed from heuristics on existing fields rather than tracked explicitly
+- A function whose docstring documents a runtime contract (panics, raises, aborts, throws on invalid input) uses an assertion that is compiled out / disabled in release / optimized / production builds for the contract-triggering check. The documented contract is silently unenforced where the assertion is disabled. Language instances: Rust `debug_assert!`, C/C++ `assert()` under NDEBUG, Python `assert` under `-O`, Java `assert` (off by default), Julia `@boundscheck` under `@inbounds` / `--check-bounds=no`.
 
-**N/A:** the change introduces no new invariants (pure data movement,
-simple delegation, formatting).
+**N/A:** the change introduces no new invariants (pure data movement, simple delegation, formatting).
 
 ## 7. Impact / caller verification [mechanical]
 
-If the change has a planned impact list (from research or design
-notes), verify it against the actual diff:
+If the change has a planned impact list (from research or design notes), verify it against the actual diff:
 
-- Every caller listed as affected has been updated (gap = missed
-  impact)
-- No caller has been modified that wasn't in the impact list (gap =
-  scope creep)
+- Every caller listed as affected has been updated (gap = missed impact)
+- No caller has been modified that wasn't in the impact list (gap = scope creep)
 
-When no formal impact list exists, manually trace the public symbol's
-callers and confirm each remains consistent with the change.
+When no formal impact list exists, manually trace the public symbol's callers and confirm each remains consistent with the change.
 
 **Concern conditions:**
 
 - A listed caller was not updated
-- A caller was updated but is not in the impact list (or the
-  deviation is not justified)
+- A caller was updated but is not in the impact list (or the deviation is not justified)
 - Public symbol changed but no caller trace was performed
 
-**N/A:** the change touches no symbol with cross-module callers
-(internal helper with single use site, isolated test, etc.).
+**N/A:** the change touches no symbol with cross-module callers (internal helper with single use site, isolated test, etc.).
 
 ## 8. Test execution [contextual]
 
-The relevant test suite was actually run, the results were observed,
-and any failures were investigated. "Compiles clean" or "existing
-tests pass without re-running them" is not pass.
+The relevant test suite was actually run, the results were observed, and any failures were investigated. "Compiles clean" or "existing tests pass without re-running them" is not pass.
 
-If a baseline (pre-existing failures recorded before implementation
-began) exists, distinguish new failures from pre-existing ones. New
-regressions are concerns regardless of the project's prior state.
+If a baseline (pre-existing failures recorded before implementation began) exists, distinguish new failures from pre-existing ones. New regressions are concerns regardless of the project's prior state.
 
 **Concern conditions:**
 
@@ -228,54 +125,34 @@ regressions are concerns regardless of the project's prior state.
 - Tests fail and the failures were not investigated
 - New regressions vs baseline are present and not addressed
 
-**N/A:** truly mechanical changes (rename, formatting, file move)
-where there is no test surface to exercise.
+**N/A:** truly mechanical changes (rename, formatting, file move) where there is no test surface to exercise.
 
 ## 9. Completion hygiene [contextual]
 
-Project-standard format / lint / type-check / build commands ran
-clean against the diff. Use the project's actual commands; examples:
+Project-standard format / lint / type-check / build commands ran clean against the diff. Use the project's actual commands; examples:
 
-- Rust: `cargo clippy --all-targets -- -D warnings`,
-  `cargo fmt --check`, `cargo build`
+- Rust: `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, `cargo build`
 - C / C++: `clang-tidy`, `clang-format --dry-run -Werror`, build clean
-- Python: `ruff check`, `ruff format --check` (or `black --check`),
-  `mypy`
+- Python: `ruff check`, `ruff format --check` (or `black --check`), `mypy`
 - TypeScript / JavaScript: `tsc --noEmit`, `eslint`, `prettier --check`
 
-Debug-only artifacts removed: `dbg!`, trace `println!` / `print(...)` /
-`console.log`, commented-out code, scratch files.
+Debug-only artifacts removed: `dbg!`, trace `println!` / `print(...)` / `console.log`, commented-out code, scratch files.
 
-**Pre-commit constraint response.** When a pre-commit hook rejects the
-commit due to a per-file size or line-count threshold, the correct
-response is **file split first, content trim only when the trimmed
-text is genuinely redundant** — repeated boilerplate, overlong
-heredocs, copy-pasted scaffolding. Removing load-bearing docstrings,
-comments, structural code, or test cases just to slip under the
-threshold is a concern. It converts a structural violation
-(the unit is too large) into silent information loss (the
-documentation that would have explained the unit is gone).
+**Pre-commit constraint response.** When a pre-commit hook rejects the commit due to a per-file size or line-count threshold, the correct response is **file split first, content trim only when the trimmed text is genuinely redundant** — repeated boilerplate, overlong heredocs, copy-pasted scaffolding. Removing load-bearing docstrings, comments, structural code, or test cases just to slip under the threshold is a concern. It converts a structural violation (the unit is too large) into silent information loss (the documentation that would have explained the unit is gone).
 
 **Concern conditions:**
 
-- Lint / format / type-check / build commands were not run, or they
-  reported issues
+- Lint / format / type-check / build commands were not run, or they reported issues
 - Debug-only output left in the diff
-- Pre-commit hook size / line-count rejection was resolved by trimming
-  load-bearing content (docstrings, comments, structural code, test
-  cases) instead of by splitting the unit
+- Pre-commit hook size / line-count rejection was resolved by trimming load-bearing content (docstrings, comments, structural code, test cases) instead of by splitting the unit
 
 **N/A:** documentation-only changes with no code touched.
 
 ## 10. Architectural boundary integrity [mechanical]
 
-If the project has an architectural rule about dependency direction
-or module boundaries — layered ordering, hexagonal / clean
-inward-pointing, a documented module DAG, a public / internal split
-— verify the diff respects it:
+If the project has an architectural rule about dependency direction or module boundaries — layered ordering, hexagonal / clean inward-pointing, a documented module DAG, a public / internal split — verify the diff respects it:
 
-- New imports / `use` / `#include` cross a boundary in the
-  disallowed direction.
+- New imports / `use` / `#include` cross a boundary in the disallowed direction.
 - New package dep entry creates a disallowed edge.
 - New `pub` / `export` widens access beyond what the rule allows.
 
@@ -284,131 +161,41 @@ inward-pointing, a documented module DAG, a public / internal split
 - Diff introduces an import / dep edge contradicting the rule
 - Public exposure widened beyond the rule
 
-**N/A:** the project has no architectural rule, or the diff
-introduces no relevant imports / dep edges / public symbols.
+**N/A:** the project has no architectural rule, or the diff introduces no relevant imports / dep edges / public symbols.
 
 ## 11. Textual / paired-artifact drift sweep [mechanical]
 
-Renames, removals, and module-structure changes have to be threaded
-through every textual surface that names them. Going through only
-the primary identifier (the function definition, the type, the
-moved file) is not enough — secondary surfaces keep referring to
-the old shape and silently rot.
+Renames, removals, and module-structure changes have to be threaded through every textual surface that names them. Going through only the primary identifier (the function definition, the type, the moved file) is not enough — secondary surfaces keep referring to the old shape and silently rot.
 
 **Same-crate sweep.** For each rename / removal in the diff:
 
-- `rg <old-identifier>` over the touched crate(s). Resolve every
-  remaining hit: panic / `expect` / `assert!` messages, error
-  format strings, inline comments, doctest code blocks, rustdoc
-  links, error-variant `detail` strings, `format!` payloads,
-  module-level prose.
-- For each `mod` / `pub mod` add / remove / rename: re-read the
-  parent module's `//!` (or equivalent) docstring against the
-  current set of children. Stale "lands in a subsequent phase",
-  "currently exposes X" claims after Y was added are concerns.
-- For each new public callsite that produces, returns, or attaches
-  behavior to an existing public type (new function / method,
-  added trait implementation, added subclass / extension, etc.):
-  - Re-read that type's own definition-level docstring against the
-    current producer set. Definition-level docstrings often list
-    producers / consumers / sources of an instance (e.g. "raised
-    by X", "returned by X", "produced by X", "consumed by X") and
-    silently rot when the list grows.
-  - **Additionally, run a file-scoped grep over the shared type's
-    source file for the existing sibling's identifier.** When a
-    sibling function / method / handler / impl already exists, that
-    file frequently names it in surfaces that are *not* the type's
-    primary docstring:
-    - doc cross-references / link macros (rustdoc `[`X`]`, Sphinx
-      `:func:`X``, JSDoc `{@link X}`, KDoc `[X]`, etc.)
-    - user-facing message strings (formatter / `__str__` / `Display`
-      output, error messages, log lines, exception messages)
-    - per-case docs inside enumerated types (enum variants, sum-type
-      cases, discriminated-union members)
-    - example or "raised by" / "returned by" snippets in module-level
-      / namespace-level prose
-    Each hit must be evaluated for whether the new sibling should
-    also be named. Patching only the surfaces an external review
-    tool happens to flag is the failure mode this bullet exists to
-    prevent — review iterations on shared-type docs typically
-    cluster by surface kind (link macros one round, message strings
-    the next, format payloads the round after) and converge slowly
-    without a proactive grep.
-- For each removed item: confirm no docstring elsewhere still
-  references it.
-- **For each *deleted code block within a function body*** (loop
-  removed, branch dropped, intermediate variable inlined away),
-  re-read every comment **inside the same function** against the
-  post-deletion control flow. Authors routinely visually skim past
-  comments that sit immediately above or below the deletion site
-  during a structural change, leaving them describing a flow that
-  no longer exists ("the V_canon column-reorder absorbs the
-  permutation" after the permutation loop was deleted; "in the next
-  step we shift cz back" after the shift was hoisted out). The
-  rg-by-identifier sweep catches this only when the deleted code
-  introduced a *named* artifact; structural deletions need an
-  explicit re-read of the function-local commentary.
+- `rg <old-identifier>` over the touched crate(s). Resolve every remaining hit: panic / `expect` / `assert!` messages, error format strings, inline comments, doctest code blocks, rustdoc links, error-variant `detail` strings, `format!` payloads, module-level prose.
+- For each `mod` / `pub mod` add / remove / rename: re-read the parent module's `//!` (or equivalent) docstring against the current set of children. Stale "lands in a subsequent phase", "currently exposes X" claims after Y was added are concerns.
+- For each new public callsite that produces, returns, or attaches behavior to an existing public type (new function / method, added trait implementation, added subclass / extension, etc.):
+  - Re-read that type's own definition-level docstring against the current producer set. Definition-level docstrings often list producers / consumers / sources of an instance (e.g. "raised by X", "returned by X", "produced by X", "consumed by X") and silently rot when the list grows.
+  - **Additionally, run a file-scoped grep over the shared type's source file for the existing sibling's identifier.** When a sibling function / method / handler / impl already exists, that file frequently names it in surfaces that are *not* the type's primary docstring:
+    - doc cross-references / link macros (rustdoc `[`X`]`, Sphinx `:func:`X``, JSDoc `{@link X}`, KDoc `[X]`, etc.)
+    - user-facing message strings (formatter / `__str__` / `Display` output, error messages, log lines, exception messages)
+    - per-case docs inside enumerated types (enum variants, sum-type cases, discriminated-union members)
+    - example or "raised by" / "returned by" snippets in module-level / namespace-level prose Each hit must be evaluated for whether the new sibling should also be named. Patching only the surfaces an external review tool happens to flag is the failure mode this bullet exists to prevent — review iterations on shared-type docs typically cluster by surface kind (link macros one round, message strings the next, format payloads the round after) and converge slowly without a proactive grep.
+- For each removed item: confirm no docstring elsewhere still references it.
+- **For each *deleted code block within a function body*** (loop removed, branch dropped, intermediate variable inlined away), re-read every comment **inside the same function** against the post-deletion control flow. Authors routinely visually skim past comments that sit immediately above or below the deletion site during a structural change, leaving them describing a flow that no longer exists ("the V_canon column-reorder absorbs the permutation" after the permutation loop was deleted; "in the next step we shift cz back" after the shift was hoisted out). The rg-by-identifier sweep catches this only when the deleted code introduced a *named* artifact; structural deletions need an explicit re-read of the function-local commentary.
 
-**Naming-as-claim.** A new identifier whose name asserts a property
-the implementation does not in fact provide — e.g.
-`random_right_canonical_*` that calls `canonicalize(_, 0)` and
-produces `Mixed { center: 0 }` instead — is a concern. Helpers that
-wrap a parametrized API call should be named after the parameter
-values they pin, not after the operational role they happen to serve.
+**Naming-as-claim.** A new identifier whose name asserts a property the implementation does not in fact provide — e.g. `random_right_canonical_*` that calls `canonicalize(_, 0)` and produces `Mixed { center: 0 }` instead — is a concern. Helpers that wrap a parametrized API call should be named after the parameter values they pin, not after the operational role they happen to serve.
 
-**New-comment claim sweep (author-blindspot mitigation).** Authors
-read what they meant their comments to say; reviewers read the
-literal text. The two diverge silently. For every comment / docstring
-**newly added or modified** in the diff, perform a literal-vs-code
-cross-check before marking item 11 ✅. This is the lane that catches
-"comment says `rel_tol = 1e-9` but code uses `1e-4`" / "doc says
-`SU(2)` but generator produces `U(2)`" / "doc says `V_g^T H_2 V_g` but
-code computes `V_g^† H_2 V_g`" / "doc says `simultaneously
-diagonalizes` but code only does so up to a clustering tolerance" —
-all of which are the author's intent leaking past the literal text.
+**New-comment claim sweep (author-blindspot mitigation).** Authors read what they meant their comments to say; reviewers read the literal text. The two diverge silently. For every comment / docstring **newly added or modified** in the diff, perform a literal-vs-code cross-check before marking item 11 ✅. This is the lane that catches "comment says `rel_tol = 1e-9` but code uses `1e-4`" / "doc says `SU(2)` but generator produces `U(2)`" / "doc says `V_g^T H_2 V_g` but code computes `V_g^† H_2 V_g`" / "doc says `simultaneously diagonalizes` but code only does so up to a clustering tolerance" — all of which are the author's intent leaking past the literal text.
 
 For each new / modified comment, extract:
 
-- **Numeric literals** (`1e-9`, `tol = 1e-12`, `m >= 2`, `O(1e-4)`,
-  threshold names with values). Cross-check that every such number
-  appears verbatim somewhere in the same translation unit / module
-  / file scope. If the comment names a `tol` value, the corresponding
-  `constexpr` / `const` / parameter should use the same literal.
-- **Identifiers and code-like spans** (function names, variable
-  names, type names, mathematical notation like `V_g^T`, `V^†`, `M^*`,
-  `\dagger`, `^T`, conjugate vs transpose). For each, verify the code
-  it refers to is spelled / behaves the same way. `^T` vs `^†` /
-  `transpose` vs `adjoint` are easy to slip when the operands are
-  real (so the two coincide numerically) but the comment is read
-  literally.
-- **Set / distribution / property claims** (`SU(2)`, `Haar`,
-  `traceless`, `unitary`, `Hermitian`, `non-zero trace`,
-  `simultaneously diagonalizes`, `orthogonal`, `non-degenerate`,
-  `uniformly distributed`, `bounded`, `monotone`, `convergent`).
-  For each, verify the code provably enforces the claim or — if it
-  only enforces the claim *up to a tolerance / under a precondition*
-  — verify the qualifier is in the comment too. "X is Hermitian" in
-  a comment over code that constructs X by independent
-  accumulations of `(a,b)` and `(b,a)` is a concern unless the code
-  also enforces symmetry (e.g., mirrors a triangle); the qualifier
-  ("up to ULP-level noise" or "after explicit symmetrization") must
-  be present or the construction must enforce the claim
-  structurally.
+- **Numeric literals** (`1e-9`, `tol = 1e-12`, `m >= 2`, `O(1e-4)`, threshold names with values). Cross-check that every such number appears verbatim somewhere in the same translation unit / module / file scope. If the comment names a `tol` value, the corresponding `constexpr` / `const` / parameter should use the same literal.
+- **Identifiers and code-like spans** (function names, variable names, type names, mathematical notation like `V_g^T`, `V^†`, `M^*`, `\dagger`, `^T`, conjugate vs transpose). For each, verify the code it refers to is spelled / behaves the same way. `^T` vs `^†` / `transpose` vs `adjoint` are easy to slip when the operands are real (so the two coincide numerically) but the comment is read literally.
+- **Set / distribution / property claims** (`SU(2)`, `Haar`, `traceless`, `unitary`, `Hermitian`, `non-zero trace`, `simultaneously diagonalizes`, `orthogonal`, `non-degenerate`, `uniformly distributed`, `bounded`, `monotone`, `convergent`). For each, verify the code provably enforces the claim or — if it only enforces the claim *up to a tolerance / under a precondition* — verify the qualifier is in the comment too. "X is Hermitian" in a comment over code that constructs X by independent accumulations of `(a,b)` and `(b,a)` is a concern unless the code also enforces symmetry (e.g., mirrors a triangle); the qualifier ("up to ULP-level noise" or "after explicit symmetrization") must be present or the construction must enforce the claim structurally.
 
-The check is mechanical, not heuristic: if the comment names a
-specific value / identifier / property, the code must back it up at
-the level of literal text. Vague hand-waving that has no extractable
-claim is fine; specific assertions are the failure surface.
+The check is mechanical, not heuristic: if the comment names a specific value / identifier / property, the code must back it up at the level of literal text. Vague hand-waving that has no extractable claim is fine; specific assertions are the failure surface.
 
-**Cold-read pass.** After the literal-vs-code sweep, re-read each
-new / modified comment as if you had never seen the code — trying
-to construct what the code would have to do to make the comment
-true. If the construction differs from what the code actually does,
-the comment is misleading regardless of whether any specific
-literal is wrong.
+**Cold-read pass.** After the literal-vs-code sweep, re-read each new / modified comment as if you had never seen the code — trying to construct what the code would have to do to make the comment true. If the construction differs from what the code actually does, the comment is misleading regardless of whether any specific literal is wrong.
 
-**Same-repo paired artifacts.** API / schema / contract changes
-ripple beyond the crate. Sweep these surfaces in the same repo:
+**Same-repo paired artifacts.** API / schema / contract changes ripple beyond the crate. Sweep these surfaces in the same repo:
 
 - `examples/` — sample code referencing the changed API
 - `bench/` — benchmarks referencing it
@@ -416,232 +203,89 @@ ripple beyond the crate. Sweep these surfaces in the same repo:
 - `README.md` / top-level docs / `docs/` prose
 - `CLAUDE.md` if it documents the changed surface
 - migration / schema files if the change affects persistence
-- generated artifacts that should be regenerated (e.g., protobuf,
-  bindgen output)
-- **the PR description itself**, if a PR is open or imminent. PR
-  bodies routinely re-state numeric tolerances, identifier names,
-  and structural claims from the code's docstrings (`atol ≈ 2.2e-12`
-  in the PR body vs `≈ 2.2e-10` in the docstring). The PR body and
-  the code are separately editable surfaces; whenever a numeric
-  literal, identifier, or property claim from the code appears in
-  the PR body, the two must agree at the level of literal text.
+- generated artifacts that should be regenerated (e.g., protobuf, bindgen output)
+- **the PR description itself**, if a PR is open or imminent. PR bodies routinely re-state numeric tolerances, identifier names, and structural claims from the code's docstrings (`atol ≈ 2.2e-12` in the PR body vs `≈ 2.2e-10` in the docstring). The PR body and the code are separately editable surfaces; whenever a numeric literal, identifier, or property claim from the code appears in the PR body, the two must agree at the level of literal text.
 
-**User-visible-concept spread (drip-mitigation).** A user-visible
-concept — an output / log key (`peak_bp_sweep=`, `level=info`), a
-CLI flag (`--debug_bp_diagnostics`), a CLI option's *description
-text* (the `add_option` / `add_flag` help string), a runtime warning
-or error message string, a test format-string assertion (`out.find(
-"X=") != npos`) — typically lives across many surfaces at once.
-Adding such a concept, renaming it, or changing its semantics
-ripples beyond the producer code. Sweep these surfaces in the same
-fix iteration:
+**User-visible-concept spread (drip-mitigation).** A user-visible concept — an output / log key (`peak_bp_sweep=`, `level=info`), a CLI flag (`--debug_bp_diagnostics`), a CLI option's *description text* (the `add_option` / `add_flag` help string), a runtime warning or error message string, a test format-string assertion (`out.find( "X=") != npos`) — typically lives across many surfaces at once. Adding such a concept, renaming it, or changing its semantics ripples beyond the producer code. Sweep these surfaces in the same fix iteration:
 
 - the producer site (the code that emits it)
-- CLI help text — the `add_option` / `add_flag` *description* string
-  that ships with `--help`. This is a user-facing contract, distinct
-  from `docs/` prose and routinely overlooked when prose is updated
-  in isolation.
+- CLI help text — the `add_option` / `add_flag` *description* string that ships with `--help`. This is a user-facing contract, distinct from `docs/` prose and routinely overlooked when prose is updated in isolation.
 - runtime warning / error / log strings that name the concept
-- regression-test format-string assertions — tests that lock the
-  surface to a specific spelling. Every key the production path
-  emits must be in the assertion set for the diagnostic format to
-  be regression-guarded; partial assertion sets silently allow
-  later additions to drift.
-- the PR description and **commit messages staged for the current
-  fix iteration**. Commit messages are immutable post-push, so a
-  rename / wording change must be picked up before the next
-  `git commit`.
+- regression-test format-string assertions — tests that lock the surface to a specific spelling. Every key the production path emits must be in the assertion set for the diagnostic format to be regression-guarded; partial assertion sets silently allow later additions to drift.
+- the PR description and **commit messages staged for the current fix iteration**. Commit messages are immutable post-push, so a rename / wording change must be picked up before the next `git commit`.
 
-Repeated review rounds that each surface a single new finding
-pointing to a different paired artifact (CLI help text, then docs,
-then test assert, then commit message, etc.) are the typical
-signal that this sweep was incomplete: each round finds another
-surface that still describes the prior shape. The mechanical
-version of this sweep is `rg <concept-name>` (case-sensitive, with
-and without the trailing `=` / `:` separator as appropriate) over
-the touched directories plus the staged commit messages and PR
-body — exhaustive enumeration is preferable to selectively
-patching the surfaces an external reviewer happens to flag.
+Repeated review rounds that each surface a single new finding pointing to a different paired artifact (CLI help text, then docs, then test assert, then commit message, etc.) are the typical signal that this sweep was incomplete: each round finds another surface that still describes the prior shape. The mechanical version of this sweep is `rg <concept-name>` (case-sensitive, with and without the trailing `=` / `:` separator as appropriate) over the touched directories plus the staged commit messages and PR body — exhaustive enumeration is preferable to selectively patching the surfaces an external reviewer happens to flag.
 
-**Cross-repo paired artifacts (opt-in).** If the repo declares
-external paired artifacts (e.g., a reference implementation in another
-language, a client library expected to track this API, a published
-spec), check them as well. Without an explicit declaration this lane
-is N/A — do not invent paired repos.
+**Cross-repo paired artifacts (opt-in).** If the repo declares external paired artifacts (e.g., a reference implementation in another language, a client library expected to track this API, a published spec), check them as well. Without an explicit declaration this lane is N/A — do not invent paired repos.
 
 **Concern conditions:**
 
-- Renamed / removed identifier still mentioned by its old name in
-  any same-crate textual surface
-- `mod` add / remove / rename leaves the parent module's docstring
-  stale
-- New producer / consumer / extension of a public type leaves the
-  type's definition-level docstring stale (e.g. "raised by X" /
-  "returned by X" / "consumed by X" that omits the new callsite)
-- New identifier's name claims a property the implementation does
-  not enforce / does not produce
-- New / modified comment names a specific numeric literal, identifier,
-  set / distribution / property, or mathematical notation that does
-  not match the code (e.g. `rel_tol = 1e-9` in a comment vs `1e-4`
-  in code; `SU(2)` in a comment vs `U(2)` from the generator;
-  `V_g^T` in a comment vs `V_g^†` in code without a real-V_g
-  qualifier; `simultaneously diagonalizes` without the clustering-
-  tolerance qualifier when the code only does so up to tolerance)
-- New / modified comment makes a claim that a cold-read of the
-  comment alone would lead a reader to expect different behavior
-  than the code actually produces
-- Same-repo paired artifact (`examples/`, `README.md`, doctest,
-  migration) references the old API and was not updated
-- A code block was deleted inside a function and a same-function
-  comment still describes the deleted control flow / variable /
-  intermediate result
-- The PR description and the code disagree on a numeric literal,
-  identifier, or property claim that appears in both
-- A user-visible concept (output key, CLI flag, runtime warning,
-  log key, error message string, test format-string assertion) was
-  added / renamed / re-spelled in one surface but a sibling surface
-  (CLI help text, docs, doxygen, regression-test asserts, staged
-  commit message) still names the prior shape
-- Declared cross-repo paired artifact diverged and was not updated
-  or re-declared as deferred
+- Renamed / removed identifier still mentioned by its old name in any same-crate textual surface
+- `mod` add / remove / rename leaves the parent module's docstring stale
+- New producer / consumer / extension of a public type leaves the type's definition-level docstring stale (e.g. "raised by X" / "returned by X" / "consumed by X" that omits the new callsite)
+- New identifier's name claims a property the implementation does not enforce / does not produce
+- New / modified comment names a specific numeric literal, identifier, set / distribution / property, or mathematical notation that does not match the code (e.g. `rel_tol = 1e-9` in a comment vs `1e-4` in code; `SU(2)` in a comment vs `U(2)` from the generator; `V_g^T` in a comment vs `V_g^†` in code without a real-V_g qualifier; `simultaneously diagonalizes` without the clustering-tolerance qualifier when the code only does so up to tolerance)
+- New / modified comment makes a claim that a cold-read of the comment alone would lead a reader to expect different behavior than the code actually produces
+- Same-repo paired artifact (`examples/`, `README.md`, doctest, migration) references the old API and was not updated
+- A code block was deleted inside a function and a same-function comment still describes the deleted control flow / variable / intermediate result
+- The PR description and the code disagree on a numeric literal, identifier, or property claim that appears in both
+- A user-visible concept (output key, CLI flag, runtime warning, log key, error message string, test format-string assertion) was added / renamed / re-spelled in one surface but a sibling surface (CLI help text, docs, doxygen, regression-test asserts, staged commit message) still names the prior shape
+- Declared cross-repo paired artifact diverged and was not updated or re-declared as deferred
 
-**N/A:** the diff renames / removes nothing, adds / removes /
-renames no modules, adds no identifiers whose name encodes a
-behavioral claim, adds / modifies no comments that make extractable
-claims (specific numbers, identifiers, properties, or notation),
-and touches no API / schema / contract surface paired artifacts
-could mirror.
+**N/A:** the diff renames / removes nothing, adds / removes / renames no modules, adds no identifiers whose name encodes a behavioral claim, adds / modifies no comments that make extractable claims (specific numbers, identifiers, properties, or notation), and touches no API / schema / contract surface paired artifacts could mirror.
 
 ## 12. Discovery surfacing (plan-vs-actual) [contextual]
 
-If a research plan exists for this work, every divergence between
-the plan and the implementation must trace to one of:
+If a research plan exists for this work, every divergence between the plan and the implementation must trace to one of:
 
-- A `confirmed` outcome of an `inconclusive` item's `probe` (with
-  the resolved branch followed)
+- A `confirmed` outcome of an `inconclusive` item's `probe` (with the resolved branch followed)
 - A `deferred` item reaching its `resolution-point`
 - An explicit re-plan note added to the plan or surfaced to the user
 
-Silent ad-hoc divergence — patching an unexpected fact during
-implementation without recording how it relates to the plan — is a
-concern. The plan's `Inconclusive / Deferred items` section is the
-only sanctioned channel for mid-implementation surprises.
+Silent ad-hoc divergence — patching an unexpected fact during implementation without recording how it relates to the plan — is a concern. The plan's `Inconclusive / Deferred items` section is the only sanctioned channel for mid-implementation surprises.
 
-**Plan-enumeration completeness.** When the plan enumerates discrete
-artifacts to produce — test sub-cases, error variants, files to add,
-API methods to expose, fixture builders, sub-tasks in a checklist —
-every listed item must have a corresponding artifact in the diff.
+**Plan-enumeration completeness.** When the plan enumerates discrete artifacts to produce — test sub-cases, error variants, files to add, API methods to expose, fixture builders, sub-tasks in a checklist — every listed item must have a corresponding artifact in the diff.
 
-The default audit semantics for a plan enumeration is **exhaustive**:
-an N-item list demands N matching artifacts in the diff, mapped 1-to-1.
-Plan authors who intend a list to be **representative** (a sample, not
-the full set) must declare that inline (`(representative)` /
-`(illustrative)` / equivalent annotation on the list). Without an
-explicit annotation, the audit treats the list as exhaustive.
+The default audit semantics for a plan enumeration is **exhaustive**: an N-item list demands N matching artifacts in the diff, mapped 1-to-1. Plan authors who intend a list to be **representative** (a sample, not the full set) must declare that inline (`(representative)` / `(illustrative)` / equivalent annotation on the list). Without an explicit annotation, the audit treats the list as exhaustive.
 
-This is the inverse failure mode of the silent-extra-divergence
-concern above: instead of the implementation adding work the plan did
-not anticipate, the implementation silently ships fewer artifacts than
-the plan promised. Both are plan-vs-actual concerns and both must be
-surfaced to the user before merge — either by completing the missing
-artifacts, marking them deferred with a follow-up, or annotating the
-plan list as representative.
+This is the inverse failure mode of the silent-extra-divergence concern above: instead of the implementation adding work the plan did not anticipate, the implementation silently ships fewer artifacts than the plan promised. Both are plan-vs-actual concerns and both must be surfaced to the user before merge — either by completing the missing artifacts, marking them deferred with a follow-up, or annotating the plan list as representative.
 
 **Concern conditions:**
 
-- Implementation diverges from the plan and the divergence is not
-  traceable to a listed `inconclusive` probe outcome, a `deferred`
-  resolution, or an explicit re-plan note
-- Plan had `Inconclusive` items but none were probed during
-  implementation (verify whether the probe was actually needed; if
-  yes, this is incomplete work)
-- Plan was retroactively edited to match the implementation without
-  user-visible surfacing
-- Plan enumerated N discrete artifacts (without `(representative)`
-  annotation) but the diff contains fewer than N, with no deferral
-  note explaining the gap
+- Implementation diverges from the plan and the divergence is not traceable to a listed `inconclusive` probe outcome, a `deferred` resolution, or an explicit re-plan note
+- Plan had `Inconclusive` items but none were probed during implementation (verify whether the probe was actually needed; if yes, this is incomplete work)
+- Plan was retroactively edited to match the implementation without user-visible surfacing
+- Plan enumerated N discrete artifacts (without `(representative)` annotation) but the diff contains fewer than N, with no deferral note explaining the gap
 
-**N/A:** there is no plan (ad-hoc edit, typo fix, no preceding
-research phase).
+**N/A:** there is no plan (ad-hoc edit, typo fix, no preceding research phase).
 
 ## 13. License compliance and attribution for ported code [mechanical]
 
-Code reused from an external project — whether copied verbatim, ported
-line-for-line into a different language, or transcribed with cosmetic
-changes (renames, rephrased structure, dropped scaffolding) — carries
-the source project's license obligations into the derivative. The
-audit asks two distinct questions:
+Code reused from an external project — whether copied verbatim, ported line-for-line into a different language, or transcribed with cosmetic changes (renames, rephrased structure, dropped scaffolding) — carries the source project's license obligations into the derivative. The audit asks two distinct questions:
 
-1. **Is the source license compatible with this project's license?**
-   The combinatorics of permissive ↔ permissive, permissive ↔ copyleft,
-   and proprietary ↔ anything are well-defined; the concern is
-   forgetting to do the check, not picking the wrong answer once you
-   look.
-2. **Are the upstream license's specific obligations satisfied?**
-   Common requirements: retain copyright notice, name the source
-   project, list modifications, propagate any upstream NOTICE-file
-   content, retain license text. The exact set varies (Apache-2.0
-   § 4(b)–(d) is the most-discussed reference, MIT requires retention
-   of copyright + permission text, BSD has the no-endorsement clause,
-   etc.).
+1. **Is the source license compatible with this project's license?** The combinatorics of permissive ↔ permissive, permissive ↔ copyleft, and proprietary ↔ anything are well-defined; the concern is forgetting to do the check, not picking the wrong answer once you look.
+2. **Are the upstream license's specific obligations satisfied?** Common requirements: retain copyright notice, name the source project, list modifications, propagate any upstream NOTICE-file content, retain license text. The exact set varies (Apache-2.0 § 4(b)–(d) is the most-discussed reference, MIT requires retention of copyright + permission text, BSD has the no-endorsement clause, etc.).
 
-**Detection.** The structural signals that a diff contains ported
-code:
+**Detection.** The structural signals that a diff contains ported code:
 
-- A comment that says "ported from", "derived from", "based on", "from
-  $project", or names another project as source.
-- New identifiers, function shapes, or algorithm structure that match
-  a known upstream pattern that the author admits to having referenced
-  during research / planning. (When research surfaced a specific
-  external implementation as a reference and the diff structurally
-  mirrors it, treat as a port even if no comment says so explicitly.)
-- A research-phase note ("ported $func from $project") that has no
-  matching attribution comment in the diff.
+- A comment that says "ported from", "derived from", "based on", "from $project", or names another project as source.
+- New identifiers, function shapes, or algorithm structure that match a known upstream pattern that the author admits to having referenced during research / planning. (When research surfaced a specific external implementation as a reference and the diff structurally mirrors it, treat as a port even if no comment says so explicitly.)
+- A research-phase note ("ported $func from $project") that has no matching attribution comment in the diff.
 
 **Verification, when a port is identified.**
 
-- **License compatibility.** Confirm the source license. Permissive
-  → permissive (Apache-2.0, MIT, BSD, ISC, etc.) is generally fine
-  with attribution; copyleft (GPL, AGPL, MPL, EPL, LGPL) into a
-  permissive project usually is *not*. If unsure, escalate.
-- **Attribution surface.** A comment block on or above the ported
-  declarations naming: (1) the upstream project, (2) the source file
-  / URL, (3) the upstream copyright line, (4) the license name and
-  version. For a single helper an in-source comment is sufficient;
-  for many helpers from one source, a top-level attribution surface
-  (`THIRD_PARTY.md`, `NOTICE`, etc.) may be cleaner.
-- **Modifications enumerated.** Apache-2.0 § 4(b) and the MIT/BSD
-  "preserve the notice" lanes both expect the reader to be able to
-  tell what the derivative changed. Either an inline "Notable changes
-  from upstream" list or a clear "ported as-is, modulo language
-  rephrase" statement.
-- **Upstream NOTICE / NOTICE-equivalent.** If the upstream license
-  triggers a NOTICE-propagation clause (Apache-2.0 § 4(d) is the
-  common one), **fetch the upstream NOTICE file and verify it exists
-  before claiming compliance**. A NOTICE file in the derivative that
-  cites a non-existent upstream NOTICE is worse than none — it
-  implies upstream content the derivative cannot reproduce.
+- **License compatibility.** Confirm the source license. Permissive → permissive (Apache-2.0, MIT, BSD, ISC, etc.) is generally fine with attribution; copyleft (GPL, AGPL, MPL, EPL, LGPL) into a permissive project usually is *not*. If unsure, escalate.
+- **Attribution surface.** A comment block on or above the ported declarations naming: (1) the upstream project, (2) the source file / URL, (3) the upstream copyright line, (4) the license name and version. For a single helper an in-source comment is sufficient; for many helpers from one source, a top-level attribution surface (`THIRD_PARTY.md`, `NOTICE`, etc.) may be cleaner.
+- **Modifications enumerated.** Apache-2.0 § 4(b) and the MIT/BSD "preserve the notice" lanes both expect the reader to be able to tell what the derivative changed. Either an inline "Notable changes from upstream" list or a clear "ported as-is, modulo language rephrase" statement.
+- **Upstream NOTICE / NOTICE-equivalent.** If the upstream license triggers a NOTICE-propagation clause (Apache-2.0 § 4(d) is the common one), **fetch the upstream NOTICE file and verify it exists before claiming compliance**. A NOTICE file in the derivative that cites a non-existent upstream NOTICE is worse than none — it implies upstream content the derivative cannot reproduce.
 
 **Concern conditions:**
 
-- Diff contains ported code from an external project but no
-  attribution comment / file names the upstream project, source
-  location, upstream copyright, and license.
-- Research notes / commit messages name an external project as
-  source, but the in-source attribution does not.
-- Upstream license is incompatible with this project's license (e.g.,
-  GPL code in an Apache-2.0 project) and the diff does not address
-  the conflict.
-- Modifications relative to upstream are not enumerated, and the
-  upstream license requires marking changed files (e.g., Apache-2.0
-  § 4(b)).
-- A NOTICE / THIRD_PARTY file in the diff claims to mirror an
-  upstream NOTICE, but the upstream does not have one (verified by
-  fetching it from the canonical source).
-- The naming-as-claim concern from item 11 also fires: the ported
-  code's name asserts a property not in the upstream (e.g., calling
-  a U(2)-sampling helper "Haar"), which can imply distributional
-  guarantees the port does not provide.
+- Diff contains ported code from an external project but no attribution comment / file names the upstream project, source location, upstream copyright, and license.
+- Research notes / commit messages name an external project as source, but the in-source attribution does not.
+- Upstream license is incompatible with this project's license (e.g., GPL code in an Apache-2.0 project) and the diff does not address the conflict.
+- Modifications relative to upstream are not enumerated, and the upstream license requires marking changed files (e.g., Apache-2.0 § 4(b)).
+- A NOTICE / THIRD_PARTY file in the diff claims to mirror an upstream NOTICE, but the upstream does not have one (verified by fetching it from the canonical source).
+- The naming-as-claim concern from item 11 also fires: the ported code's name asserts a property not in the upstream (e.g., calling a U(2)-sampling helper "Haar"), which can imply distributional guarantees the port does not provide.
 
-**N/A:** the diff contains no ported code from an external project
-(fresh design or trivial idiom).
+**N/A:** the diff contains no ported code from an external project (fresh design or trivial idiom).

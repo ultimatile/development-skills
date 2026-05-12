@@ -11,14 +11,11 @@ description: >
 
 # Done-Check
 
-Post-hoc audit against the current diff. Item definitions live in
-`quality-list`; this skill is the **runner**. Update `quality-list`,
-not this file, when adding or modifying items.
+Post-hoc audit against the current diff. Item definitions live in `quality-list`; this skill is the **runner**. Update `quality-list`, not this file, when adding or modifying items.
 
 ## Procedure
 
-1. **Identify the diff under audit.** Cover all four sources so
-   recently-added implementation files are not missed:
+1. **Identify the diff under audit.** Cover all four sources so recently-added implementation files are not missed:
 
    ```bash
    git log --oneline @{upstream}..HEAD                       # committed
@@ -28,19 +25,11 @@ not this file, when adding or modifying items.
    git ls-files --others --exclude-standard                  # untracked paths
    ```
 
-   Read the contents of any untracked file relevant to the audit
-   (paths alone do not let you check anything).
+   Read the contents of any untracked file relevant to the audit (paths alone do not let you check anything).
 
-2. **Spawn a fresh-context auditor for the mechanical / literal items
-   (5, 6, 7, 10, 11).** The author of a diff reads what they meant
-   their code and comments to say, not the literal text — the same
-   blindspot that lets reviewers (Copilot, codex) routinely find
-   doc-vs-code drift the author marked ✅. Delegating the literal
-   audit to a subagent that has no access to the conversation history
-   removes that blindspot.
+2. **Spawn a fresh-context auditor for the mechanical / literal items (5, 6, 7, 10, 11).** The author of a diff reads what they meant their code and comments to say, not the literal text — the same blindspot that lets reviewers (Copilot, codex) routinely find doc-vs-code drift the author marked ✅. Delegating the literal audit to a subagent that has no access to the conversation history removes that blindspot.
 
-   Use the `Agent` tool with `subagent_type: "general-purpose"` and a
-   prompt of the following shape:
+   Use the `Agent` tool with `subagent_type: "general-purpose"` and a prompt of the following shape:
 
    ```
    You are auditing a diff under the `quality-list` quality rules.
@@ -83,72 +72,36 @@ not this file, when adding or modifying items.
      items
    ```
 
-   Embed the actual diff (committed + staged + unstaged) and the full
-   text of items 5, 6, 7, 10, 11, 13 from `quality-list` directly in
-   the prompt — the subagent has no access to the parent's context.
+   Embed the actual diff (committed + staged + unstaged) and the full text of items 5, 6, 7, 10, 11, 13 from `quality-list` directly in the prompt — the subagent has no access to the parent's context.
 
-   The subagent runs in parallel with main-context steps 3 below; do
-   not block waiting for it unless step 4 requires the result.
+   The subagent runs in parallel with main-context steps 3 below; do not block waiting for it unless step 4 requires the result.
 
-3. **Audit the contextual items (1, 2, 3, 4, 8, 9, 12) in main
-   context.** These need information the subagent does not have:
+3. **Audit the contextual items (1, 2, 3, 4, 8, 9, 12) in main context.** These need information the subagent does not have:
 
-   - 1 (invariant derivation), 2 (purpose verification), 4 (scope
-     discipline), 12 (discovery surfacing) — need plan / intent /
-     review history
-   - 8 (test execution), 9 (completion hygiene) — need actual command
-     execution against the working tree
-   - 3 (pattern audit) — needs awareness of which patterns were
-     consciously copied vs independently reinvented
+   - 1 (invariant derivation), 2 (purpose verification), 4 (scope discipline), 12 (discovery surfacing) — need plan / intent / review history
+   - 8 (test execution), 9 (completion hygiene) — need actual command execution against the working tree
+   - 3 (pattern audit) — needs awareness of which patterns were consciously copied vs independently reinvented
 
-   Item 13 (license compliance for ports) is dual-lane: the subagent
-   handles the *declared* case (literal grep for "ported from" /
-   "derived from" / external project names → verify attribution);
-   main context handles the *undeclared* case where the conversation
-   history shows research surfaced an external implementation that
-   the diff structurally mirrors but no comment names. If research
-   identified an upstream reference and the diff looks like it
-   followed it, demand attribution even if no comment marks the
-   port.
+   Item 13 (license compliance for ports) is dual-lane: the subagent handles the *declared* case (literal grep for "ported from" / "derived from" / external project names → verify attribution); main context handles the *undeclared* case where the conversation history shows research surfaced an external implementation that the diff structurally mirrors but no comment names. If research identified an upstream reference and the diff looks like it followed it, demand attribution even if no comment marks the port.
 
-   Mark each as **✅ pass**, **⚠ concern**, or **⊘ N/A** with
-   evidence as in step 4 below.
+   Mark each as **✅ pass**, **⚠ concern**, or **⊘ N/A** with evidence as in step 4 below.
 
-4. **Merge results.** When the subagent (step 2) returns, integrate
-   its 6 rows with main-context's 7 rows into a single 13-row table.
-   For each ⚠ from the subagent, decide:
+4. **Merge results.** When the subagent (step 2) returns, integrate its 6 rows with main-context's 7 rows into a single 13-row table. For each ⚠ from the subagent, decide:
 
-   - **True positive** — fix before proceeding (same as a main-context
-     ⚠).
-   - **False positive due to missing context** — note explicitly why
-     (e.g., "user explicitly approved the boundary deferral in
-     conversation"); the subagent's literal interpretation is wrong
-     because it lacked context, but this should be rare and worth
-     paper-trailing. Do NOT silently override — false-positive
-     classification is itself a triage step that the user can
-     challenge.
+   - **True positive** — fix before proceeding (same as a main-context ⚠).
+   - **False positive due to missing context** — note explicitly why (e.g., "user explicitly approved the boundary deferral in conversation"); the subagent's literal interpretation is wrong because it lacked context, but this should be rare and worth paper-trailing. Do NOT silently override — false-positive classification is itself a triage step that the user can challenge.
 
    Each result is **✅ pass**, **⚠ concern**, or **⊘ N/A**:
 
-   - **✅ pass** — confidently satisfied; the **Evidence** cell records
-     what makes you confident (a command run, a manual check, a
-     `file:line` read, or `not run: <reason>`)
+   - **✅ pass** — confidently satisfied; the **Evidence** cell records what makes you confident (a command run, a manual check, a `file:line` read, or `not run: <reason>`)
    - **⚠ concern** — cite the diff location and what to fix
-   - **⊘ N/A** — state why the rule does not apply (using the item's
-     own N/A criterion)
+   - **⊘ N/A** — state why the rule does not apply (using the item's own N/A criterion)
 
-5. If any **⚠** remains, fix before proceeding. State concretely what
-   will change. Do not proceed until concerns are resolved or the user
-   explicitly waives them with reasoning.
+5. If any **⚠** remains, fix before proceeding. State concretely what will change. Do not proceed until concerns are resolved or the user explicitly waives them with reasoning.
 
 6. Report the audit table.
 
-**When to skip the subagent (step 2).** For purely mechanical changes
-where literal-text drift is structurally impossible — pure rename
-across files, formatting only, file move with no content change — the
-subagent step is wasted overhead. The skip threshold is narrow: if the
-diff adds or modifies any prose / comment / docstring / log message /
-error string, run the subagent.
+**When to skip the subagent (step 2).** For purely mechanical changes where literal-text drift is structurally impossible — pure rename across files, formatting only, file move with no content change — the subagent step is wasted overhead. The skip threshold is narrow: if the diff adds or modifies any prose / comment / docstring / log message / error string, run the subagent.
 
 ## Output format
 
@@ -172,10 +125,6 @@ self-audit: <commit-range or "uncommitted">
 | 13 | License / attribution for ports   | ⊘ N/A  |                                         | no external code ported                        |
 ```
 
-Item numbering and titles must follow `quality-list` exactly. If the
-list grows or shrinks, update the table accordingly — the table is
-generated from the list, not maintained independently.
+Item numbering and titles must follow `quality-list` exactly. If the list grows or shrinks, update the table accordingly — the table is generated from the list, not maintained independently.
 
-If any ⚠ remains, fix before proceeding. State concretely what will
-change. Do not proceed until concerns are resolved or the user
-explicitly waives them with reasoning.
+If any ⚠ remains, fix before proceeding. State concretely what will change. Do not proceed until concerns are resolved or the user explicitly waives them with reasoning.

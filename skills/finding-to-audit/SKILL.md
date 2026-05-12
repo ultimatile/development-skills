@@ -14,8 +14,7 @@ description: >
 
 # Finding-to-Audit
 
-A single fix prevents one bug. An audit rule prevents the entire
-class without waiting for the next bug to surface.
+A single fix prevents one bug. An audit rule prevents the entire class without waiting for the next bug to surface.
 
 ## When to use vs `bug-to-contract`
 
@@ -24,8 +23,7 @@ class without waiting for the next bug to surface.
 | Runtime — output value, behavior under input, invariant on data, concurrency | `bug-to-contract` (contract test) |
 | Diff-inspection — structural property visible from `git diff`, imports, `pub` surface, presence of tests, debug artifacts, hardcoded values | `finding-to-audit` (this skill) |
 
-A single finding can map to either, both, or neither. Use both
-when both apply.
+A single finding can map to either, both, or neither. Use both when both apply.
 
 ## Inputs
 
@@ -51,14 +49,12 @@ Examples that fit this skill:
 
 - Import direction violation (lower module imports from higher)
 - `pub` exposed beyond what the architectural rule allows
-- Missing standard trait impl on a public type (e.g. `Display`,
-  `std::error::Error`, `Send`/`Sync` on a public error)
+- Missing standard trait impl on a public type (e.g. `Display`, `std::error::Error`, `Send`/`Sync` on a public error)
 - New behavior added but no test reads its outputs
 - Hardcoded constant that should be a parameter
 - Debug artifact (`dbg!`, trace `println!`, commented-out code)
 - FFI output channel silently dropped
-- Public enum without `#[non_exhaustive]` where future variants are
-  expected
+- Public enum without `#[non_exhaustive]` where future variants are expected
 
 ### 3. Identify the host audit skill
 
@@ -68,8 +64,7 @@ Examples that fit this skill:
 | FFI safe-wrapper rules | `rust-ffi-rule` (or language-specific equivalent) |
 | Other domain-specific audit | The matching skill |
 
-If no host fits, scaffold a new audit skill rather than forcing
-the rule into an unrelated one.
+If no host fits, scaffold a new audit skill rather than forcing the rule into an unrelated one.
 
 ### 4. Draft the rule
 
@@ -88,27 +83,18 @@ Use the host's existing format. For `done-check`:
 **N/A:** <when the rule does not apply>
 ```
 
-The rule must be **diff-inspectable** — verifiable against `git diff`
-output, file paths, or grep, without running the code. If the check
-requires execution, it belongs in `bug-to-contract`.
+The rule must be **diff-inspectable** — verifiable against `git diff` output, file paths, or grep, without running the code. If the check requires execution, it belongs in `bug-to-contract`.
 
 ### 5. Edit the host skill
 
-Add the rule directly. Renumber if needed and update any output
-tables in the host file.
+Add the rule directly. Renumber if needed and update any output tables in the host file.
 
 ### 6. Backfill check
 
-If the same issue class has surfaced more than once historically,
-strengthen the rule (tighter conditions, additional concern signals)
-rather than relying on a single occurrence.
+If the same issue class has surfaced more than once historically, strengthen the rule (tighter conditions, additional concern signals) rather than relying on a single occurrence.
 
 ## Principles
 
-- **General over specific.** The rule catches the bug class, not
-  the reviewer's exact wording.
-- **Diff-inspectable only.** Anything requiring code execution
-  belongs in `bug-to-contract`.
-- **Extend before adding.** Strengthening an existing audit item
-  is preferable to creating a new section unless the topic is
-  orthogonal to all existing items.
+- **General over specific.** The rule catches the bug class, not the reviewer's exact wording.
+- **Diff-inspectable only.** Anything requiring code execution belongs in `bug-to-contract`.
+- **Extend before adding.** Strengthening an existing audit item is preferable to creating a new section unless the topic is orthogonal to all existing items.
