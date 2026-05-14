@@ -59,11 +59,13 @@ Produce a title and body following the conventions above.
 
 Section headings are optional for short issues — a 5-line body often needs no headings at all.
 
-### 3. Laundering pass
+### 3. Laundering pass — run `gh-body-check`
 
-Before showing the draft, run the cold re-read across the five axes (References / Tone / Language / Structure / Trigger-flag — see CLAUDE.md "Two-surface boundary and laundering before publishing"). Mandatory before every `gh issue create` / `gh issue comment`. The mechanical exclusions in `gh-body-conventions` cover known leak shapes; the cold re-read catches novel ones.
+Run `gh-body-check` against the drafted body. The check delegates mechanical items (hard-wrap, local-path patterns, private skill names, Phase / Step numbering, JP clauses in English bodies, chat-tone scaffolding, Unicode math in prose, unresolved placeholders, line numbers in issue bodies) to a fresh-context subagent — the author has just drafted the text and is primed to read what they meant rather than what they wrote, which has repeatedly let documented exclusions slip past a self-administered cold re-read.
 
-Trigger flag: if the chat just used private framing (internal phase numbers, project nicknames, JP clauses, private path references, "as we discussed"), assume priming and re-read more carefully.
+Pass artifact kind `issue` and the target language. The check returns a per-item ✅ / ⚠ / ⊘ N/A table. Mandatory before every `gh issue create` / `gh issue comment`. Any ⚠ blocks step 4; revise the draft and re-run until no unresolved ⚠ remains, or explicitly waive a finding with a one-line justification.
+
+See `gh-body-check/SKILL.md` for the full item list, detection patterns, and the contextual-axis cold re-read covering novel leak shapes.
 
 ### 4. Show for approval
 

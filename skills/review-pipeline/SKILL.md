@@ -168,7 +168,9 @@ Skip when the work is not tied to an umbrella tracking issue. Trigger only when 
 
 17. **Edit the PR description.** Append a `## Plan-vs-actual delta` section to the existing body — full delta with file/line evidence and links to the relevant review iterations. This is the most detailed surface; it stays attached to the merged PR for future bisect readers. Done pre-merge so the merge commit's link to the PR has the complete context.
 
-    Apply `gh-body-conventions` to the appended section — same semantic line breaks, same exclusions, same laundering pass as the original body. Line refs into this PR's diff are permitted (the PR is anchored to specific commits and will not rot).
+    Apply `gh-body-conventions` to the appended section (same semantic line breaks, same exclusions). Line refs into this PR's diff are permitted (the PR is anchored to specific commits and will not rot).
+
+    Before invoking `gh pr edit`, run `/gh-body-check` against the **final body** (existing PR body concatenated with the appended delta section). Paragraph boundaries and reference patterns can cross the section seam, so auditing only the appended section would miss them. Pass artifact kind `pr` and the target language. Any unresolved ⚠ blocks `gh pr edit` — revise the appended section and re-run until clean.
 
 ## ← user merges PR ←
 
