@@ -15,6 +15,20 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
 
 ## Procedure
 
+0. **Resolve the active rule set.**
+
+   The base rule set lives in `quality-list/SKILL.md`. Language-specific addenda live alongside it as `quality-list/lang-<language>.md` and supplement the base rules with triggers, mitigation idioms, and mechanical detection patterns for the language. Items themselves stay language-neutral in the base file; addenda only realize them concretely.
+
+   Detection order for the project language:
+
+   1. Check the project's `CLAUDE.md` (or equivalent contributor / agent-guidance file) for a `Language:` declaration line (e.g., `Language: cpp`). If present, load `quality-list/lang-<value>.md`.
+   2. Otherwise, auto-detect from file extensions in the diff: `.cpp` / `.cc` / `.cxx` / `.h` / `.hpp` / `.hh` → `cpp`; `.rs` → `rust`; `.py` → `python`; `.ts` / `.tsx` → `typescript`; `.go` → `go`; etc.
+   3. Multi-language projects: load every matching `lang-*.md` (one per language present).
+
+   If a detected language has no `lang-<lang>.md`, fall back to the base rules only for that language. Missing addenda are not a concern condition — they just mean the language has no curated realizations yet.
+
+   The active rule set = base items (from `quality-list/SKILL.md`) plus, for each item that has language-specific content in the loaded addendum, that addendum's section for the item. Pass both into the subagent prompt in Step 2 below so the literal audit sees the language realization, not just the generic principle.
+
 1. **Identify the diff under audit.** Cover all four sources so recently-added implementation files are not missed:
 
    ```bash
@@ -41,7 +55,7 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
      below)
    - the literal text of the codebase you can read with your tools
 
-   For each of items 5, 6, 7, 10, 11, 13 below, return one of:
+   For each of items 5, 6, 7, 10, 11, 13, 14 below, return one of:
 
    - ✅ pass — with concrete evidence (file:line, identifier, or
      literal-text match) that the rule is satisfied
@@ -72,7 +86,7 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
      items
    ```
 
-   Embed the actual diff (committed + staged + unstaged) and the full text of items 5, 6, 7, 10, 11, 13 from `quality-list` directly in the prompt — the subagent has no access to the parent's context.
+   Embed the actual diff (committed + staged + unstaged) and the full text of items 5, 6, 7, 10, 11, 13, 14 from `quality-list` directly in the prompt — the subagent has no access to the parent's context.
 
    The subagent runs in parallel with main-context steps 3 below; do not block waiting for it unless step 4 requires the result.
 
@@ -123,6 +137,7 @@ self-audit: <commit-range or "uncommitted">
 | 11 | Textual / paired-artifact drift   | ✅     | rg <old-name>; parent //! re-read       |                                                |
 | 12 | Discovery surfacing               | ⊘ N/A  |                                         | no plan exists                                 |
 | 13 | License / attribution for ports   | ⊘ N/A  |                                         | no external code ported                        |
+| 14 | Silent semantic regression        | ⊘ N/A  |                                         | no signature change to public APIs             |
 ```
 
 Item numbering and titles must follow `quality-list` exactly. If the list grows or shrinks, update the table accordingly — the table is generated from the list, not maintained independently.

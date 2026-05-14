@@ -28,6 +28,20 @@ It is acceptable to invoke `todo-check` more than once during a task. `done-chec
 
 ## Procedure
 
+0. **Resolve the active rule set.**
+
+   The base rule set lives in `quality-list/SKILL.md`. Language-specific addenda live alongside it as `quality-list/lang-<language>.md` and supplement the base rules with triggers, mitigation idioms, and mechanical detection patterns for the language. Items themselves stay language-neutral in the base file; addenda only realize them concretely.
+
+   Detection order for the project language:
+
+   1. Check the project's `CLAUDE.md` (or equivalent contributor / agent-guidance file) for a `Language:` declaration line (e.g., `Language: cpp`). If present, load `quality-list/lang-<value>.md`.
+   2. Otherwise, auto-detect from file extensions present in the scope (or the work's likely-touched files): `.cpp` / `.cc` / `.cxx` / `.h` / `.hpp` / `.hh` → `cpp`; `.rs` → `rust`; `.py` → `python`; `.ts` / `.tsx` → `typescript`; `.go` → `go`; etc.
+   3. Multi-language projects: load every matching `lang-*.md` (one per language present).
+
+   If a detected language has no `lang-<lang>.md`, fall back to the base rules only. Missing addenda are not a concern — they just mean no curated language realizations exist yet.
+
+   The active rule set = base items plus, for each item with content in the loaded addendum, that addendum's section. The preflight framing in Step 2 considers both.
+
 1. **Identify the work scope.** Pull from the plan if one exists, otherwise from the current task description. Determine:
    - What files / modules will change
    - What public symbols, schemas, or contracts will move
@@ -60,6 +74,8 @@ These are how each `quality-list` item reads in preflight mode. The authoritativ
 - **10. Architectural boundary integrity** — Identify any new imports / dep edges / `pub` widenings the change will introduce; plan to check them against the project's boundary rules.
 - **11. Textual / paired-artifact drift sweep** — List every textual surface that will need updating: same-crate `rg` targets, parent module docstrings, `examples/`, `bench/`, doctests, `README.md`, `CLAUDE.md`, migrations / schemas, declared cross-repo paired artifacts. Plan the sweep before editing primary identifiers.
 - **12. Discovery surfacing** — If a plan exists, extract its `Inconclusive` items into a watch list. During implementation, any unexpected fact must match a watch-list branch or trigger halt.
+- **13. License compliance for ports** — If any unit's research surfaced an external implementation as a reference, plan the attribution surface (in-source comment block citing project / file / URL / copyright / license, or a top-level `THIRD_PARTY.md`) before the port lands.
+- **14. Silent semantic regression on signature change** — If a unit changes the signature of a function whose call sites live outside its own translation unit (parameter removal / reorder / type substitution), plan one of: (a) a `= delete;` sentinel overload for the old signature shape, (b) a strong typedef over the affected parameter(s) so the implicit-conversion edge is structurally absent, or (c) an exhaustive call-site sweep across the project (including every preprocessor / build-config branch) verifying no old-form call compiles under the new signature. The lang addendum (`lang-<lang>.md`) lists the language's actual conversion semantics; plan against those.
 
 ## Output format
 
