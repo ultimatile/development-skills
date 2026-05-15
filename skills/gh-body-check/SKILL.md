@@ -124,7 +124,7 @@ file-issue  file-pullreq  gh-body-conventions  gh-body-check
 review-pipeline  codex-plan-review  codex-review
 codex-contract-test-review  copilot-review  stage-commit-push
 bug-to-contract  finding-to-audit  spawn-subissue  plan-and-spawn
-driftreaper  arxiv-doc-builder  semantic-review  surface-laundering
+driftreaper  arxiv-doc-builder  semantic-review
 ```
 
 Any literal hit outside fenced code blocks → ⚠. (These names are author-side workflow tools; an external reader cannot resolve them and they signal private surface bleed.)
