@@ -195,6 +195,17 @@ The check is mechanical, not heuristic: if the comment names a specific value / 
 
 **Cold-read pass.** After the literal-vs-code sweep, re-read each new / modified comment as if you had never seen the code — trying to construct what the code would have to do to make the comment true. If the construction differs from what the code actually does, the comment is misleading regardless of whether any specific literal is wrong.
 
+**Scope check.** A source-file comment / docstring describes the present-tense behavior of the unit it sits on — what the code does now, what invariants hold, what failure modes to expect. It does **not** describe (a) cross-function or cross-method design rationale (e.g., "while sibling X uses procedure Y, this one uses procedure Z because of decision W"), (b) change history (e.g., "after PR #N rewrote this, the path now uses ..."), or (c) comparison to alternative designs / rejected options that are themselves documented at their own sites (commit message, PR description, tracking issue, changelog). Information at the wrong scope is a defect: it forces a reader asking *what this unit does* to follow trails to understand *why the design is what it is*, and the trails then rot independently of the code. The cold-read pass above catches **misleading** claims; the scope check catches **misplaced** ones — comments that are factually correct but belong to a different surface and audience.
+
+Mechanical detection of misplaced content in a new / modified per-unit comment:
+
+- Comparative phrases naming sibling functions / methods / classes / modules: "while X does Y", "unlike X, this Z", "matches / mirrors X" (when the match is incidental rather than a maintained invariant), "X also does this but with Y procedure".
+- Decision-history phrases: "we chose / picked / adopted ...", "option (X) / option (Y)", "the SSOT decision", "the design intent", "scoped to a follow-up".
+- Cross-surface rationale that names other surfaces by role: "see the commit message for ...", "the umbrella discusses ...", "as noted in the PR".
+- Tuning / rewrite-history phrases: "after the PR #N rewrite", "we used to ...", "previously this ...".
+
+Each such phrase is a candidate ⚠ — flag it and either trim the comment to present-tense behavior or move the content to the appropriate surface (commit message, PR body, umbrella issue, changelog). A claim that justifies *the current code choice in a way the reader cannot re-derive from the code alone* may stay (the borderline lane from `~/.claude/rules/source-comment-scope.md`); everything else moves.
+
 **Same-repo paired artifacts.** API / schema / contract changes ripple beyond the crate. Sweep these surfaces in the same repo:
 
 - `examples/` — sample code referencing the changed API
