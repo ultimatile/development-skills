@@ -204,7 +204,9 @@ Mechanical detection of misplaced content in a new / modified per-unit comment:
 - Cross-surface rationale that names other surfaces by role: "see the commit message for ...", "the umbrella discusses ...", "as noted in the PR".
 - Tuning / rewrite-history phrases: "after the PR #N rewrite", "we used to ...", "previously this ...".
 
-Each such phrase is a candidate ⚠ — flag it and either trim the comment to present-tense behavior or move the content to the appropriate surface (commit message, PR body, umbrella issue, changelog). A claim that justifies *the current code choice in a way the reader cannot re-derive from the code alone* may stay (the borderline lane from `~/.claude/rules/source-comment-scope.md`); everything else moves.
+Each such phrase is a candidate ⚠ — flag it and either trim the comment to present-tense behavior or move the content to the appropriate surface (commit message, PR body, umbrella issue, changelog). A claim that justifies *the current code choice in a way the reader cannot re-derive from the code alone* may stay; everything else moves.
+
+**Hyperlink completeness on source surfaces.** If a source-file comment must reference a GitHub issue / PR (e.g., for a forward-looking TODO that depends on resolution elsewhere), use the **full URL**, not bare `#N`. GitHub auto-links `#N` only inside PR descriptions, issue descriptions, and commit messages — **not in source-file comments rendered by the source viewer**. A bare `#5` in a `.jl` / `.rs` / `.py` comment is dead text: the reader sees the literal string and has to manually navigate. A full URL is clickable and self-resolving.
 
 **Same-repo paired artifacts.** API / schema / contract changes ripple beyond the crate. Sweep these surfaces in the same repo:
 
@@ -239,6 +241,7 @@ Repeated review rounds that each surface a single new finding pointing to a diff
 - New / modified comment makes a claim that a cold-read of the comment alone would lead a reader to expect different behavior than the code actually produces
 - Same-repo paired artifact (`examples/`, `README.md`, doctest, migration) references the old API and was not updated
 - A code block was deleted inside a function and a same-function comment still describes the deleted control flow / variable / intermediate result
+- A source-file comment references a GitHub issue / PR by bare `#N` instead of a full URL (source viewers do not auto-link `#N`, so the reference is dead text)
 - The PR description and the code disagree on a numeric literal, identifier, or property claim that appears in both
 - A user-visible concept (output key, CLI flag, runtime warning, log key, error message string, test format-string assertion) was added / renamed / re-spelled in one surface but a sibling surface (CLI help text, docs, doxygen, regression-test asserts, staged commit message) still names the prior shape
 - Declared cross-repo paired artifact diverged and was not updated or re-declared as deferred
