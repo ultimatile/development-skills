@@ -4,20 +4,14 @@ description: >
   Single source of truth for the formatting and content conventions that
   apply to GitHub issue bodies and pull request bodies / descriptions.
   Defines semantic line-break rules, LaTeX-safe math syntax, reference /
-  exclusion policies, and language defaults. Other skills (file-issue,
-  file-pullreq, review-pipeline) reference these rules; do not duplicate
-  the rule text in those skills.
+  exclusion policies, and language defaults. This is a definition file;
+  skills drafting body content reference these rules rather than
+  duplicating them.
 ---
 
 # GitHub Body Conventions (SSOT)
 
-This skill is **a definition file, not a runnable procedure**. It is referenced by:
-
-- `file-issue` — applies these conventions when drafting an issue body.
-- `file-pullreq` — applies these conventions when drafting a PR body (initial draft and Phase 4a delta edits).
-- `review-pipeline` — Phase 4a edits the PR description; this file is the authority for the formatting of those edits.
-
-When you change a rule here, all referencing skills pick up the change. Do not copy these rules into other skills — point at them by name.
+This skill is **a definition file, not a runnable procedure**. Skills that draft GitHub issue / PR body content apply these conventions by reference. When a rule changes here, referencing skills pick up the change automatically; do not copy these rules into them — point at them by name.
 
 ## Formatting
 

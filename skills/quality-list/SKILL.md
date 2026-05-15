@@ -1,22 +1,16 @@
 ---
 name: quality-list
 description: >
-  Single source of truth for universal code-quality items used across the
-  done-check (post-hoc audit) and todo-check (preflight) skills. This file
-  defines each item's intent, concern conditions, and N/A criteria. Other
-  skills reference items by number; do not duplicate the rule text in audit
-  or preflight skills. Update items here, and the audit/preflight skills
-  pick up the change automatically.
+  Single source of truth for universal code-quality items. This file
+  defines each item's intent, concern conditions, and N/A criteria.
+  Code-quality audit and preflight skills reference items by number;
+  do not duplicate the rule text into them. Update items here, and
+  referencing skills pick up the change automatically.
 ---
 
 # Quality List (SSOT)
 
-This skill is **a definition file, not a runnable procedure**. It is referenced by:
-
-- `done-check` — applies each item as a post-hoc audit against the current diff (✅ / ⚠ / ⊘ N/A).
-- `todo-check` — applies each item as a preflight before / during implementation, asking what to set up so the item will pass.
-
-When you change an item here, both skills pick up the change. Do not copy these rules into other skills.
+This skill is **a definition file, not a runnable procedure**. Skills that audit or preflight against universal code-quality apply these items by reference. When an item changes here, referencing skills pick up the change automatically; do not copy these rules into them.
 
 ## Audit lanes
 

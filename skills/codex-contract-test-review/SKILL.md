@@ -7,9 +7,9 @@ description: >
   implementation). Use this skill after `bug-to-contract` produces a
   test addition and a lightweight external review is wanted before
   merging without going through the full codex-review / copilot-review
-  loop. Triggered from `review-pipeline` Phase 3, or directly when the
-  user says "narrow review the contract test", "codex check this
-  contract test", or similar.
+  loop. Invokable as a pipeline step or directly when the user says
+  "narrow review the contract test", "codex check this contract test",
+  or similar.
 ---
 
 # Codex Contract-Test Review
@@ -20,7 +20,7 @@ This is *not* a full review — alternative test designs, additional test sugges
 
 ## When to use
 
-- After `bug-to-contract` adds a test, before merging in a context where the full codex-review / copilot-review loop is too heavy (review-pipeline Phase 3)
+- After `bug-to-contract` adds a test, before merging in a context where the full codex-review / copilot-review loop is too heavy
 - When you want a second opinion on whether a contract test actually catches the bug class it claims to catch
 
 ## Procedure

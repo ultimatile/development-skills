@@ -2,12 +2,12 @@
 name: gh-body-check
 description: >
   Per-item audit of a drafted GitHub issue / PR body against
-  `gh-body-conventions`. Use this skill before show-for-approval in
-  `file-issue` / `file-pullreq`, before `review-pipeline` Phase 4a
-  delta edits, or directly to audit an already-filed body. Delegates
-  mechanical items to a fresh-context subagent so the author's
-  blindspot for what their own draft literally says is neutralized.
-  Returns ✅ / ⚠ / ⊘ N/A per item; any unresolved ⚠ blocks the caller.
+  `gh-body-conventions`. Use this skill before show-for-approval on
+  any drafted body, before applying delta edits to an existing body,
+  or directly to audit an already-filed body. Delegates mechanical
+  items to a fresh-context subagent so the author's blindspot for
+  what their own draft literally says is neutralized. Returns
+  ✅ / ⚠ / ⊘ N/A per item; any unresolved ⚠ blocks the caller.
 ---
 
 # GH Body Check
@@ -28,12 +28,9 @@ reduces author-blindspot misses to the cases that are genuinely contextual (the 
 
 ## When to use
 
-- `file-issue` Step 3 — before showing the draft for approval.
-- `file-pullreq` Step 3 — before showing the draft for approval (standalone mode) or before handing off to the pipeline (gate mode).
-- `review-pipeline` Phase 4a — before applying plan-vs-actual delta edits to the PR body.
-- Direct user invocation — to audit an already-filed body (fetched with `gh issue view <N> --json body -q .body` or `gh pr view <N> --json body -q .body`).
+Invoke this skill before any GitHub issue / PR body (or in-review reply) is shown for approval or filed. A "Laundering pass" step in a caller skill resolves to running this skill. Direct user invocation is also supported — to audit an already-filed body (fetched with `gh issue view <N> --json body -q .body` or `gh pr view <N> --json body -q .body`).
 
-The "Laundering pass" step in the caller resolves to running this skill. Do not treat the cold re-read as a self-contained step in the caller — the explicit per-item record produced here is the audit artifact.
+Do not treat the cold re-read as a self-contained step in the caller — the explicit per-item record produced here is the audit artifact.
 
 ## Audit lanes
 
@@ -114,20 +111,11 @@ The canonical hard-wrap signature: every non-last line of the paragraph is "abou
 
 **M2. Local filesystem paths.** `rg -nP '(^|[^A-Za-z0-9_])(/Users/|/home/[a-z][^/]*/|/scratch/|/work/|/tmp/|~/)' "$BODY_FILE"`. Any hit outside fenced code blocks → ⚠.
 
-**M3. Private skill / workflow names.** `rg -nF` against this list:
+**M3. Private skill / workflow names.** Enumerate the current set of installed skill names with `ls {.,~}/.claude/skills 2>/dev/null | sort -u` (covers both repo-local and user-global installs). For each name in the resulting list, `rg -nF "<name>" "$BODY_FILE"`. Any literal hit outside fenced code blocks → ⚠.
 
-```
-research-and-implement-egel  research-and-implement  research-eg
-implement-el  implement  research
-done-check  todo-check  quality-list
-file-issue  file-pullreq  gh-body-conventions  gh-body-check
-review-pipeline  codex-plan-review  codex-review
-codex-contract-test-review  copilot-review  stage-commit-push
-bug-to-contract  finding-to-audit  spawn-subissue  plan-and-spawn
-driftreaper  arxiv-doc-builder  semantic-review
-```
+The list is regenerated at audit time so added / renamed / removed skills are picked up automatically without manual updates to this item.
 
-Any literal hit outside fenced code blocks → ⚠. (These names are author-side workflow tools; an external reader cannot resolve them and they signal private surface bleed.)
+(These names are author-side workflow tools; an external reader cannot resolve them and they signal private surface bleed.)
 
 **M4. Phase / Step numbering.** `rg -nP '\b(Phase|Step|フェーズ|ステップ)\s*[0-9]+(\.[0-9]+)?\b' "$BODY_FILE"`. Any hit → ⚠ unless the body declares itself an umbrella sub-issue (look for `umbrella` / `parent: #N` / `sub-issue of #N` style line near the top, case-insensitive). Umbrella sub-issues legitimately use Phase / Step numbering because the umbrella itself made that structure public.
 
