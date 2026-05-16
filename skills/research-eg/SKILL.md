@@ -190,10 +190,13 @@ Present the plan (after any Step 3.5 revisions) and ask for approval before post
 
 ## Step 5 — Post plan to GitHub
 
-After user approval:
+After user approval, route the plan to the correct surface based on what `$ARGUMENTS` resolves to:
 
-- **Existing issue** → `gh issue comment $ARGUMENTS` with the plan as body
-- **New task** → `gh issue create` with the plan in the body; report the new issue number
+- **Existing single-scope issue** → `gh issue comment $ARGUMENTS` with the plan as body.
+- **Existing umbrella issue** (the body contains a Phases table or sub-tasks list) → spawn a new sub-issue whose body IS the plan, following `file-issue`'s `Variants > Umbrella sub-issue` shape: `Parent: #<umbrella>` on the first line, `Phase N: <topic>` title, Goal / Scope / Out of scope / Acceptance derived from the plan. After creation, append the new sub-issue's number to the umbrella's Phases table row. The sub-issue body is the canonical contract surface; do not also post the plan as an umbrella comment.
+- **New task** → `gh issue create` with the plan in the body; report the new issue number.
+
+When the umbrella vs single-scope classification is ambiguous, surface both options to the user and let them choose. The umbrella branch is the D1 default — the sub-issue body becomes the single referenceable artifact (`Closes #<sub-issue>` from the PR points directly to the plan), avoiding the body/comment two-layer redundancy of the legacy spawn-then-comment flow.
 
 **Issue creation rules:**
 
@@ -202,3 +205,5 @@ After user approval:
 3. **No HPC paths, no cluster context, no local environment details.**
 4. **No line numbers** in issue body (they rot).
 5. **No "rejected alternatives" sections** unless explicitly requested.
+
+The body / title formatting itself follows `file-issue`'s conventions and (for the umbrella branch) its `Umbrella sub-issue` variant — this skill is the orchestrator, `file-issue` is the SSOT for body shape.
