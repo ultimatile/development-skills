@@ -157,7 +157,7 @@ Combine the subagent's M-row table and the main-context C-row table into a singl
 
 ### 5. Gate decision
 
-If any unresolved ⚠ remains, do NOT proceed to the caller's next step. Return the report to the caller; the caller must revise the draft and re-run `gh-body-check`. Iterate until no ⚠ remains, or each remaining ⚠ has an inline waiver with a one-line justification (e.g., `M3: "research-eg" appears inside a code-block citing the user's own skill description, not as a private workflow reference`).
+If any unresolved ⚠ remains, do NOT proceed to the caller's next step. Return the report to the caller; the caller must revise the draft and re-run `gh-body-check`. Iterate until no ⚠ remains, or each remaining ⚠ has an inline waiver with a one-line justification (e.g., `M3: "research" appears inside a code-block citing the user's own skill description, not as a private workflow reference`).
 
 ### 6. Output format
 
@@ -168,7 +168,7 @@ gh-body-check report — target: <issue|pr>, language: <English|Japanese|...>
 | ---- | ------ | -------------------------------------------------------------- |
 | M1   | ⚠      | paragraph @ line 14 hard-wrapped at ~72 columns                |
 | M2   | ✅     | rg pattern returned no hits                                    |
-| M3   | ⚠      | line 22: "research-and-implement-egel" — private workflow name |
+| M3   | ⚠      | line 22: "research-and-implement" — private workflow name |
 | M4   | ⊘ N/A  | (no Phase / Step tokens present)                               |
 | M5   | ✅     | rg pattern returned no hits                                    |
 | M6   | ✅     | target English; no CJK characters outside code blocks          |

@@ -1,5 +1,5 @@
 ---
-name: implement-el
+name: implement
 description: >
   Implement changes from a prior research plan by delegating the
   Read → Plan → Execute → Review → Fix → Verify loop to the execution-loop
@@ -7,10 +7,10 @@ description: >
   done-check before completion, and conventional commit generation.
   Use when a research plan exists (in a GitHub issue or recent context)
   and the user wants to execute it under the execution-loop discipline.
-  Optionally accepts an issue number (e.g., /implement-el 42).
+  Optionally accepts an issue number (e.g., /implement 42).
 ---
 
-# implement-el
+# implement
 
 GitHub-integrated wrapper around `execution-loop`. Drives the Read → Plan → Execute → Review → Fix → Verify → Commit workflow with plan-vs-actual drift surfacing and a final `done-check` audit.
 
@@ -21,9 +21,9 @@ GitHub-integrated wrapper around `execution-loop`. Drives the Read → Plan → 
 1. Read the GitHub issue and comments using `gh issue view $ARGUMENTS --comments`.
 2. Locate the implementation plan. It can live in two places depending on how the issue was created:
    - **Issue body** (D1 default for umbrella-spawned sub-issues): the body begins with `Parent: #<umbrella>` and contains the plan directly. When this line is present, treat the body itself as the plan and ignore comments for plan discovery.
-   - **Issue comments** (single-scope issues): the plan was posted via `gh issue comment` from `research-eg` Step 5. Scan comments for the `research-eg` output shape (`Hypotheses`, `Inconclusive / Deferred items` sections).
-3. The retrieved plan is expected to follow the `research-eg` output shape, including the `Inconclusive / Deferred items` section, regardless of which surface it lived on.
-4. If no plan is found in either location, check the current conversation context. If neither is available, suggest running `/research-eg $ARGUMENTS` first and stop.
+   - **Issue comments** (single-scope issues): the plan was posted via `gh issue comment` from `research` Step 5. Scan comments for the `research` output shape (`Hypotheses`, `Inconclusive / Deferred items` sections).
+3. The retrieved plan is expected to follow the `research` output shape, including the `Inconclusive / Deferred items` section, regardless of which surface it lived on.
+4. If no plan is found in either location, check the current conversation context. If neither is available, suggest running `/research $ARGUMENTS` first and stop.
 
 ## Step 2 — Extract the discovery contract
 
@@ -32,13 +32,13 @@ From the plan, extract:
 - **Plan checklist** (units of work)
 - **Impact list** (callers expected to be touched)
 - **Implementation guards** (assertions, paired APIs, constructor validations)
-- **Derivations** (specific examples and their deductive properties, already verified in `research-eg` Step 2.B). The list of examples whose properties have been derived defines the **derivationally cleared example set** — examples not on this list are unverified by the plan, regardless of how obvious their properties may seem.
+- **Derivations** (specific examples and their deductive properties, already verified in `research` Step 2.B). The list of examples whose properties have been derived defines the **derivationally cleared example set** — examples not on this list are unverified by the plan, regardless of how obvious their properties may seem.
 - **Inconclusive items** with their `probe` and `expected branches`
 - **Deferred items** with their `reason` and `resolution-point`
 
 These together form the **discovery contract**: the plan-side definition of what counts as "expected during implementation" vs "research gap".
 
-If the plan has no `Inconclusive / Deferred items` section at all, treat that as a research gap and stop. Do not synthesize the section yourself — silently filling it in defeats its purpose. Re-run `/research-eg` or ask the user to update the plan.
+If the plan has no `Inconclusive / Deferred items` section at all, treat that as a research gap and stop. Do not synthesize the section yourself — silently filling it in defeats its purpose. Re-run `/research` or ask the user to update the plan.
 
 If the plan has no `Derivations` section but the work involves specific-example fixtures (concrete Hamiltonians, concrete protocol messages, named worked cases, etc.), treat that as a research gap on the derivational axis and stop the same way. The absence of a `Derivations` section means no specific example has been derivationally cleared — implementing fixtures in that state is exactly the failure mode the gate exists to prevent.
 
@@ -141,7 +141,7 @@ For every such example, before adding the implementation:
 
 1. **Check the derivationally cleared example set** (extracted in Step 2 from the plan's `Derivations` section). If the example is on the list, it has already been derivationally verified during research; proceed.
 2. **If the example is not on the list, halt.** Do not add it on the strength of its properties feeling obvious. Properties that feel obvious are exactly the ones that bypass derivation and surface as fixture-construction bugs.
-3. **Required action when halted:** Surface to the user with: the proposed example, the deductive properties it is being relied on to satisfy (e.g., "this Hamiltonian must be U(1)-symmetric, must be Hermitian, must be non-diagonal in the chosen basis, must exercise the multi-sector path"), and the request to extend the plan's `Derivations` section before proceeding. The derivation itself is performed in `research-eg` Step 2.B, not in implementation.
+3. **Required action when halted:** Surface to the user with: the proposed example, the deductive properties it is being relied on to satisfy (e.g., "this Hamiltonian must be U(1)-symmetric, must be Hermitian, must be non-diagonal in the chosen basis, must exercise the multi-sector path"), and the request to extend the plan's `Derivations` section before proceeding. The derivation itself is performed in `research` Step 2.B, not in implementation.
 
 A `rejected` derivational outcome (the example does not in fact satisfy the claimed properties) is a plan bug — return to research and choose a different example. Patching the example mid-implementation is the failure mode this gate exists to prevent.
 

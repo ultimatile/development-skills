@@ -1,5 +1,5 @@
 ---
-name: research-eg
+name: research
 description: >
   Research a GitHub issue (or free-text task) by classifying hypotheses as
   empirical (resolved by code / runtime probes via subagents) or
@@ -7,13 +7,13 @@ description: >
   in the main context), and producing an implementation plan with
   explicit Inconclusive / Deferred items plus reproducible derivations
   for any specific-example claims. Use when the user wants to investigate
-  an issue before coding and prefers the four-state decision discipline
+  an issue before coding under the four-state decision discipline
   (confirmed / rejected / inconclusive / deferred) with mandatory
   disconfirming probes. Accepts an issue number or free-text description
-  (e.g., /research-eg 42 or /research-eg add retry logic).
+  (e.g., /research 42 or /research add retry logic).
 ---
 
-# research-eg
+# research
 
 GitHub-integrated wrapper around `evidence-gated-review`. Drives the Finding → Hypothesis → Defense → Probe → Decision workflow with parallel subagents and posts the resulting plan to GitHub. Do NOT write any production code in this skill.
 

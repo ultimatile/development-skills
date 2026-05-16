@@ -1,17 +1,17 @@
 ---
-name: research-and-implement-egel
+name: research-and-implement
 description: >
-  Implement a GitHub issue in two structured phases — research-eg first, then
-  implement-el. Wraps the evidence-gated-review and execution-loop skills end
+  Implement a GitHub issue in two structured phases — research first, then
+  implement. Wraps the evidence-gated-review and execution-loop skills end
   to end with branch baseline, GitHub integration, and four-state hypothesis
   decisions. Use when the user wants to work on a GitHub issue end to end
-  (e.g., /research-and-implement-egel 42) and prefers the disconfirming-probe
-  discipline over the legacy /research-and-implement skill.
+  (e.g., /research-and-implement 42) under the disconfirming-probe
+  discipline.
 ---
 
-# research-and-implement-egel
+# research-and-implement
 
-End-to-end wrapper. Runs `research-eg` (Phase 1) and `implement-el` (Phase 2) in sequence, with a branch baseline gate up front.
+End-to-end wrapper. Runs `research` (Phase 1) and `implement` (Phase 2) in sequence, with a branch baseline gate up front.
 
 **Issue:** #$ARGUMENTS
 
@@ -30,14 +30,14 @@ This phase exists to keep direct pushes off the default branch by making the que
 
 ## PHASE 1 — RESEARCH
 
-Execute `/research-eg $ARGUMENTS`.
+Execute `/research $ARGUMENTS`.
 
 The plan posted to the issue MUST include the `Inconclusive / Deferred items` section (or `Inconclusive / Deferred items: none identified`). This section is the discovery contract Phase 2 will enforce.
 
-`/research-eg` runs the mandatory `codex-plan-review` gate at its Step 3.5 — before user approval and before the plan is posted to GitHub. No separate review phase is needed here; revisions resulting from review land in the plan that Step 5 posts, so the issue trail shows a single reviewed plan rather than a post-then-revise sequence.
+`/research` runs the mandatory `codex-plan-review` gate at its Step 3.5 — before user approval and before the plan is posted to GitHub. No separate review phase is needed here; revisions resulting from review land in the plan that Step 5 posts, so the issue trail shows a single reviewed plan rather than a post-then-revise sequence.
 
 ## PHASE 2 — IMPLEMENT
 
-After Phase 1 settles and the user approves the (possibly review-revised) plan, execute `/implement-el $ARGUMENTS`.
+After Phase 1 settles and the user approves the (possibly review-revised) plan, execute `/implement $ARGUMENTS`.
 
 Phase 2 will halt rather than ad-hoc-patch any mid-implementation discovery that is not listed in the plan's discovery contract. If that happens, return to Phase 1 (or update the plan explicitly) before resuming.

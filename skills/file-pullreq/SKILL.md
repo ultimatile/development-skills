@@ -1,6 +1,6 @@
 ---
 name: file-pullreq
-description: Draft and file a GitHub pull request following the user's conventions. Use this skill whenever the user wants to create, draft, or file a GitHub PR, or when implementation work is ready for review. Enforces formatting rules via `gh-body-conventions` (semantic line breaks, GitHub/LaTeX-safe math, no local references, English by default) and the egel-aligned body skeleton (Summary / Changes / Impact / Test plan / Discovery contract status / Notes) before invoking `gh pr create`.
+description: Draft and file a GitHub pull request following the user's conventions. Use this skill whenever the user wants to create, draft, or file a GitHub PR, or when implementation work is ready for review. Enforces formatting rules via `gh-body-conventions` (semantic line breaks, GitHub/LaTeX-safe math, no local references, English by default) and the standard body skeleton (Summary / Changes / Impact / Test plan / Discovery contract status / Notes) before invoking `gh pr create`.
 ---
 
 # File Pull Request
@@ -35,14 +35,14 @@ A single descriptive line under ~70 characters. Use a conventional commit prefix
 Before drafting, identify:
 
 - **Target repo and base branch.** `gh repo view` and `git symbolic-ref --short refs/remotes/origin/HEAD` if unclear.
-- **Linked issue.** Read the issue body and comments — especially the `research-eg` plan comment, if the work passed through `/research-and-implement-egel`. The plan is the source of truth for Changes / Impact / Test plan / Discovery contract status.
-- **Whether the work is egel-gated.** If yes, fold the plan's sections into the body skeleton. If no, derive the same content from the local diff and commits, and omit the Discovery contract status section (there is no contract to report against).
+- **Linked issue.** Read the issue body and comments — especially the `research` plan (in the sub-issue body for umbrella-spawned leaves, or in a comment for single-scope issues), if the work passed through `/research-and-implement`. The plan is the source of truth for Changes / Impact / Test plan / Discovery contract status.
+- **Whether the work went through `research`.** If yes, fold the plan's sections into the body skeleton. If no, derive the same content from the local diff and commits, and omit the Discovery contract status section (there is no contract to report against).
 
 ### 2. Draft
 
 Produce a title and body following the conventions above and the skeleton below.
 
-#### Body skeleton (egel-aligned)
+#### Body skeleton
 
 ```
 ## Summary
@@ -73,7 +73,7 @@ Produce a title and body following the conventions above and the skeleton below.
 <all-clean → "All Inconclusive / Deferred items resolved per plan."
  (one line)>
 <omit the section entirely if the work did not go through
- research-and-implement-egel>
+ research-and-implement>
 
 ## Notes  (optional)
 

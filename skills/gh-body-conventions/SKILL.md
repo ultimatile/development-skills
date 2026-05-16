@@ -76,7 +76,7 @@ The body must NOT contain:
 
 - Local filesystem paths (`/Users/...`, `~/...`, absolute paths).
 - HPC cluster names, hostnames, queue names, or scheduler-specific context that is irrelevant to the upstream reader.
-- References to the user's private repos, skills, or workflow internals (e.g., `/file-pullreq`, `research-and-implement-egel`, `done-check`). These are author-side tools, not reader-facing artifacts; the public body must justify itself from the repo's own state.
+- References to the user's private repos, skills, or workflow internals (e.g., `/file-pullreq`, `research-and-implement`, `done-check`). These are author-side tools, not reader-facing artifacts; the public body must justify itself from the repo's own state.
 - Phase / step numbers from the working session ("Phase 2 of the umbrella", "Step 3 of the plan") unless the artifact is *itself* an umbrella sub-issue / sub-PR where that structure is public.
 - "As we discussed" / "following up from chat" / other chat-tone scaffolding that resolves only via the private context.
 - Inline Japanese clauses in an otherwise-English body (see Language).

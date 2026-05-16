@@ -5,7 +5,7 @@ description: >
   in `quality-list`, used before or during implementation to set up the
   work so the items will pass when `done-check` runs at the end. Use this
   skill when the user says "todo check", "preflight", "before I implement",
-  or invokes it from `implement-el` between units. Dual of `done-check`:
+  or invokes it from `implement` between units. Dual of `done-check`:
   same item set, but framed as "what do I need to set up?" instead of
   "did the diff satisfy this?".
 ---
@@ -21,7 +21,7 @@ Both skills walk the same list. Both reference `quality-list`.
 ## When to use
 
 - Immediately before implementation begins, against the plan / spec.
-- Between units inside `execution-loop` or `implement-el` when the next unit changes the active item set (e.g., a unit introduces a new public API → items 7, 11 become active).
+- Between units inside `execution-loop` or `implement` when the next unit changes the active item set (e.g., a unit introduces a new public API → items 7, 11 become active).
 - Before adding or designing tests, when item 5 (behavior coverage) is the constraint to honor.
 
 It is acceptable to invoke `todo-check` more than once during a task. `done-check` runs once at the end as the audit.
