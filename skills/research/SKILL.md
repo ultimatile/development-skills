@@ -161,6 +161,61 @@ A sub-decision is genuinely unresolved only when the above are silent or contrad
 
 Report the plan back to the main context.
 
+## Step 3.4 — Contract reachability check (mandatory)
+
+A plan can be **locally closed** (mechanism fits in scope, tests are writable, the docstring is composable) yet **contract-empty** (the semantic contract of any new public surface depends on consumer code that is not yet aligned). Local closure is what `codex-plan-review` and the author's confidence both assess well; contract closure is what they both miss, because it requires looking outward (at downstream consumers) rather than inward (at the plan).
+
+When contract closure fails silently and the plan ships, the symptom shows up later as repeated reviewer friction over the same API contract — "should this parameter accept both values?", "should this panic?", "should this convert?" — i.e., oscillation in the review pipeline that the oscillation-detection rule then has to catch downstream. This step exists to catch it upstream, via mechanical signals that don't require insight.
+
+Run all three checks against the plan body and the proposed public surface. Any one of them firing means the plan's contract is not closed; the response is to escalate scope or defer, not to ship.
+
+### Check 1 — Dead-on-arrival state
+
+For each new public symbol introduced by the plan (function parameter with non-trivial value range, struct field, accessor, method, type variant), answer:
+
+> Does any current or in-plan code path **branch on** (act on) this symbol's value?
+
+Branching means: reading the value and choosing a code path based on it (`match`, `if`, conditional dispatch, layout reorder, validation, etc.). Pure references that do not branch — `Clone` copying the field, an accessor `pub fn x(&self) -> X { self.x }` exposing it, a constructor storing it — are **not** branches. They are tautological consumers that exist solely to expose the symbol and do not justify the symbol's existence.
+
+- If at least one real branch exists → contract has a consumer that acts on the value; proceed.
+- If no real branch exists → the symbol is dead-on-arrival. Either:
+  - **Expand scope** — add the consumer-side branching to the plan checklist, with its own implementation guards, tests, and impact list.
+  - **Defer the symbol** — drop it from this plan; refile when the consumer materializes.
+
+A `source_order: MemoryOrder` parameter where no current code reads `tensor.order()` to branch on it is dead-on-arrival in the strict sense — every consumer treats the layout authority as something else (e.g., `backend.preferred_order()`). The plan must either resolve the consumer side first or not introduce the parameter.
+
+### Check 2 — Docstring-vocabulary scan
+
+Grep the plan body and any proposed docstrings for the following phrases (case-insensitive):
+
+```
+not yet honored | currently restricted | social contract | deferred (mitigation|consumer-side|to a later)
+documented limitation | for future use | in preparation for | analogous to ... cascade
+in a future PR | follow-up issue tracks | when consumers ... | until consumers ...
+```
+
+Each hit is a self-admission that the plan's contract depends on something **outside the plan's scope**. Hits are not automatically fatal — sometimes the dependency is in-flight under another tracked issue. But every hit must resolve into either:
+
+- A **`Depends on #N` link** to the issue that closes the gap (in which case the plan's `Inconclusive / Deferred items` carries the dependency explicitly).
+- A **scope expansion** that pulls the gap into this plan.
+- A **defer / close** decision: this issue is not single-actionable; re-frame upstream.
+
+A plan with hits and no resolution route is contract-empty by self-declaration. Do not proceed to Step 3.5; return to Step 1 and rescope.
+
+### Check 3 — Local-closure vs contract-closure distinction
+
+Restate the plan's claim in one sentence and ask: would this claim still be true if every line of consumer code outside the plan's checklist were arbitrary?
+
+- **Local closure**: "the new constructor stores the data correctly and propagates the order tag" — true regardless of consumer behavior; plan is locally closed.
+- **Contract closure**: "the new constructor produces a tensor that downstream operations interpret correctly under the declared order" — only true if consumers honor the tag, which is a consumer-side property.
+
+If the user-visible value of the plan rests on contract closure (not just local closure) and contract closure is not in scope, the plan is mis-scoped. The fix is to either bring contract closure into scope or step back to the upstream design decision.
+
+The output of Step 3.4 is one of:
+
+- **clean** — none of Check 1 / 2 / 3 fired; proceed to Step 3.5.
+- **flagged** — list the firings, the proposed resolution route (scope expansion / `Depends on` / defer-and-close), and surface to the user before continuing.
+
 ## Step 3.5 — Plan review gate (mandatory offer)
 
 Plan review is consistently mishandled when left to ad-hoc judgement — trivial changes skip it (fine), risky changes also skip it (not fine), and the decision is made on the basis of how confident the plan author feels rather than how exposed the plan is. The gate makes the decision deterministic. Running review before Step 5 (GitHub post) keeps the issue trail clean: only the reviewed plan is ever posted, so a premise problem caught here does not produce a noisy "first plan / revised plan" sequence on the issue.

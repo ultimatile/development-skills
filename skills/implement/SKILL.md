@@ -147,6 +147,20 @@ A `rejected` derivational outcome (the example does not in fact satisfy the clai
 
 Typical failure mode this gate catches: a fixture is chosen during implementation on the strength of its "obvious" properties, the properties turn out to be either false (the example violates the class the test was supposed to constrain it to) or vacuous (the example is a degenerate case that fails to exercise the path the test was supposed to cover), and the bug surfaces only at fixture construction or test-output inspection. The derivation step would have rejected the example before any code was written.
 
+### 3.2.2 Mechanism-substitution discipline
+
+When the issue body or research plan sketches a specific implementation strategy (a particular algorithm, data structure, or unsafe pattern) and the implementer chooses a different strategy at execution time — typically to avoid `unsafe`, to simplify, or to match a local idiom — the substitution must preserve **every** property of the original strategy, not just the explicit one named in the sketch.
+
+The failure mode this rule catches: a sketch motivated by property P (e.g., "no zero-init waste") is implemented via mechanism M (e.g., `MaybeUninit` + transmute). The implementer substitutes a different mechanism M' (e.g., `Vec::with_capacity` + `push`) claiming it also achieves P. P is preserved, but M originally had a silent property Q (e.g., "no per-element heap allocation") that M' does not preserve. The implementer ships M' satisfied that P holds; Q is silently lost. The substitution looks like a simplification but is actually a property-set reduction.
+
+Procedure when substituting:
+
+1. **Enumerate the original strategy's properties explicitly.** Not just the property named in the issue body's motivation — every property the original mechanism happens to achieve. For `MaybeUninit` + transmute the property set typically includes: (a) no zero-init waste, (b) no per-element heap allocation, (c) caller-controlled element placement, (d) deterministic memory layout. For `Vec` + `push` the set is: (a) no zero-init waste only.
+2. **For each property in the original set, verify the substitute preserves it.** If any property is dropped, name the gap explicitly in the plan-vs-actual diff. Do not ship a substitute that drops a property unless the user has been told and accepted the tradeoff.
+3. **If a property is dropped to gain `safe`-ness or simplicity:** that is the user's call, not the implementer's. Surface the tradeoff explicitly. "Substituting M with M' to avoid unsafe; M' loses Q (no per-element alloc). OK to ship?" is the correct framing.
+
+The principle generalizes beyond `unsafe` avoidance: any "simplification" that replaces one mechanism with another carries this risk. The safe-by-default move is to enumerate the original's full property set before substituting, not after.
+
 ### 3.3 Quality items during Execute / Review
 
 The substantive rules for implementation guards, test fixture design, docstring consistency, textual drift sweeps, naming-as-claim, and plan-vs-actual reconciliation all live in `quality-list` (items 5, 6, 7, 11, 12). Honor whichever items the Step 3.0 preflight marked active for the current unit.
@@ -155,6 +169,7 @@ The wrapper-specific contributions beyond `quality-list` are:
 
 - **Discovery handling** (Step 3.2): unlisted behavioral / structural discoveries halt rather than getting ad-hoc-patched.
 - **Specific-example derivation gate** (Step 3.2.1): new concrete examples introduced during implementation halt unless the plan's `Derivations` section already covers them, regardless of how obvious their properties seem.
+- **Mechanism-substitution discipline** (Step 3.2.2): substituting the issue body's sketched strategy for a different one must preserve every property of the original, not just the named motivation.
 
 ## Step 4 — Run done-check
 
