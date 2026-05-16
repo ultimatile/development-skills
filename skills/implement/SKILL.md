@@ -42,8 +42,11 @@ Execute an implementation plan that was produced by a prior research phase.
    - Symmetry label → non-identity (e.g., flux=1, not flux=0)
    - Matrix shape → non-square (e.g., 2×3, not 2×2 — distinguishes row from column)
    - Memory layout → include the "other" layout if the API is supposed to be layout-invariant
+   - Structural-region index → interior value (e.g., site index in a 2-site MPS is always edge — use ≥3 sites with an interior site picked; stage / layer index at `depth-1` collapses any post-stage machinery to identity — use an interior stage 0 ≤ i < depth-1)
 
-   The goal is the smallest input that still exercises all code paths — the "construct the smallest non-trivial counterexample" principle from math qualifying exams. If a test passes with both trivial and non-trivial fixtures, the invariant is likely correct. If it only passes with the trivial fixture, you have discovered an implicit specification gap before the review cycle.
+   The goal is the smallest input that still exercises all code paths — the "construct the smallest non-trivial counterexample" principle from math qualifying exams. The general criterion is parameter-space coverage of structural splits: for any parameter whose boundary value collapses a downstream code branch the change touches (boundary vs interior, terminal vs intermediate, identity vs non-identity, empty vs non-empty), the fixture must include at least one interior-side value. If a test passes with both trivial and non-trivial fixtures, the invariant is likely correct. If it only passes with the trivial fixture, you have discovered an implicit specification gap before the review cycle.
+
+   See `quality-list` item 5 (Behavior coverage) for the SSOT framing; this step is the implementation-time application of that rule.
 
 ## Step 4 — Docstring consistency check
 
