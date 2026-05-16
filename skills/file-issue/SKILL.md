@@ -19,10 +19,25 @@ Apply the rules in `gh-body-conventions` to the title and body. The two issue-sp
 
 - **Semantic line breaks, not column wrapping.** Most-violated rule on issue bodies — do not hard-wrap at 72/80 the way commit bodies do.
 - **Line numbers are forbidden in the issue body.** Issue bodies refer to the default branch's `HEAD` implicitly, which moves; cited line numbers go stale. Inline a code snippet instead. (PR bodies, governed by `file-pullreq`, are different — they are anchored to specific commits, so line refs there do not rot.)
+- **Omit empty sections.** If a heading's content would be empty (no bullets, no prose), drop the heading entirely. No `TBD` placeholders, no empty bullet lists, no synthesized filler. Making an absence visible is more useful than papering over it; the section can be added later when there is real content.
 
 ### Length
 
 A typical issue body is 5–25 lines. Longer is fine when warranted (e.g., a design proposal with alternatives), but every paragraph should earn its place. Aim for: problem statement, minimal reproduction or evidence, proposed direction (if any).
+
+## Variants
+
+### Umbrella sub-issue
+
+When the new issue is a phase / sub-issue of an existing umbrella tracking issue, the body shape and title convention differ from a standalone issue.
+
+- **First body line.** `Parent: #<umbrella#>`. Always included so downstream tooling (`review-pipeline` Phase 4) can detect the umbrella linkage.
+- **Title.** `Phase N: <topic>` when the umbrella uses phase naming; otherwise mirror the umbrella's sub-task naming convention.
+- **Body shape.** Goal / Scope / Out of scope / Acceptance (in place of the default problem-statement shape). When the leaf research has produced a full `research-eg` plan, that plan IS the body — the sub-issue body is the canonical contract surface, not a thin pointer to a comment elsewhere.
+- **"Out of scope" extraction.** When inheriting from an umbrella with a Phases table: list only **unspawned sibling phases later than the chosen one**, formatted as `<topic> (Phase <id>)`. The point is to pin scope-creep boundaries against work the umbrella has already promised to a future sub-issue. Do not copy umbrella-wide deferrals shared across all phases (e.g. "1-site DMRG", "opsum DSL") — they live on the parent and duplicating them adds noise. Already-completed earlier phases are also not listed (the boundary is forward-looking).
+- **Frozen-contract discipline.** The sub-issue body is written at file time and not edited during implementation. Drift discovered during implementation goes to the PR description (`file-pullreq`'s Discovery contract status section) and to the Phase 4a `Plan-vs-actual delta`, never back to the issue body. Editing the body rewrites history that PR titles, commit messages, and `Closes #N` references already point to.
+
+After filing, append the new sub-issue's number to the umbrella's Phases table row. This is the only umbrella-body edit performed at sub-issue spawn time; deeper umbrella drift (decisions captured, out-of-scope changes) is handled by `review-pipeline` Phase 4b at sub-issue close, not at spawn.
 
 ## Procedure
 
@@ -30,7 +45,7 @@ A typical issue body is 5–25 lines. Longer is fine when warranted (e.g., a des
 
 Before drafting, identify:
 - Target repo (`gh repo view` if unclear).
-- Whether this is a bug, feature, design discussion, or umbrella sub-issue — the body shape differs.
+- Whether this is a bug, feature, design discussion, or umbrella sub-issue. The default body shape covers the first three; umbrella sub-issues use the shape defined in `Variants > Umbrella sub-issue` above.
 - Any related issues/PRs to link.
 
 ### 2. Draft
