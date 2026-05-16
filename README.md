@@ -8,21 +8,16 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 
 | Skill | Description |
 |---|---|
-| `research` | Hypothesis-driven investigation of an issue; parallel subagent verification; produces a concrete implementation plan |
 | `research-eg` | Evidence-gated variant of `research` — classifies hypotheses as empirical vs derivational with mandatory disconfirming probes and four-state decisions (confirmed / rejected / inconclusive / deferred). Depends on [haru0416-dev/agent-skills](https://github.com/haru0416-dev/agent-skills) (`evidence-gated-review`) |
 | `codex-plan-review` | Review the implementation plan with Codex against the actual codebase before coding |
-| `implement` | Execute an approved plan, enforce implementation guards, run baseline/fixture checks |
 | `implement-el` | Execute a plan via the execution-loop discipline (Read → Plan → Execute → Review → Fix → Verify) with drift surfacing and done-check before completion. Depends on [haru0416-dev/agent-skills](https://github.com/haru0416-dev/agent-skills) (`execution-loop`) |
-| `research-and-implement` | Thin wrapper that runs `research` then `implement` |
 | `research-and-implement-egel` | Evidence-gated end-to-end wrapper that runs `research-eg` then `implement-el`. Depends on [haru0416-dev/agent-skills](https://github.com/haru0416-dev/agent-skills) (`evidence-gated-review` + `execution-loop`) |
 
-### Umbrella Tracking
+### Issue & PR drafting
 
 | Skill | Description |
 |---|---|
-| `plan-and-spawn` | Decompose an umbrella tracking issue into one next sub-issue with a plan-confirmed, frozen contract body |
-| `spawn-subissue` | Clerical spawn of the next sub-issue from an umbrella by extracting verbatim sections (no plan-confirm gate) |
-| `file-issue` | Draft and file a GitHub issue following formatting conventions (semantic line breaks, LaTeX math, no local references) |
+| `file-issue` | Draft and file a GitHub issue following formatting conventions (semantic line breaks, LaTeX math, no local references). Includes an umbrella sub-issue variant (Parent: linkage, Goal/Scope/Out of scope/Acceptance shape) used by `research-eg` when spawning sub-issues from an umbrella |
 
 ### Code → Review → Ship
 
