@@ -329,3 +329,30 @@ The failure mode is structural: a `git diff` that contracts or rewires a functio
 The generic principle is language-agnostic; the actual triggers, mitigation idioms, and mechanical detection patterns depend on the host language's conversion semantics. Concrete realizations live in `lang-<language>.md` next to this file. When `done-check` / `todo-check` resolve the active rule set, the lang-supplement is loaded alongside the base item.
 
 **N/A:** the diff does not remove, reorder, or substitute parameters of any function or method whose call sites live outside the touched translation unit, AND the call sites of any touched function are exhaustively re-verified to type-check under the new signature with no implicit-conversion path from the old form.
+
+## 15. Public-facing documentation durability [mechanical]
+
+Public docs (`README.md`, `docs/**/*.md`, top-level `*.md` other than `CONTRIBUTING.md` / `LICENSE` / `NOTICE` / `CHANGELOG.md`) describe present-tense, audience-public capability only. They must not duplicate information whose **authoritative source lives elsewhere** and changes independently, and must not leak the maintainer's local environment.
+
+LLM-drafted READMEs systematically include several such surfaces that read fine at draft time and rot the moment the underlying state moves. Catching each subspecies at diff inspection is cheaper than the per-repo correction cycle.
+
+**Concern conditions:**
+
+- **Local filesystem paths in prose** — `~/`, `/Users/`, `/home/`, `/tmp/`, `/private/tmp/`, `/scratch/`, or any other absolute path that exists only on the maintainer's machine. These are environment-specific and have no meaning to repo visitors. Replace with abstract descriptions ("`gh-post` executable on your PATH") or generic placeholders (`body.md`, `<path>`).
+- **Version literals in prose** — `v\d+\.\d+\.\d+` or "as of v…", "v0.0.1 ships X", "Currently v…", "Status: v…" when the project has an authoritative manifest (`pyproject.toml`, `Cargo.toml`, `package.json`, `mix.exs`, etc.). The prose drifts on every release; the manifest is single source of truth and the runtime `--version` reads from it.
+- **Roadmap / deferred-feature prose** — "Deferred to v…", "Planned features", "Coming soon", "Will support X in vN" prose blocks when the project has an issue tracker. The tracker is single source of truth; duplicating it in README creates a second editing surface that decays. Link to the tracker instead of enumerating.
+- **Changelog prose** — "Recent changes", "Latest: …", per-version bullet lists when `CHANGELOG.md` or release tags exist. Same duplication problem.
+- **Point-in-time status sections** — "Currently v…", "Now at parity with X", "As of N tests passing", "Migration in progress" prose. These describe transient state and rot immediately after writing.
+- **Companion-tool / setup specifics that name the maintainer's stack** — "Reads the hook at `~/.claude/hooks/foo.sh`", "Registered in my `~/.tmux.conf`", named author / maintainer when the `pyproject` `authors` field already covers it. The README must work for a stranger who runs `git clone` and does not share the maintainer's dotfiles.
+
+**Mechanical detection patterns:**
+
+```bash
+rg -n '(?:~/|/Users/|/home/|/tmp/|/private/tmp/|/scratch/)' README.md docs/**/*.md
+rg -nP '\bv\d+\.\d+\.\d+\b' README.md docs/**/*.md
+rg -nP '(?im)^#+\s*(Status|Roadmap|Deferred|Planned|Coming\s+soon|Recent\s+changes|Latest|What.?s\s+new)' README.md docs/**/*.md
+```
+
+A hit on the first command is always a concern. Hits on the second and third commands are concerns when the listed authoritative source (manifest / tracker / CHANGELOG / tags) exists in the same repo.
+
+**N/A:** the doc surface is internal-only (private wiki, contributor-only design notes, ADRs that name a specific historical decision date), or the duplicated information has no authoritative source elsewhere (in which case the prose **is** the source of truth and rot is not a structural risk). `CHANGELOG.md` / release-note files are themselves the authoritative changelog source and N/A.

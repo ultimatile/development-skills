@@ -55,7 +55,7 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
      below)
    - the literal text of the codebase you can read with your tools
 
-   For each of items 5, 6, 7, 10, 11, 13, 14 below, return one of:
+   For each of items 5, 6, 7, 10, 11, 13, 14, 15 below, return one of:
 
    - ✅ pass — with concrete evidence (file:line, identifier, or
      literal-text match) that the rule is satisfied
@@ -86,7 +86,7 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
      items
    ```
 
-   Embed the actual diff (committed + staged + unstaged) and the full text of items 5, 6, 7, 10, 11, 13, 14 from `quality-list` directly in the prompt — the subagent has no access to the parent's context.
+   Embed the actual diff (committed + staged + unstaged) and the full text of items 5, 6, 7, 10, 11, 13, 14, 15 from `quality-list` directly in the prompt — the subagent has no access to the parent's context.
 
    The subagent runs in parallel with main-context steps 3 below; do not block waiting for it unless step 4 requires the result.
 
@@ -138,6 +138,7 @@ self-audit: <commit-range or "uncommitted">
 | 12 | Discovery surfacing               | ⊘ N/A  |                                         | no plan exists                                 |
 | 13 | License / attribution for ports   | ⊘ N/A  |                                         | no external code ported                        |
 | 14 | Silent semantic regression        | ⊘ N/A  |                                         | no signature change to public APIs             |
+| 15 | Public-doc durability             | ✅     | rg local-paths / version literals in MD | README / docs/ scrub against authoritative srcs|
 ```
 
 Item numbering and titles must follow `quality-list` exactly. If the list grows or shrinks, update the table accordingly — the table is generated from the list, not maintained independently.
