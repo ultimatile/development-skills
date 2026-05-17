@@ -12,6 +12,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | `codex-plan-review` | Review the implementation plan with Codex against the actual codebase before coding |
 | `implement` | Execute a plan via the execution-loop discipline (Read → Plan → Execute → Review → Fix → Verify) with drift surfacing and done-check before completion. Reads the plan from the sub-issue body (umbrella-spawned) or comments (single-scope). Depends on [haru0416-dev/agent-skills](https://github.com/haru0416-dev/agent-skills) (`execution-loop`) |
 | `research-and-implement` | End-to-end wrapper that runs `research` (Phase 1) then `implement` (Phase 2), with a branch baseline gate up front. Depends on [haru0416-dev/agent-skills](https://github.com/haru0416-dev/agent-skills) (`evidence-gated-review` + `execution-loop`) |
+| `reimre` | Full end-to-end wrapper — runs `research-and-implement` then `review-pipeline` back to back, with an automatic seam rule that skips the duplicate `done-check` at the boundary. Stops at the user-controlled merge gate inherited from `review-pipeline`. |
 
 ### Issue & PR drafting
 
@@ -67,6 +68,8 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
      ↓
 /driftreaper             → periodic docstring audit
 ```
+
+`/reimre <issue>` collapses the first four steps (research → plan review → implement → review-pipeline) into one invocation with the seam handled automatically.
 
 ## Install
 
