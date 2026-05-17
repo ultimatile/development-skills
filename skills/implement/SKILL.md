@@ -21,7 +21,7 @@ GitHub-integrated wrapper around `execution-loop`. Drives the Read → Plan → 
 1. Read the GitHub issue and comments using `gh issue view $ARGUMENTS --comments`.
 2. Locate the implementation plan. It can live in two places depending on how the issue was created:
    - **Issue body** (D1 default for umbrella-spawned sub-issues): the body begins with `Parent: #<umbrella>` and contains the plan directly. When this line is present, treat the body itself as the plan and ignore comments for plan discovery.
-   - **Issue comments** (single-scope issues): the plan was posted via `gh issue comment` from `research` Step 5. Scan comments for the `research` output shape (`Hypotheses`, `Inconclusive / Deferred items` sections).
+   - **Issue comments** (single-scope issues): the plan was posted via `gh-post issue comment` from `research` Step 5. Scan comments for the `research` output shape (`Hypotheses`, `Inconclusive / Deferred items` sections).
 3. The retrieved plan is expected to follow the `research` output shape, including the `Inconclusive / Deferred items` section, regardless of which surface it lived on.
 4. If no plan is found in either location, check the current conversation context. If neither is available, suggest running `/research $ARGUMENTS` first and stop.
 

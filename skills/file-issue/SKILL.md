@@ -1,6 +1,6 @@
 ---
 name: file-issue
-description: Draft and file a GitHub issue following the user's conventions. Use this skill whenever the user wants to create, draft, or file a GitHub issue, or when an investigation or discussion needs to be captured as a tracked issue. Enforces formatting rules (semantic line breaks, GitHub/LaTeX-safe math, no local references, English by default, concise but complete) before invoking `gh issue create`.
+description: Draft and file a GitHub issue following the user's conventions. Use this skill whenever the user wants to create, draft, or file a GitHub issue, or when an investigation or discussion needs to be captured as a tracked issue. Enforces formatting rules (semantic line breaks, GitHub/LaTeX-safe math, no local references, English by default, concise but complete) before invoking `gh-post issue create`.
 ---
 
 # File Issue
@@ -78,7 +78,7 @@ Section headings are optional for short issues — a 5-line body often needs no 
 
 Run `gh-body-check` against the drafted body. The check delegates mechanical items (hard-wrap, local-path patterns, private skill names, Phase / Step numbering, JP clauses in English bodies, chat-tone scaffolding, Unicode math in prose, unresolved placeholders, line numbers in issue bodies) to a fresh-context subagent — the author has just drafted the text and is primed to read what they meant rather than what they wrote, which has repeatedly let documented exclusions slip past a self-administered cold re-read.
 
-Pass artifact kind `issue` and the target language. The check returns a per-item ✅ / ⚠ / ⊘ N/A table. Mandatory before every `gh issue create` / `gh issue comment`. Any ⚠ blocks step 4; revise the draft and re-run until no unresolved ⚠ remains, or explicitly waive a finding with a one-line justification.
+Pass artifact kind `issue` and the target language. The check returns a per-item ✅ / ⚠ / ⊘ N/A table. Mandatory before every `gh-post issue create` / `gh-post issue comment`. Any ⚠ blocks step 4; revise the draft and re-run until no unresolved ⚠ remains, or explicitly waive a finding with a one-line justification.
 
 See `gh-body-check/SKILL.md` for the full item list, detection patterns, and the contextual-axis cold re-read covering novel leak shapes.
 
@@ -90,19 +90,18 @@ If the user requests changes, revise and re-show. Do not file partially — the 
 
 ### 5. File
 
+Write the laundered body to a temp file, then invoke the wrapper:
+
 ```bash
-gh issue create \
+gh-post issue create \
   --repo <owner>/<repo> \
   --title "<title>" \
-  --body "$(cat <<'EOF'
-<body>
-EOF
-)"
+  --body-file /tmp/<descriptive-name>.md
 ```
 
-Always use HEREDOC for the body to preserve formatting and avoid shell escaping issues.
+`gh-post` is a single-entry wrapper that funnels every body through stream input (`--body-file` or `--body-stdin`) and re-runs the hardwrap validator before forwarding to `gh`. Direct `gh issue create --body ...` is blocked by the companion `PreToolUse` hook to eliminate the silent-bypass class (e.g. `--body "$(cat /tmp/x.md)"`).
 
-If labels or assignees are appropriate and the user mentioned them, add `--label` / `--assignee` flags. Do not invent labels — only use ones the user named or that are obviously required by the repo's template.
+If labels or assignees are appropriate and the user mentioned them, add `--label` / `--assignee` flags — these are forwarded to `gh` verbatim. Do not invent labels; only use ones the user named or that are obviously required by the repo's template.
 
 ### 6. Report
 

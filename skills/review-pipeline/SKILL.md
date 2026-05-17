@@ -170,7 +170,9 @@ Skip when the work is not tied to an umbrella tracking issue. Trigger only when 
 
     Apply `gh-body-conventions` to the appended section (same semantic line breaks, same exclusions). Line refs into this PR's diff are permitted (the PR is anchored to specific commits and will not rot).
 
-    Before invoking `gh pr edit`, run `/gh-body-check` against the **final body** (existing PR body concatenated with the appended delta section). Paragraph boundaries and reference patterns can cross the section seam, so auditing only the appended section would miss them. Pass artifact kind `pr` and the target language. Any unresolved ⚠ blocks `gh pr edit` — revise the appended section and re-run until clean.
+    Before invoking `gh-post pr edit`, run `/gh-body-check` against the **final body** (existing PR body concatenated with the appended delta section). Paragraph boundaries and reference patterns can cross the section seam, so auditing only the appended section would miss them. Pass artifact kind `pr` and the target language. Any unresolved ⚠ blocks `gh-post pr edit` — revise the appended section and re-run until clean.
+
+    Write the final body to a temp file and invoke `gh-post pr edit <N> --repo <owner>/<repo> --body-file /tmp/<descriptive-name>.md`. Direct `gh pr edit ... --body*` is blocked by the companion `PreToolUse` hook.
 
 ## ← user merges PR ←
 
@@ -182,7 +184,7 @@ After the user confirms the merge has landed, continue to Phase 4b.
 
 Runs only after the user has merged.
 
-18. **Sub-issue closing comment.** Post a compressed delta (≈ 5–10 lines) plus the merged PR link via `gh issue comment <leaf#>`, then close the sub-issue with `gh issue close <leaf#>`.
+18. **Sub-issue closing comment.** Post a compressed delta (≈ 5–10 lines) plus the merged PR link via `gh-post issue comment <leaf#> --repo <owner>/<repo> --body-file /tmp/<descriptive-name>.md`, then close the sub-issue with `gh issue close <leaf#>`. (Direct `gh issue comment ... --body*` is blocked by the companion `PreToolUse` hook; `gh issue close` is read-only-equivalent and remains direct.)
 
 19. **Umbrella body update.** Edit only when the delta changes a **parent-level design assumption** — a new deferral that affects another phase, a scope shift that invalidates the Phases table, a decision that contradicts the umbrella's "Decisions captured" section. A clean implementation with no parent-level implications gets no umbrella edit.
 

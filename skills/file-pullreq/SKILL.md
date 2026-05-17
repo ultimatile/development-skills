@@ -1,6 +1,6 @@
 ---
 name: file-pullreq
-description: Draft and file a GitHub pull request following the user's conventions. Use this skill whenever the user wants to create, draft, or file a GitHub PR, or when implementation work is ready for review. Enforces formatting rules via `gh-body-conventions` (semantic line breaks, GitHub/LaTeX-safe math, no local references, English by default) and the standard body skeleton (Summary / Changes / Impact / Test plan / Discovery contract status / Notes) before invoking `gh pr create`.
+description: Draft and file a GitHub pull request following the user's conventions. Use this skill whenever the user wants to create, draft, or file a GitHub PR, or when implementation work is ready for review. Enforces formatting rules via `gh-body-conventions` (semantic line breaks, GitHub/LaTeX-safe math, no local references, English by default) and the standard body skeleton (Summary / Changes / Impact / Test plan / Discovery contract status / Notes) before invoking `gh-post pr create`.
 ---
 
 # File Pull Request
@@ -88,7 +88,7 @@ Section headings are optional for trivial PRs — a 5-line body covering Summary
 
 Run `gh-body-check` against the drafted body. The check delegates mechanical items (hard-wrap, local-path patterns, private skill names, Phase / Step numbering, JP clauses in English bodies, chat-tone scaffolding, Unicode math in prose, unresolved placeholders) to a fresh-context subagent — the author has just drafted the text and is primed to read what they meant rather than what they wrote, which has repeatedly let documented exclusions slip past a self-administered cold re-read.
 
-Pass artifact kind `pr` and the target language. The check returns a per-item ✅ / ⚠ / ⊘ N/A table. Mandatory before every `gh pr create` / `gh pr edit`. Any ⚠ blocks step 4; revise the draft and re-run until no unresolved ⚠ remains, or explicitly waive a finding with a one-line justification.
+Pass artifact kind `pr` and the target language. The check returns a per-item ✅ / ⚠ / ⊘ N/A table. Mandatory before every `gh-post pr create` / `gh-post pr edit`. Any ⚠ blocks step 4; revise the draft and re-run until no unresolved ⚠ remains, or explicitly waive a finding with a one-line justification.
 
 See `gh-body-check/SKILL.md` for the full item list, detection patterns, and the contextual-axis cold re-read covering novel leak shapes.
 
@@ -104,22 +104,19 @@ Two modes, distinguished by the caller.
 
 #### 5a. Standalone mode (default)
 
-Used when invoked directly by the user, outside `review-pipeline`.
+Used when invoked directly by the user, outside `review-pipeline`. Write the laundered body to a temp file, then invoke the wrapper:
 
 ```bash
-gh pr create \
+gh-post pr create \
   --repo <owner>/<repo> \
   --base <base-branch> \
   --title "<title>" \
-  --body "$(cat <<'EOF'
-<body>
-EOF
-)"
+  --body-file /tmp/<descriptive-name>.md
 ```
 
-Always use HEREDOC for the body to preserve formatting and avoid shell escaping issues. Add `--draft` if the user wants a draft PR.
+`gh-post` funnels every body through stream input and re-runs the hardwrap validator before forwarding to `gh`. Direct `gh pr create --body ...` is blocked by the companion `PreToolUse` hook. Add `--draft` if the user wants a draft PR; extra flags (`--label`, `--reviewer <login>`, etc.) are forwarded to `gh` verbatim.
 
-If the user mentioned a reviewer, add `--reviewer <login>`. Do not auto-add `@copilot` here — Copilot review is `copilot-review`'s responsibility.
+Do not auto-add `@copilot` here — Copilot review is `copilot-review`'s responsibility (gate mode below).
 
 #### 5b. Gate mode (review-pipeline Phase 2)
 
