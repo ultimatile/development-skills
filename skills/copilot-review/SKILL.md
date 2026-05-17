@@ -56,17 +56,24 @@ For each finding:
 
 ## Respond to review
 
-After triaging, reply to each inline comment individually using the review comment replies API:
+After triaging, reply to each inline comment individually. Use `gh-post reply-inline` so every reply body is validated (hardwrap detector + halt-before-send) and a single batch covers the full review:
 
 ```bash
-# Get inline comment IDs
-gh api repos/{owner}/{repo}/pulls/{number}/comments --jq '.[] | {id, path, line, body: (.body | .[0:80])}'
+# 1. Collect inline comment IDs (filter to the latest review if multiple have arrived).
+gh api repos/{owner}/{repo}/pulls/{number}/comments \
+  --jq '.[] | {id, path, line, body: (.body | .[0:80])}'
 
-# Reply to each comment
-gh api repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies -f body='...'
+# 2. Build a JSONL file: one {"id": <comment-id>, "body": "<reply text>"} per line.
+#    Each reply should be concise — state the classification (fixed, false positive,
+#    acknowledged) and the reasoning in 1-2 sentences.
+
+# 3. Send the batch. The wrapper validates every body BEFORE any send; on a body
+#    failure no replies post. On a mid-batch API failure it prints un-sent indices
+#    and exits non-zero.
+gh-post reply-inline {owner}/{repo} {number} < /tmp/replies.jsonl
 ```
 
-Each reply should be concise — state the classification (fixed, false positive, acknowledged) and the reasoning in 1-2 sentences.
+Direct `gh api .../comments/{id}/replies -F body=...` is still possible but defeats the funneling guarantee — use it only for one-off cases where the JSONL ceremony is overhead (and pair with the `PreToolUse` deny hook once it is extended to cover the replies endpoint).
 
 ## Prerequisites
 
@@ -81,7 +88,7 @@ codex review loop (pre-PR, local)
     ↓ clean
 ${CLAUDE_SKILL_DIR}/scripts/pr-with-copilot-review.sh (creates PR + polls for review)
     ↓ review received
-Triage + respond to each inline comment via gh api .../replies
+Triage + respond to each inline comment via gh-post reply-inline (JSONL batch)
     ↓ if fixes needed
 Push fixes
     ↓

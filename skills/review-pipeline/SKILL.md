@@ -120,7 +120,7 @@ Done-check runs **before** any commit. Resolving its concerns post-commit produc
 
 6a. Run `/file-pullreq` in **gate mode** — drafts the PR title + body following `gh-body-conventions` and the standard body skeleton, runs the laundering pass, and gets the user's approval. The skill stops at approval and emits the approved title + body for the next step. It does NOT create the PR itself. 6b. Run `/copilot-review`, passing the approved title + body — this creates the PR with `--reviewer @copilot` and polls until the review arrives.
 7. Triage the review — filter to the latest review's comments only (by `pull_request_review_id`)
-8. Reply to each inline comment individually via `gh api .../pulls/{number}/comments -X POST -F in_reply_to={id}`
+8. Reply to each inline comment individually via `gh-post reply-inline <owner>/<repo> <PR> < /tmp/replies.jsonl`. Build the JSONL with one `{"id": <comment-id>, "body": "<reply>"}` per line; the wrapper validates every body through the hardwrap detector before any send (halt-before-send) and prints un-sent indices on a mid-batch API failure.
 9. If actionable findings exist:
    - Fix the code
    - Run `/done-check` in **delta mode** (see Rules below)
@@ -205,7 +205,7 @@ Runs only after the user has merged.
       test "$(git symbolic-ref --short HEAD)" != \ "$(git symbolic-ref --short refs/remotes/origin/HEAD | sed 's@^origin/@@')"
 
   Halt and surface to user if equal. The session-start branch baseline (e.g. `research-and-implement` Phase 0) is one-shot and does not catch silent mid-session branch switches.
-- **Reply to Copilot comments individually**, not as a single PR comment. Use `gh api .../pulls/{number}/comments -X POST -F in_reply_to={comment_id}` for each.
+- **Reply to Copilot comments individually**, not as a single PR comment. Use `gh-post reply-inline <owner>/<repo> <PR> < /tmp/replies.jsonl` so every reply body passes the hardwrap validator and the batch halts before send on any body failure. JSONL shape: one `{"id": <comment-id>, "body": "<reply>"}` per line.
 - **Triage is mandatory.** Never present raw review output to the user. Classify findings and lead with actionable items.
 - **Sub-classify actionable findings before fixing.** Not all actionable findings warrant the same response:
   - **Surface** (typo, stale comment, wrong API name): fix is self-evident. Commit immediately.
