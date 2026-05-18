@@ -14,10 +14,12 @@ Create a GitHub PR, request Copilot review, poll until it arrives, and triage th
 ### Normal mode: create PR + review + poll
 
 ```bash
-${CLAUDE_SKILL_DIR}/scripts/pr-with-copilot-review.sh --title "fix: foo" --body "bar" --base main
+${CLAUDE_SKILL_DIR}/scripts/pr-with-copilot-review.sh --title "fix: foo" --body-file /tmp/body.md --base main
 ```
 
-All arguments are forwarded to `gh pr create --reviewer @copilot`. The script then polls until Copilot's review arrives, outputting the review body and inline comments to stdout.
+All arguments are forwarded to `gh-post pr create --reviewer @copilot`. The script then polls until Copilot's review arrives, outputting the review body and inline comments to stdout.
+
+Inline `--body <string>` and `-b <string>` are rejected by `gh-post` — the wrapper exists to keep every body through its hardwrap validator. Use `--body-file <path>` (preferred) or `--body-stdin`.
 
 ### Re-review mode: after pushing fixes
 
@@ -78,6 +80,7 @@ Direct `gh api .../comments/{id}/replies -F body=...` is still possible but defe
 ## Prerequisites
 
 - `gh` CLI >= 2.88.0 (for `--reviewer @copilot` support)
+- `gh-post` on `PATH` — the script routes PR creation through `gh-post pr create` so the body passes the wrapper's validator stack
 - Copilot code review enabled for the repository (via GitHub plan + org/repo settings)
 - Alternative: configure automatic Copilot review via Repository Rulesets (Settings > Rules)
 

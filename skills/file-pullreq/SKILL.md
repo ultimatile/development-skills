@@ -132,17 +132,20 @@ APPROVED BODY (HEREDOC-ready):
 <body>
 ```
 
-The pipeline's Phase 2 step then runs:
+The pipeline's Phase 2 step then writes the approved body to a temp file and runs:
 
 ```bash
+cat > /tmp/<descriptive-name>.md <<'EOF'
+<approved body>
+EOF
+
 ${CLAUDE_SKILL_DIR}/../copilot-review/scripts/pr-with-copilot-review.sh \
   --base <base-branch> \
   --title "<approved title>" \
-  --body "$(cat <<'EOF'
-<approved body>
-EOF
-)"
+  --body-file /tmp/<descriptive-name>.md
 ```
+
+The script routes PR creation through `gh-post pr create`, which rejects inline `--body <string>` / `-b` to keep every body through the wrapper's validator stack — `--body-file` (preferred) or `--body-stdin` are the only accepted body inputs.
 
 ### 6. Report
 
