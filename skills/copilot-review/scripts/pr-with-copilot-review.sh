@@ -26,7 +26,23 @@ POLL_MAX="${COPILOT_POLL_MAX:-300}"
 POLL_ATTEMPTS="${COPILOT_POLL_ATTEMPTS:-10}"
 
 parse_pr_url() {
-    local url="$1"
+    local input="$1"
+    local url
+    # Pluck the first PR URL out of `$input`. Normal mode passes the
+    # multi-line stdout of `gh-post pr create` (gh's URL line plus the
+    # view-summary block); `--poll` / `--re-review` pass a single bare
+    # URL. Both shapes feed through the same regex.
+    #
+    # `|| true` neutralizes two failures under `set -euo pipefail`:
+    #   - grep exit 1 when the input contains no URL (the diagnostic
+    #     `[[ -z "$url" ]]` branch below is the intended error gate),
+    #   - SIGPIPE on grep when `head -1` closes the pipe before grep
+    #     finishes scanning a multi-match input.
+    url=$(echo "$input" | grep -oE 'https://github\.com/[^/[:space:]]+/[^/[:space:]]+/pull/[0-9]+' | head -1 || true)
+    if [[ -z "$url" ]]; then
+        echo "Error: could not parse PR URL from input" >&2
+        exit 1
+    fi
     repo=$(echo "$url" | sed -E 's|https://github.com/([^/]+/[^/]+)/pull/[0-9]+|\1|')
     pr_number=$(echo "$url" | grep -oE '[0-9]+$')
     if [[ -z "$repo" || -z "$pr_number" ]]; then
