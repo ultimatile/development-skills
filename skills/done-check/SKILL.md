@@ -55,7 +55,7 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
      below)
    - the literal text of the codebase you can read with your tools
 
-   For each of items 5, 6, 7, 10, 11, 13, 14, 15 below, return one of:
+   For each of items 5, 6, 7, 10, 11, 13, 14, 15, 16 below, return one of:
 
    - ✅ pass — with concrete evidence (file:line, identifier, or
      literal-text match) that the rule is satisfied
@@ -80,13 +80,13 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
    upstream actually has the file the derivative claims to mirror.
 
    Report concisely (under 600 words):
-   - one row per item (5, 6, 7, 10, 11, 13) with Result + Evidence +
-     Note
+   - one row per item (5, 6, 7, 10, 11, 13, 14, 15, 16) with Result +
+     Evidence + Note
    - a final list of any cross-cutting concerns spanning multiple
      items
    ```
 
-   Embed the actual diff (committed + staged + unstaged) and the full text of items 5, 6, 7, 10, 11, 13, 14, 15 from `quality-list` directly in the prompt — the subagent has no access to the parent's context.
+   Embed the actual diff (committed + staged + unstaged) and the full text of items 5, 6, 7, 10, 11, 13, 14, 15, 16 from `quality-list` directly in the prompt — the subagent has no access to the parent's context.
 
    The subagent runs in parallel with main-context steps 3 below; do not block waiting for it unless step 4 requires the result.
 
@@ -100,7 +100,7 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
 
    Mark each as **✅ pass**, **⚠ concern**, or **⊘ N/A** with evidence as in step 4 below.
 
-4. **Merge results.** When the subagent (step 2) returns, integrate its 6 rows with main-context's 7 rows into a single 13-row table. For each ⚠ from the subagent, decide:
+4. **Merge results.** When the subagent (step 2) returns, integrate its 9 rows with main-context's 7 rows into a single 16-row table. For each ⚠ from the subagent, decide:
 
    - **True positive** — fix before proceeding (same as a main-context ⚠).
    - **False positive due to missing context** — note explicitly why (e.g., "user explicitly approved the boundary deferral in conversation"); the subagent's literal interpretation is wrong because it lacked context, but this should be rare and worth paper-trailing. Do NOT silently override — false-positive classification is itself a triage step that the user can challenge.
@@ -139,6 +139,7 @@ self-audit: <commit-range or "uncommitted">
 | 13 | License / attribution for ports   | ⊘ N/A  |                                         | no external code ported                        |
 | 14 | Silent semantic regression        | ⊘ N/A  |                                         | no signature change to public APIs             |
 | 15 | Public-doc durability             | ✅     | rg local-paths / version literals in MD | README / docs/ scrub against authoritative srcs|
+| 16 | Public API surface discipline     | ⊘ N/A  |                                         | no public API change, no parallel siblings     |
 ```
 
 Item numbering and titles must follow `quality-list` exactly. If the list grows or shrinks, update the table accordingly — the table is generated from the list, not maintained independently.
