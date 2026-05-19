@@ -11,8 +11,9 @@ description: >
 # reimre
 
 End-to-end wrapper.
-Runs `research-and-implement` then `review-pipeline` back to back,
-with one seam rule so the duplicate `done-check` is skipped automatically.
+Runs `research-and-implement` then `review-pipeline` back to back.
+The duplicate `done-check` between the two sub-skills is resolved by suppressing the Phase A side,
+leaving `review-pipeline`'s Phase 0 as the single audit gate.
 
 **Issue:** #$ARGUMENTS
 
@@ -20,31 +21,12 @@ with one seam rule so the duplicate `done-check` is skipped automatically.
 
 1. **Phase A** — invoke `research-and-implement $ARGUMENTS`.
    Branch baseline, research, and implementation are handled there.
-   `/implement`'s terminal step runs `/done-check` on the final diff.
-2. **Phase B** — invoke `review-pipeline`, applying the seam rule below.
+   **Skip `/implement`'s terminal `/done-check`** — Phase B owns the audit.
+2. **Phase B** — invoke `review-pipeline`.
+   Its Phase 0 `/done-check` is the first and only audit of the final diff.
 
 Sub-skill internal phases are referenced by name only.
 Do not inline their steps, diagrams, or rule lists — they drift when the sub-skill is updated.
-
-## Seam rule (Phase A → Phase B)
-
-`/implement` runs `/done-check` on the same diff that `review-pipeline` Phase 0 would re-audit.
-Detect freshness automatically and skip Phase 0 when the diff is unchanged.
-No user prompt.
-
-Detection:
-
-```bash
-git status --porcelain
-```
-
-Capture the snapshot at the end of Phase A.
-Re-capture at the start of Phase B.
-If the two outputs are byte-identical, start `review-pipeline` at **Phase 1 (codex review loop)** and skip its Phase 0.
-Any difference (staged, unstaged, or untracked) invalidates freshness — start `review-pipeline` from Phase 0.
-
-The rule is an invariant on diff freshness, not a hardcoded step skip,
-so it stays correct if either sub-skill renumbers its phases.
 
 ## Stop points
 
