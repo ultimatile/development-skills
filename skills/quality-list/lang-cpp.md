@@ -2,15 +2,15 @@
 
 This file extends `SKILL.md` with C++-specific triggers, mitigation idioms, and mechanical detection patterns. The audit (`done-check`) and preflight (`todo-check`) skills auto-load this file when the project declares `Language: cpp` in its `CLAUDE.md`, or when the diff touches `.cpp` / `.cc` / `.cxx` / `.h` / `.hpp` / `.hh` files.
 
-This file does **not** introduce new audit items. Items live in `SKILL.md` and are language-neutral. Each section below corresponds to an existing item number in `SKILL.md` and provides the C++ realization: what to grep for, what conversion semantics apply, what idioms remediate the concern. When auditing, treat the language addendum as the concrete answer to "how does this generic item manifest in C++ specifically?"
+This file does **not** introduce new audit items. Items live in `items/<slug>.md` and are language-neutral. Each section below corresponds to an existing item slug and provides the C++ realization: what to grep for, what conversion semantics apply, what idioms remediate the concern. When auditing, treat the language addendum as the concrete answer to "how does this generic item manifest in C++ specifically?"
 
 ---
 
-## Item 14: Silent semantic regression on signature change
+## `signature-change-regression`
 
 ### Triggers (C++)
 
-Implicit conversions in C++ are abundant and the failure mode of item 14 manifests in several distinct patterns:
+Implicit conversions in C++ are abundant and the failure mode of this item manifests in several distinct patterns:
 
 - **Parameter type substitution where `T → U` is implicit.** Watch for these conversion edges:
   - Constructor-based conversions: `optional<X>(T)` accepts any `T` for which `X(T)` is constructible. The most common silent narrowing seen in practice: `optional<size_t>(double)` (because `size_t(double)` is allowed as a narrowing conversion, `1e-12` becomes `0`).
@@ -76,7 +76,7 @@ Step-by-step:
 
 ### Test surface (companion to mitigation)
 
-When the project ships a *runtime* contract beyond the compile-time guard (e.g., the SSOT cutoff is supposed to propagate end-to-end), pair the mitigation with a runtime contract test under item 5 — a fixture that varies the SSOT-controlled value at the upstream entry and asserts the downstream observable behavior changes accordingly. A compile-time sentinel catches one class (silent positional rebinding); a runtime contract test catches the orthogonal class (hard-coded constant downstream that ignores the propagated value).
+When the project ships a *runtime* contract beyond the compile-time guard (e.g., the SSOT cutoff is supposed to propagate end-to-end), pair the mitigation with a runtime contract test under `behavior-coverage` — a fixture that varies the SSOT-controlled value at the upstream entry and asserts the downstream observable behavior changes accordingly. A compile-time sentinel catches one class (silent positional rebinding); a runtime contract test catches the orthogonal class (hard-coded constant downstream that ignores the propagated value).
 
 ### N/A elaboration
 

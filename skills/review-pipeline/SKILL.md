@@ -196,10 +196,10 @@ Runs only after the user has merged.
 
 ## Rules
 
-- **Never skip done-check, including in fix loops.** Phase 0 audits the initial implementation, but every fix commit is itself a diff that can introduce new drift — especially items 9 (completion hygiene) and 11 (textual-drift sweep). Skipping a fix-loop done-check is the most common cause of multi-iteration review oscillation on documentation, comments, and PR-body wording.
+- **Never skip done-check, including in fix loops.** Phase 0 audits the initial implementation, but every fix commit is itself a diff that can introduce new drift — especially `completion-hygiene` and `paired-artifact-drift`. Skipping a fix-loop done-check is the most common cause of multi-iteration review oscillation on documentation, comments, and PR-body wording.
 - **Fix-loop done-check runs in delta mode.** Report only rows whose status changes from the previous audit, plus any new ⚠ introduced by the fix. Items still passing from Phase 0 stay implicit — do not re-print the full table on every fix iteration. Resolve any new ⚠ before the subsequent `/stage-commit-push`. Pay special attention to:
-  - Item 11 (textual-drift): every comment / docstring / PR-body sentence touched by or referring to the fixed code must still be accurate.
-  - Item 9 (hygiene): pre-commit hooks catch lint / fmt / line count, but the fix may have added stray `dbg!` / `println!` / scratch test code.
+  - `paired-artifact-drift`: every comment / docstring / PR-body sentence touched by or referring to the fixed code must still be accurate.
+  - `completion-hygiene`: pre-commit hooks catch lint / fmt / line count, but the fix may have added stray `dbg!` / `println!` / scratch test code.
   - The PR description: if a fix invalidates a claim in the description (e.g., "previously-missed mutant is now caught" became "now excluded"), update the description in the same iteration.
 - **Never skip codex review.** Even for small fixes, run the full loop. Codex review catches things that are invisible in the diff alone.
 - **Never inject previous review comments into the next review prompt.** Each review iteration must be fresh and unbiased, so it can catch both regressions from the fix and new problems.

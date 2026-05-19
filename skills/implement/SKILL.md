@@ -48,7 +48,7 @@ Invoke the `execution-loop` skill with the plan as the source of truth. Honor it
 
 ### 3.0 Preflight via todo-check
 
-Before any code change, invoke `todo-check` against the plan to extract the active `quality-list` items and their setup actions for this work. Hand the resulting △ rows to execution-loop's Plan step so the unit checks already include them. Re-invoke `todo-check` between units when the next unit changes the active item set (e.g., it introduces a new public API → items 7 and 11 become active).
+Before any code change, invoke `todo-check` against the plan to extract the active `quality-list` items and their setup actions for this work. Hand the resulting △ rows to execution-loop's Plan step so the unit checks already include them. Re-invoke `todo-check` between units when the next unit changes the active item set (e.g., it introduces a new public API → `impact-verification` and `paired-artifact-drift` become active).
 
 ### 3.0.1 Pre-commit hook recall
 
@@ -56,7 +56,7 @@ Once per session (cache for the duration of the conversation), read the project'
 
 For each hook, summarize what it enforces. Do not memorize hook internals — the goal is to anticipate which checks will run at commit time, not to reproduce them. Pay particular attention to:
 
-- **Line-count / file-size limits.** Hooks that reject commits when a file exceeds a threshold (production vs test, src vs vendored, etc.). The correct response to a line-count violation is **file split first, content trim only when the trimmed text is genuinely redundant** — see `quality-list` item 9. Knowing the limit ahead of time avoids the round-trip where a feature lands at the limit, pre-commit rejects, and an emergency restructure follows.
+- **Line-count / file-size limits.** Hooks that reject commits when a file exceeds a threshold (production vs test, src vs vendored, etc.). The correct response to a line-count violation is **file split first, content trim only when the trimmed text is genuinely redundant** — see `quality-list` `completion-hygiene`. Knowing the limit ahead of time avoids the round-trip where a feature lands at the limit, pre-commit rejects, and an emergency restructure follows.
 - **Linter constraints** that gate commits (e.g., warnings-as-errors flags). These need to be visible during implementation, not surfaced only at commit time. They feed into Step 3.1 Baseline.
 - **Custom checks** specific to the project (banned imports, header enforcement, schema validation). Note their existence so the implementation does not trip them.
 
@@ -163,7 +163,7 @@ The principle generalizes beyond `unsafe` avoidance: any "simplification" that r
 
 ### 3.3 Quality items during Execute / Review
 
-The substantive rules for implementation guards, test fixture design, docstring consistency, textual drift sweeps, naming-as-claim, and plan-vs-actual reconciliation all live in `quality-list` (items 5, 6, 7, 11, 12). Honor whichever items the Step 3.0 preflight marked active for the current unit.
+The substantive rules for implementation guards, test fixture design, docstring consistency, textual drift sweeps, naming-as-claim, and plan-vs-actual reconciliation all live in `quality-list` (`behavior-coverage`, `implementation-guards`, `impact-verification`, `paired-artifact-drift`, `discovery-surfacing`). Honor whichever items the Step 3.0 preflight marked active for the current unit.
 
 The wrapper-specific contributions beyond `quality-list` are:
 

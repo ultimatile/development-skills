@@ -1,13 +1,13 @@
 ---
 name: file-pubdoc
-description: Draft README.md and other visitor-facing markdown surfaces (top-level *.md other than CONTRIBUTING/LICENSE/NOTICE/CHANGELOG, and docs/**/*.md) using the canonical visitor-facing skeleton. Use this skill whenever you write a new README, do a major README rewrite, or author new public documentation for a repo. Enforces the visitor-vs-author audience boundary at authoring time, complementing the edit-time `quality-list` item 15 (public-doc durability) denylist audit.
+description: Draft README.md and other visitor-facing markdown surfaces (top-level *.md other than CONTRIBUTING/LICENSE/NOTICE/CHANGELOG, and docs/**/*.md) using the canonical visitor-facing skeleton. Use this skill whenever you write a new README, do a major README rewrite, or author new public documentation for a repo. Enforces the visitor-vs-author audience boundary at authoring time, complementing the edit-time `quality-list` `public-doc-durability` denylist audit.
 ---
 
 # File Public Document
 
 Draft visitor-facing markdown (README and `docs/`) using a fixed skeleton so the resulting page documents present-tense, audience-public capability — not the author's session log, rationale dump, or roadmap.
 
-This skill is the **allowlist** counterpart to `quality-list` item 15. Item 15 catches violations at edit / done-check time; this skill structures the initial draft so the violations do not enter in the first place.
+This skill is the **allowlist** counterpart to `quality-list` `public-doc-durability`. The `public-doc-durability` audit catches violations at edit / done-check time; this skill structures the initial draft so the violations do not enter in the first place.
 
 ## When to use
 
@@ -18,7 +18,7 @@ This skill is the **allowlist** counterpart to `quality-list` item 15. Item 15 c
 
 ## When NOT to use
 
-- Minor README / docs edits (use direct edit + `done-check` item 15 catches drift).
+- Minor README / docs edits (use direct edit + `done-check`'s `public-doc-durability` audit catches drift).
 - `CONTRIBUTING.md`, `LICENSE`, `NOTICE`, `CHANGELOG.md`, `AUTHORS`, `CODE_OF_CONDUCT.md` — different audience, different shape.
 - ADRs, design notes, post-mortems, internal-team wikis — author-side surfaces; the audience-boundary rule does not apply the same way.
 
@@ -91,7 +91,7 @@ For non-README `docs/**/*.md`, the skeleton's section 6 (Limitations) and the ba
 
 ## Forbidden content
 
-Per `quality-list` item 15. The skeleton above structurally avoids each, but reiterating so the author cannot smuggle them in under the wrong section:
+Per `quality-list` `public-doc-durability`. The skeleton above structurally avoids each, but reiterating so the author cannot smuggle them in under the wrong section:
 
 - Local filesystem paths (`~/`, `/Users/`, `/home/`, `/tmp/`, `/private/tmp/`, `/scratch/`).
 - Version literals in prose (`v0.0.1 ships X`, `Status: v…`) — the manifest is the authoritative source.
@@ -121,7 +121,7 @@ Walk the skeleton top to bottom. For each section, write the minimum content tha
 Re-read the draft as if you had never seen the project. Two checks:
 
 - **Comprehensibility**: does a stranger learn what this project does and how to use it from sections 1–4 alone?
-- **Forbidden content sweep**: run the `quality-list` item 15 mechanical patterns against the draft:
+- **Forbidden content sweep**: run the `quality-list` `public-doc-durability` mechanical patterns against the draft:
 
   ```bash
   rg -n '(?:~/|/Users/|/home/|/tmp/|/private/tmp/|/scratch/)' <draft-path>
