@@ -20,6 +20,13 @@ This skill is **a definition file, not a runnable procedure**. Skills that draft
   - One clause per line for long sentences, OR
   - Plain paragraphs with blank-line separation.
 - Pick whichever of the three above is most readable for the content; do not mix styles within one section.
+- **Do NOT break below the clause level.** A line break must land on a sentence boundary, an independent clause boundary, or a coordinated-clause boundary (`and` / `or` / `but` that joins full clauses, not phrases). Never break inside a clause. Specifically forbidden break positions:
+  - Between subject and verb (`parse_pr_url in foo.sh \n assumes single-line input.`).
+  - After a preposition or a preposition + object fragment (`emitted via ... \n followed by ...`, `the summary block with \n Title: / State: / ...`).
+  - Inside a noun phrase or after a determiner / adjective stranding its head noun.
+  - After a comma that separates list items, appositives, or modifiers *within* one clause (as opposed to a comma between independent clauses, which is a valid break).
+  - Before a coordinating conjunction (`and` / `or` / `but`) when it joins phrases rather than clauses.
+- The failure shape this rule blocks: "many short fragments, several of them clearly sub-clause" — i.e. clause-per-line over-applied until lines end on `with`, `by`, `of`, the subject NP, or a list comma. The visual rhythm of such a paragraph is harder to read than column-wrapped prose, not easier; it is a failure mode, not a style. When in doubt, prefer flat prose (the third option above) over over-fragmented "clauses".
 
 ## Authoring via file (preferred) and heredoc (legacy)
 

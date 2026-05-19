@@ -78,7 +78,7 @@ speculate about author intent. Judge purely from:
 
 - the literal text of the body (provided below)
 - the literal text of `gh-body-conventions` (provided below)
-- the literal text of the mechanical items M1-M10 (provided below)
+- the literal text of the mechanical items M1-M11 (provided below)
 
 For each mechanical item, return one row:
 
@@ -98,7 +98,7 @@ Report concisely (under 500 words):
 | ---- | ------ | -------- |
 | M1   | ...    | ...      |
 ...
-| M10  | ...    | ...      |
+| M11  | ...    | ...      |
 ```
 
 ### Mechanical items
@@ -133,6 +133,27 @@ The list is regenerated at audit time so added / renamed / removed skills are pi
 **M9. Unresolved placeholders.** `rg -niP '<(TODO|FIXME|owner|repo|placeholder|insert|fill|name|N)>' "$BODY_FILE"`. Any hit → ⚠.
 
 **M10. Line numbers in issue body.** When artifact kind is `issue`: `rg -nP '\b[A-Za-z0-9_./-]+\.(rs|py|ts|tsx|js|jsx|jl|c|cpp|cc|cxx|h|hpp|md|toml|yaml|yml|json|sh|fish)\s*:\s*[0-9]+(\s*[:-]\s*[0-9]+)?\b' "$BODY_FILE"`. Any hit → ⚠ (issue bodies refer to default-branch HEAD implicitly; line numbers rot within hours of the next merge — `gh-body-conventions` § References § Line numbers). When artifact kind is `pr`: ⊘ N/A (PR is anchored to specific commits, so line references within this PR's diff do not rot).
+
+**M11. Sub-clause line endings.** The dual of M1: M1 catches column-wrap (clustered widths inside `[50, 85]`, lines ending mid-clause); M11 catches the opposite extreme — over-applied "clause-per-line" breaks where individual line ends land at sub-clause positions that are NOT valid clause boundaries.
+
+Detection — width and run-length agnostic; **any single line** ending at one of the following positions is ⚠:
+
+- a preposition: `with` `by` `of` `in` `on` `at` `for` `to` `from` `via` `as` `into` `onto` `over` `under` `between` `through` `against` `about` `like` `than`,
+- a coordinating conjunction: `and` `or` `but` `nor`.
+
+Detection command (run on the rstripped body, scoped to non-fenced prose):
+
+```bash
+rg -nP '\b(with|by|of|in|on|at|for|to|from|via|as|into|onto|over|under|between|through|against|about|like|than|and|or|but|nor)\s*$' "$BODY_FILE"
+```
+
+For each hit outside fenced code blocks, list `L<n>: "...<offending end token>"` (rule: `gh-body-conventions` § Formatting — "Do NOT break below the clause level"; specifically forbids "after a preposition" and "before a coordinating conjunction that joins phrases").
+
+Why width-agnostic: a line ending on `with` / `by` / `of` is unambiguously mid-prepositional-phrase regardless of the line's length. The column-wrap signature M1 detects requires geometric clustering (a defining property of column-wrap); the sub-clause-ending signature M11 detects does not — a single mid-PP break is a sufficient signal on its own.
+
+Commas are NOT included in M11 because comma-ending lines admit legitimate uses (independent-clause coordination, list enumeration where each item is a full clause). When comma-heavy over-fragmentation appears, C2 / C3 / the conventions-text re-read covers it; mechanical comma detection here would produce too many false positives.
+
+Exclude lines inside fenced code blocks, tables, and verbatim quotes. The subagent should pair the `rg` hits with the fence-state of each hit line and drop hits that fall inside a fence.
 
 ### 3. Contextual audit (main context)
 
@@ -176,6 +197,7 @@ gh-body-check report — target: <issue|pr>, language: <English|Japanese|...>
 | M8   | ⊘ N/A  | (pre-file draft; heredoc corruption shapes inapplicable)       |
 | M9   | ✅     | no unresolved placeholders                                     |
 | M10  | ⊘ N/A  | (PR body — line refs within own diff are permitted)            |
+| M11  | ⚠      | paragraph @ line 5: 6 consecutive sub-clause-fragment lines (ending on `with`, `by`, `,`) |
 | C1   | ⚠      | line 18: "the original plan" — resolves only via chat          |
 | C2   | ✅     | direct / evidenced tone throughout                             |
 | C3   | ✅     | sections (Summary / Changes / Test plan) self-justify          |

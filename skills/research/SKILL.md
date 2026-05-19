@@ -245,7 +245,15 @@ Present the plan (after any Step 3.5 revisions) and ask for approval before post
 
 ## Step 5 — Post plan to GitHub
 
-After user approval, route the plan to the correct surface based on what `$ARGUMENTS` resolves to:
+### 5.0 Laundering pass — run `gh-body-check` (MANDATORY)
+
+Before any `gh-post` invocation, run `gh-body-check` on the plan body, regardless of which routing branch below applies. The check delegates mechanical items (hard-wrap, over-fragmented sub-clause breaks, local-path patterns, private skill names, Phase / Step numbering, JP clauses in English bodies, chat-tone scaffolding, Unicode math in prose, unresolved placeholders, line numbers in issue bodies) to a fresh-context subagent — research plans are particularly prone to over-fragmented "clause-per-line" formatting (lines ending on prepositions, mid-noun-phrase, or after list commas) that the author's own re-read passes because they read intent rather than text.
+
+Resolve any ⚠ before invoking `gh-post`. The "per `file-issue` step 5" pointers below refer to the `gh-post` invocation shape only; `file-issue`'s Step 3 laundering pass does NOT run automatically from those pointers, so this 5.0 step is its replacement on the research-post path.
+
+### 5.1 Route to the correct surface
+
+After 5.0 clears, route the plan based on what `$ARGUMENTS` resolves to:
 
 - **Existing single-scope issue** → `gh-post issue comment $ARGUMENTS` (per `file-issue` step 5) with the plan as body.
 - **Existing umbrella issue** (the body contains a Phases table or sub-tasks list) → spawn a new sub-issue whose body IS the plan, following `file-issue`'s `Variants > Umbrella sub-issue` shape: `Parent: #<umbrella>` on the first line, `Phase N: <topic>` title, Goal / Scope / Out of scope / Acceptance derived from the plan. After creation, append the new sub-issue's number to the umbrella's Phases table row. The sub-issue body is the canonical contract surface; do not also post the plan as an umbrella comment.
