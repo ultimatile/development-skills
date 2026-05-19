@@ -230,12 +230,14 @@ After Step 3 produces a plan and before Step 4 collects user approval:
    Bypassing is a deliberate user choice, not the default.
 
 2. **If review runs**: triage the findings.
-   - **Implementation concerns** (algorithm details, error handling, test coverage gaps, naming): patch the plan in place and proceed to Step 4 with the revised plan.
+   - **Implementation concerns** (algorithm details, error handling, test coverage gaps, naming): patch the plan in place and proceed to the loop gate below.
    - **Premise concerns** (the assumed root cause may be wrong, the described mechanism doesn't match how the code actually fails, a fixture's claimed properties may not hold, an "obvious" derivation is unproven): **return to Step 1**. Do not patch the plan in place — the hypothesis set itself is suspect, and incremental edits perpetuate the bad premise across iterations.
 
    Distinguishing the two: an implementation concern asks "given the plan's assumptions, is the proposed approach sound?"; a premise concern asks "are the plan's assumptions actually true?". If the reviewer would have given a different answer with empirical evidence in hand, it's a premise concern.
 
-3. **The plan that exits this step is the contract.** Step 5 will post that plan once. Revisions happen here, before posting; there is no "post then revise" loop.
+3. **Loop gate**: after patching, re-run `codex-plan-review` per its Step 4 re-run rule (only when the revision meaningfully invalidates the prior verdict — triage author's call, not derived from Codex's verdict label). Exit the loop when the last valid verdict is `approve` or `approve with conditions`. Cap: 3 iterations within the same premise. If the cap is reached, or if the loop sits at `reject` with no further re-run warranted, surface the verdict and outstanding findings to the user and ask whether to proceed as-is, patch further manually, or escalate. Premise concerns return to Step 1 and reset the counter — iteration count is per-premise, not lifetime.
+
+4. **The plan that exits this step is the contract.** Step 5 will post that plan once. Revisions happen here, before posting; there is no "post then revise" loop.
 
 The cost of running `codex-plan-review` once per cycle is minutes; the cost of carrying a wrong-premise plan through implementation is hours-to-days of rework. Bias toward running it.
 
