@@ -109,10 +109,12 @@ Done-check runs **before** any commit. Resolving its concerns post-commit produc
 2. Run `/codex-review` to review the branch diff against main
 3. Triage the output — classify each finding as actionable, false positive, or uncertain
 4. If actionable findings exist:
+   - **Oscillation check (iteration N ≥ 2 only).** Compare the current iteration's actionable topics against iteration N-1's preserved topic classifications. If any conceptual topic recurs, halt the fix loop and follow the escalation order in the Rules section — do NOT proceed to fix or done-check.
    - Fix the code
    - Run `/done-check` in **delta mode** (see Rules below)
    - Run `/stage-commit-push` again
    - Run `/codex-review` again (fresh, full review — no bias from previous iteration)
+   - Preserve the iteration's actionable topic classifications for the next iteration's oscillation check
    - Re-triage
 5. Repeat until no actionable findings remain
 
@@ -122,10 +124,12 @@ Done-check runs **before** any commit. Resolving its concerns post-commit produc
 7. Triage the review — filter to the latest review's comments only (by `pull_request_review_id`)
 8. Reply to each inline comment individually via `gh-post reply-inline <owner>/<repo> <PR> < /tmp/replies.jsonl`. Build the JSONL with one `{"id": <comment-id>, "body": "<reply>"}` per line; the wrapper validates every body through the hardwrap detector before any send (halt-before-send) and prints un-sent indices on a mid-batch API failure.
 9. If actionable findings exist:
+   - **Oscillation check (iteration N ≥ 2 only).** Compare the current iteration's actionable topics against iteration N-1's preserved topic classifications. If any conceptual topic recurs, halt the fix loop and follow the escalation order in the Rules section — do NOT proceed to fix or done-check.
    - Fix the code
    - Run `/done-check` in **delta mode** (see Rules below)
    - Run `/stage-commit-push`
    - Run `${CLAUDE_SKILL_DIR}/../copilot-review/scripts/pr-with-copilot-review.sh --re-review <PR_URL>` to trigger and wait for a new review
+   - Preserve the iteration's actionable topic classifications for the next iteration's oscillation check
    - Triage the new review (only new comments)
 10. Repeat until no actionable findings remain
 
@@ -210,7 +214,7 @@ Runs only after the user has merged.
 - **Sub-classify actionable findings before fixing.** Not all actionable findings warrant the same response:
   - **Surface** (typo, stale comment, wrong API name): fix is self-evident. Commit immediately.
   - **Invariant** (claims about mathematical properties, semantic validity, precondition necessity): the finding's *conclusion* may be correct, but its *premise* may be wrong. Before committing a fix, verify the premise — check whether the invariant the finding assumes actually holds, by reading code, tests, and running targeted experiments. If unsure, ask codex a single targeted question via `codex exec "<fix proposal + one specific question about the premise>" -o /tmp/fix-check.md` before committing.
-- **Oscillation detection.** If the same conceptual topic (not the same literal comment, but the same underlying question — e.g., "is this input valid?", "does this property hold?", "should this parameter accept both values?") appears across 2+ consecutive review iterations, stop fixing and escalate to the user. Repeated findings on one topic signal that the underlying invariant is not understood well enough for a confident fix.
+- **Oscillation detection.** Run at the start of each fix-loop iteration (the first sub-bullet under "If actionable findings exist" in Phase 1 step 4 and Phase 2 step 9), BEFORE fix and done-check. If the same conceptual topic (not the same literal comment, but the same underlying question — e.g., "is this input valid?", "does this property hold?", "should this parameter accept both values?") appears across 2+ consecutive review iterations, stop fixing and escalate to the user. Repeated findings on one topic signal that the underlying invariant is not understood well enough for a confident fix.
 
   **Escalation order.** Before presenting the fix-direction question (panic vs allow vs convert vs ...), FIRST ask whether the original plan scope is correct. Oscillation in the fix-direction space is the symptom that the contract is empty or depends on something outside the plan's scope — refining the fix without rescoping just re-anchors the same empty contract from a different angle. Ask in this order:
   1. **Is this question even single-actionable inside the current plan?** Does the disagreement among reviewers concern an upstream undecided design question (consumer semantics, system invariant, layout authority, etc.) that the plan implicitly assumed?
