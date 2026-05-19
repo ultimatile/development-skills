@@ -48,7 +48,9 @@ It is acceptable to invoke `todo-check` more than once during a task. `done-chec
    - What invariants the change introduces or modifies
    - Whether a research plan with `Inconclusive / Deferred items` exists (relevant to `discovery-surfacing`)
 
-2. **Read `quality-list`** and process every item in **preflight mode**. For each item, determine one of:
+2. **Process every item in preflight mode.** Use the per-item Preflight framing quick reference below as the primary lens — it is the cached compressed view of every item. Do **not** Read the full `quality-list/SKILL.md` or all `items/<slug>.md` files into main context up front. Only Read a specific `quality-list/items/<slug>.md` file when (a) the quick reference is insufficient to decide active vs N/A, or (b) the item is △ active and the setup action needs the full concern conditions / N/A criteria.
+
+   For each item, determine one of:
 
    - **△ active — set up needed**: this item will apply to the finished diff; record what to set up *now* so the audit will pass later. Output the concrete preflight action (test fixture variants to include, guard locations to plan, paired-artifact surfaces to update, probes to thread through, etc.).
    - **⊘ N/A**: the item's own N/A criterion already excludes the scope. State why.

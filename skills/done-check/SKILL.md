@@ -41,7 +41,9 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
 
    Read the contents of any untracked file relevant to the audit (paths alone do not let you check anything).
 
-2. **Spawn a fresh-context auditor for the mechanical / literal items (5, 6, 7, 10, 11).** The author of a diff reads what they meant their code and comments to say, not the literal text — the same blindspot that lets reviewers (Copilot, codex) routinely find doc-vs-code drift the author marked ✅. Delegating the literal audit to a subagent that has no access to the conversation history removes that blindspot.
+2. **Spawn a fresh-context auditor for the mechanical / literal items.** The author of a diff reads what they meant their code and comments to say, not the literal text — the same blindspot that lets reviewers (Copilot, codex) routinely find doc-vs-code drift the author marked ✅. Delegating the literal audit to a subagent that has no access to the conversation history removes that blindspot.
+
+   **Main context MUST NOT load the item bodies.** The subagent reads them in its own fresh context. Main context only composes the prompt (the slug list + diff + repo path) and dispatches it.
 
    Use the `Agent` tool with `subagent_type: "general-purpose"` and a prompt of the following shape:
 
@@ -51,11 +53,28 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
    diff and MUST NOT speculate about author intent. Judge purely from:
 
    - the literal text of the diff (provided below)
-   - the literal text of the relevant `quality-list` items (provided
-     below)
+   - the literal text of the relevant `quality-list` item files (read
+     them yourself from the paths below)
    - the literal text of the codebase you can read with your tools
 
-   For each of the mechanical items below (`behavior-coverage`, `implementation-guards`, `impact-verification`, `architectural-boundary`, `paired-artifact-drift`, `ported-code-attribution`, `signature-change-regression`, `public-doc-durability`, `public-api-surface`), return one of:
+   Item file paths (read each in full):
+
+   - <REPO>/skills/quality-list/items/behavior-coverage.md
+   - <REPO>/skills/quality-list/items/implementation-guards.md
+   - <REPO>/skills/quality-list/items/impact-verification.md
+   - <REPO>/skills/quality-list/items/architectural-boundary.md
+   - <REPO>/skills/quality-list/items/paired-artifact-drift.md
+   - <REPO>/skills/quality-list/items/ported-code-attribution.md
+   - <REPO>/skills/quality-list/items/signature-change-regression.md
+   - <REPO>/skills/quality-list/items/public-doc-durability.md
+   - <REPO>/skills/quality-list/items/public-api-surface.md
+
+   Also load the language addendum at
+   <REPO>/skills/quality-list/lang-<lang>.md if it exists for the
+   detected project language (see Step 0 of done-check for the
+   detection rule).
+
+   For each of these items return one of:
 
    - ✅ pass — with concrete evidence (file:line, identifier, or
      literal-text match) that the rule is satisfied
@@ -70,32 +89,34 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
    inconsistency was "intended" — if the literal text says one thing
    and the code does another, that is a ⚠.
 
-   For `ported-code-attribution`, grep the diff
-   for textual signals — "ported from", "derived from", "based on",
-   "adapted from", "from $project", and any external project name in
-   new comments — and verify that any such signal is matched by an
-   attribution comment naming source URL, upstream copyright, and
-   license. If a NOTICE / THIRD_PARTY-style file is added or
-   modified, follow the upstream URL it cites and confirm the
-   upstream actually has the file the derivative claims to mirror.
+   For `ported-code-attribution`, grep the diff for textual signals —
+   "ported from", "derived from", "based on", "adapted from", "from
+   $project", and any external project name in new comments — and
+   verify that any such signal is matched by an attribution comment
+   naming source URL, upstream copyright, and license. If a NOTICE /
+   THIRD_PARTY-style file is added or modified, follow the upstream
+   URL it cites and confirm the upstream actually has the file the
+   derivative claims to mirror.
 
    Report concisely (under 600 words):
-   - one row per mechanical item with Result + Evidence + Note
+   - one row per item with Result + Evidence + Note
    - a final list of any cross-cutting concerns spanning multiple
      items
    ```
 
-   Embed the actual diff (committed + staged + unstaged) and the full text of the mechanical-lane items from `quality-list/items/` directly in the prompt — the subagent has no access to the parent's context. The mechanical-lane slugs are: `behavior-coverage`, `implementation-guards`, `impact-verification`, `architectural-boundary`, `paired-artifact-drift`, `ported-code-attribution`, `signature-change-regression`, `public-doc-durability`, `public-api-surface`.
+   Embed only the diff (committed + staged + unstaged) and the resolved `<REPO>` absolute path in the prompt. **Do not embed item body text** — the subagent reads the item files itself, keeping the main context free of the rule text.
 
    The subagent runs in parallel with main-context steps 3 below; do not block waiting for it unless step 4 requires the result.
 
-3. **Audit the contextual items (1, 2, 3, 4, 8, 9, 12) in main context.** These need information the subagent does not have:
+3. **Audit the contextual items in main context.** These need information the subagent does not have:
 
    - `invariant-derivation`, `purpose-verification`, `scope-discipline`, `discovery-surfacing` — need plan / intent / review history
    - `test-execution`, `completion-hygiene` — need actual command execution against the working tree
    - `pattern-audit` — needs awareness of which patterns were consciously copied vs independently reinvented
 
-   `ported-code-attribution` is dual-lane: the subagent handles the *declared* case (literal grep for "ported from" / "derived from" / external project names → verify attribution); main context handles the *undeclared* case where the conversation history shows research surfaced an external implementation that the diff structurally mirrors but no comment names. If research identified an upstream reference and the diff looks like it followed it, demand attribution even if no comment marks the port.
+   For each, `Read` only the corresponding `quality-list/items/<slug>.md` file — do not load the full index or the mechanical-lane items. The seven contextual-lane reads together are far smaller than the legacy single-file load.
+
+   `ported-code-attribution` is dual-lane: the subagent handles the *declared* case (literal grep for "ported from" / "derived from" / external project names → verify attribution); main context handles the *undeclared* case where the conversation history shows research surfaced an external implementation that the diff structurally mirrors but no comment names. If research identified an upstream reference and the diff looks like it followed it, demand attribution even if no comment marks the port. Read `items/ported-code-attribution.md` for both halves.
 
    Mark each as **✅ pass**, **⚠ concern**, or **⊘ N/A** with evidence as in step 4 below.
 
