@@ -28,16 +28,9 @@ This skill is **a definition file, not a runnable procedure**. Skills that draft
   - Before a coordinating conjunction (`and` / `or` / `but`) when it joins phrases rather than clauses.
 - The failure shape this rule blocks: "many short fragments, several of them clearly sub-clause" — i.e. clause-per-line over-applied until lines end on `with`, `by`, `of`, the subject NP, or a list comma. The visual rhythm of such a paragraph is harder to read than column-wrapped prose, not easier; it is a failure mode, not a style. When in doubt, prefer flat prose (the third option above) over over-fragmented "clauses".
 
-## Authoring via file (preferred) and heredoc (legacy)
+## Authoring via file
 
-The preferred path is to write the body to a file (typically under `/tmp/`) and pass it to the `gh-post` wrapper via `--body-file`. The wrapper validates the body and forwards to `gh` with `--body-file`, eliminating shell-escape concerns entirely. Direct `gh (issue|pr) (create|edit|comment) --body*` is blocked by the companion `PreToolUse` hook.
-
-When a body still needs to flow through a shell heredoc (currently only `pr-with-copilot-review.sh` gate mode in `file-pullreq` step 5b), the following rules apply to avoid corruption at the GitHub API boundary:
-
-- **Default to single-quoted delimiters: `<<'EOF'`.** Inside `<<'EOF'`, no expansion or escape interpretation runs at all — variable references (`$foo`), command substitution (`` `cmd` ``), and backslash escapes pass through literally. Write the body exactly as it should appear on GitHub.
-- **Do NOT escape backticks, `$`, or `\` inside `<<'EOF'`.** Reflex-escaping `` ` `` → `` \` `` produces a literal `` \` `` in the output, which Markdown renders as `` \` `` (backslash then backtick) — breaking code spans (`` `foo` `` becomes `` \`foo\` ``).
-- **Only use unquoted `<<EOF` when expansion is intentionally needed.** Unquoted heredocs run command substitution and variable expansion; that is the only scenario where backtick escaping makes sense. PR / issue bodies almost never need expansion, so this should be rare.
-- **Verify after large bodies.** When a body contains many code spans, after the post, fetch it back with `gh pr view <N> --json body -q .body` (or `gh issue view`) and grep for `\\\`` — any hit is a corruption that needs a `gh-post pr edit` round to repair.
+Write the body to a file (typically under `/tmp/`) and pass it to the `gh-post` wrapper via `--body-file`. The wrapper validates the body and forwards to `gh` with `--body-file`, eliminating shell-escape concerns entirely. Direct `gh (issue|pr) (create|edit|comment) --body*` is blocked by the companion `PreToolUse` hook, so no heredoc-direct-to-API path exists; heredocs are still fine for writing the body file itself (`cat > /tmp/body.md <<'EOF' ... EOF`), since the file-write step is not a GitHub API boundary.
 
 ## Math
 

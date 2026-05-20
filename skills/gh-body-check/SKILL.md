@@ -54,7 +54,7 @@ Prompt shape:
 ```
 You are auditing a drafted GitHub <issue|pr> body against
 `gh-body-conventions`. You have NO access to the conversation
-history. Judge purely from literal text: body, conventions, M1-M11.
+history. Judge purely from literal text: body, conventions, M1-M10.
 
 For each M-item return one row:
 - ✅ pass — detection ran, no hit
@@ -89,13 +89,11 @@ The canonical hard-wrap signature: every non-last line of the paragraph is "abou
 
 **M7. Unicode math characters in prose.** `rg -nP '[\x{0370}-\x{03FF}\x{2200}-\x{22FF}\x{2A00}-\x{2AFF}\x{2020}\x{2021}]' "$BODY_FILE"` outside fenced code spans / code blocks. Any hit in prose → ⚠ (rule: `gh-body-conventions` § Math — Unicode math in prose is the user's strongest formatting dislike; use `` $`\alpha`$ `` instead of `α`).
 
-**M8. Heredoc-corrupted code spans.** `rg -nF '\`' "$BODY_FILE"` (literal backslash-backtick) and, in non-LaTeX contexts, `rg -nF '\$' "$BODY_FILE"`. Corruption signatures from reflexive escaping inside single-quoted heredocs. Any hit → ⚠ (rule: `gh-body-conventions` § Authoring via shell heredoc).
+**M8. Unresolved placeholders.** `rg -niP '<(TODO|FIXME|owner|repo|placeholder|insert|fill|name|N)>' "$BODY_FILE"`. Any hit → ⚠.
 
-**M9. Unresolved placeholders.** `rg -niP '<(TODO|FIXME|owner|repo|placeholder|insert|fill|name|N)>' "$BODY_FILE"`. Any hit → ⚠.
+**M9. Line numbers in issue body.** When artifact kind is `issue`: `rg -nP '\b[A-Za-z0-9_./-]+\.(rs|py|ts|tsx|js|jsx|jl|c|cpp|cc|cxx|h|hpp|md|toml|yaml|yml|json|sh|fish)\s*:\s*[0-9]+(\s*[:-]\s*[0-9]+)?\b' "$BODY_FILE"`. Any hit → ⚠ (issue bodies refer to default-branch HEAD implicitly; line numbers rot within hours of the next merge — `gh-body-conventions` § References § Line numbers). When artifact kind is `pr`: ⊘ N/A (PR is anchored to specific commits, so line references within this PR's diff do not rot).
 
-**M10. Line numbers in issue body.** When artifact kind is `issue`: `rg -nP '\b[A-Za-z0-9_./-]+\.(rs|py|ts|tsx|js|jsx|jl|c|cpp|cc|cxx|h|hpp|md|toml|yaml|yml|json|sh|fish)\s*:\s*[0-9]+(\s*[:-]\s*[0-9]+)?\b' "$BODY_FILE"`. Any hit → ⚠ (issue bodies refer to default-branch HEAD implicitly; line numbers rot within hours of the next merge — `gh-body-conventions` § References § Line numbers). When artifact kind is `pr`: ⊘ N/A (PR is anchored to specific commits, so line references within this PR's diff do not rot).
-
-**M11. Sub-clause line endings.** Dual of M1. M1 catches column-wrap (clustered widths in [50, 85], lines ending mid-clause); M11 catches over-applied "clause-per-line" breaks — any single line ending at a sub-clause boundary is ⚠ (width-agnostic, since a single mid-PP break is sufficient signal).
+**M10. Sub-clause line endings.** Dual of M1. M1 catches column-wrap (clustered widths in [50, 85], lines ending mid-clause); M10 catches over-applied "clause-per-line" breaks — any single line ending at a sub-clause boundary is ⚠ (width-agnostic, since a single mid-PP break is sufficient signal).
 
 Forbidden terminal tokens:
 
@@ -149,10 +147,9 @@ gh-body-check report — target: <issue|pr>, language: <English|Japanese|...>
 | M5   | ✅     | rg pattern returned no hits                                    |
 | M6   | ✅     | target English; no CJK characters outside code blocks          |
 | M7   | ✅     | no Unicode math in prose                                       |
-| M8   | ⊘ N/A  | (pre-file draft; heredoc corruption shapes inapplicable)       |
-| M9   | ✅     | no unresolved placeholders                                     |
-| M10  | ⊘ N/A  | (PR body — line refs within own diff are permitted)            |
-| M11  | ⚠      | paragraph @ line 5: 6 consecutive sub-clause-fragment lines (ending on `with`, `by`, `,`) |
+| M8   | ✅     | no unresolved placeholders                                     |
+| M9   | ⊘ N/A  | (PR body — line refs within own diff are permitted)            |
+| M10  | ⚠      | paragraph @ line 5: 6 consecutive sub-clause-fragment lines (ending on `with`, `by`, `,`) |
 | C1   | ⚠      | line 18: "the original plan" — resolves only via chat          |
 | C2   | ✅     | direct / evidenced tone throughout                             |
 | C3   | ✅     | sections (Summary / Changes / Test plan) self-justify          |
