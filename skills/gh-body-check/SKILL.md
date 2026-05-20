@@ -14,30 +14,11 @@ description: >
 
 Runner for `gh-body-conventions`. Mirrors the `done-check` ↔ `quality-list` relationship: the conventions file is SSOT for the rules; this file is the procedure that applies them, item by item, with each result recorded explicitly rather than collapsed into a "ran the cold re-read ✓" assertion.
 
-## Why this skill exists separately
-
-The author of a body has just drafted it and is strongly primed to read what they *meant* rather than what they *wrote*. This is the same failure mode `done-check` Step 2 addresses by delegating literal-text items to a fresh-context subagent. A self-administered cold re-read in the author's own context recurrently passes drafts that contain the exact leak shapes `gh-body-conventions` enumerates — hard-wrapped paragraphs, local filesystem paths, private skill names, Phase / Step numbers, chat-tone scaffolding — because the author reads the intent, not the text.
-
-Splitting the audit into a separate skill that
-
-1. delegates mechanical items to a fresh-context subagent (no chat history, no draft motivation, no priming),
-2. records each rule's result explicitly in a table the author can inspect, and
-3. blocks the caller until any ⚠ is resolved or explicitly waived,
-
-reduces author-blindspot misses to the cases that are genuinely contextual (the C-items below, which need project / chat awareness the subagent does not have).
-
 ## When to use
 
-Invoke this skill before any GitHub issue / PR body (or in-review reply) is shown for approval or filed. A "Laundering pass" step in a caller skill resolves to running this skill. Direct user invocation is also supported — to audit an already-filed body (fetched with `gh issue view <N> --json body -q .body` or `gh pr view <N> --json body -q .body`).
+Before any GitHub issue / PR body (or in-review reply) is shown for approval or filed. Callers' "Laundering pass" resolves to this skill. Direct invocation is also supported — to audit an already-filed body (`gh issue view <N> --json body -q .body` or `gh pr view <N> --json body -q .body`).
 
-Do not treat the cold re-read as a self-contained step in the caller — the explicit per-item record produced here is the audit artifact.
-
-## Audit lanes
-
-Two lanes, identical in spirit to `done-check`'s split:
-
-- **mechanical (M-items)** — judgable from the literal body text plus the literal rule text. No chat / plan / project context needed. Delegated to a fresh-context subagent.
-- **contextual (C-items)** — requires chat history, the plan, repo-specific state, or the surrounding work session. Stays in main context.
+Two audit lanes: **mechanical (M-items)** delegated to a fresh-context subagent (literal body + rule text only), and **contextual (C-items)** kept in main context (needs chat / plan / repo awareness). Author bias toward intent over literal text is what makes the subagent split load-bearing.
 
 ## Procedure
 
@@ -71,34 +52,18 @@ Do **not** pass the chat history, the user's prior messages, the plan, or any co
 Prompt shape:
 
 ```
-You are auditing a drafted GitHub <issue|pr> body against the
-`gh-body-conventions` rule set. You have NO access to the
-conversation history that produced this draft and MUST NOT
-speculate about author intent. Judge purely from:
+You are auditing a drafted GitHub <issue|pr> body against
+`gh-body-conventions`. You have NO access to the conversation
+history. Judge purely from literal text: body, conventions, M1-M11.
 
-- the literal text of the body (provided below)
-- the literal text of `gh-body-conventions` (provided below)
-- the literal text of the mechanical items M1-M11 (provided below)
+For each M-item return one row:
+- ✅ pass — detection ran, no hit
+- ⚠ concern — line number(s) + offending substring verbatim
+- ⊘ N/A — per the item's own N/A criterion
 
-For each mechanical item, return one row:
-
-- ✅ pass — with the detection that was run and its result
-- ⚠ concern — with the specific line number(s) and the offending
-  substring, quoted verbatim
-- ⊘ N/A — using only the item's own N/A criterion as stated
-
-Run each detection command literally on $BODY_FILE. Do not skip a
-detection because a hit "looks intentional" — your job is to
-surface the literal hit. Whether it is a true positive is decided
-in the caller's context, not yours.
-
-Report concisely (under 500 words):
-
-| Item | Status | Evidence |
-| ---- | ------ | -------- |
-| M1   | ...    | ...      |
-...
-| M11  | ...    | ...      |
+Run each detection literally. Do not skip a hit because it "looks
+intentional" — true-positive classification is the caller's job.
+Report under 500 words as a Markdown table.
 ```
 
 ### Mechanical items
@@ -111,11 +76,7 @@ The canonical hard-wrap signature: every non-last line of the paragraph is "abou
 
 **M2. Local filesystem paths.** `rg -nP '(^|[^A-Za-z0-9_])(/Users/|/home/[a-z][^/]*/|/scratch/|/work/|/tmp/|~/)' "$BODY_FILE"`. Any hit outside fenced code blocks → ⚠.
 
-**M3. Private skill / workflow names.** Enumerate the current set of installed skill names with `ls {.,~}/.claude/skills 2>/dev/null | sort -u` (covers both repo-local and user-global installs). For each name in the resulting list, `rg -nF "<name>" "$BODY_FILE"`. Any literal hit outside fenced code blocks → ⚠.
-
-The list is regenerated at audit time so added / renamed / removed skills are picked up automatically without manual updates to this item.
-
-(These names are author-side workflow tools; an external reader cannot resolve them and they signal private surface bleed.)
+**M3. Private skill / workflow names.** Enumerate installed skills with `ls {.,~}/.claude/skills 2>/dev/null | sort -u` (regenerated each run, so renames are picked up automatically). For each name, `rg -nF "<name>" "$BODY_FILE"`. Any literal hit outside fenced code blocks → ⚠. (Private workflow names don't resolve for external readers.)
 
 **M4. Phase / Step numbering.** `rg -nP '\b(Phase|Step|フェーズ|ステップ)\s*[0-9]+(\.[0-9]+)?\b' "$BODY_FILE"`. Any hit → ⚠ unless the body declares itself an umbrella sub-issue (look for `umbrella` / `parent: #N` / `sub-issue of #N` style line near the top, case-insensitive). Umbrella sub-issues legitimately use Phase / Step numbering because the umbrella itself made that structure public.
 
@@ -128,18 +89,18 @@ The list is regenerated at audit time so added / renamed / removed skills are pi
 
 **M7. Unicode math characters in prose.** `rg -nP '[\x{0370}-\x{03FF}\x{2200}-\x{22FF}\x{2A00}-\x{2AFF}\x{2020}\x{2021}]' "$BODY_FILE"` outside fenced code spans / code blocks. Any hit in prose → ⚠ (rule: `gh-body-conventions` § Math — Unicode math in prose is the user's strongest formatting dislike; use `` $`\alpha`$ `` instead of `α`).
 
-**M8. Heredoc-corrupted code spans.** `rg -nF '\`' "$BODY_FILE"` (literal backslash-backtick) and, in non-LaTeX contexts, `rg -nF '\$' "$BODY_FILE"`. These are corruption signatures from reflexive escaping inside single-quoted heredocs. Any hit → ⚠ (rule: `gh-body-conventions` § Authoring via shell heredoc). For draft bodies (pre-file) this is rare; for post-file audits fetched via `gh ... view --json body`, this is a common finding.
+**M8. Heredoc-corrupted code spans.** `rg -nF '\`' "$BODY_FILE"` (literal backslash-backtick) and, in non-LaTeX contexts, `rg -nF '\$' "$BODY_FILE"`. Corruption signatures from reflexive escaping inside single-quoted heredocs. Any hit → ⚠ (rule: `gh-body-conventions` § Authoring via shell heredoc).
 
 **M9. Unresolved placeholders.** `rg -niP '<(TODO|FIXME|owner|repo|placeholder|insert|fill|name|N)>' "$BODY_FILE"`. Any hit → ⚠.
 
 **M10. Line numbers in issue body.** When artifact kind is `issue`: `rg -nP '\b[A-Za-z0-9_./-]+\.(rs|py|ts|tsx|js|jsx|jl|c|cpp|cc|cxx|h|hpp|md|toml|yaml|yml|json|sh|fish)\s*:\s*[0-9]+(\s*[:-]\s*[0-9]+)?\b' "$BODY_FILE"`. Any hit → ⚠ (issue bodies refer to default-branch HEAD implicitly; line numbers rot within hours of the next merge — `gh-body-conventions` § References § Line numbers). When artifact kind is `pr`: ⊘ N/A (PR is anchored to specific commits, so line references within this PR's diff do not rot).
 
-**M11. Sub-clause line endings.** The dual of M1: M1 catches column-wrap (clustered widths inside `[50, 85]`, lines ending mid-clause); M11 catches the opposite extreme — over-applied "clause-per-line" breaks where individual line ends land at sub-clause positions that are NOT valid clause boundaries.
+**M11. Sub-clause line endings.** Dual of M1. M1 catches column-wrap (clustered widths in [50, 85], lines ending mid-clause); M11 catches over-applied "clause-per-line" breaks — any single line ending at a sub-clause boundary is ⚠ (width-agnostic, since a single mid-PP break is sufficient signal).
 
-Detection — width and run-length agnostic; **any single line** ending at one of the following positions is ⚠:
+Forbidden terminal tokens:
 
-- a preposition: `with` `by` `of` `in` `on` `at` `for` `to` `from` `via` `as` `into` `onto` `over` `under` `between` `through` `against` `about` `like` `than`,
-- a coordinating conjunction: `and` `or` `but` `nor`.
+- prepositions: `with` `by` `of` `in` `on` `at` `for` `to` `from` `via` `as` `into` `onto` `over` `under` `between` `through` `against` `about` `like` `than`
+- coordinating conjunctions: `and` `or` `but` `nor`
 
 Detection command (run on the rstripped body, scoped to non-fenced prose):
 
@@ -147,13 +108,7 @@ Detection command (run on the rstripped body, scoped to non-fenced prose):
 rg -nP '\b(with|by|of|in|on|at|for|to|from|via|as|into|onto|over|under|between|through|against|about|like|than|and|or|but|nor)\s*$' "$BODY_FILE"
 ```
 
-For each hit outside fenced code blocks, list `L<n>: "...<offending end token>"` (rule: `gh-body-conventions` § Formatting — "Do NOT break below the clause level"; specifically forbids "after a preposition" and "before a coordinating conjunction that joins phrases").
-
-Why width-agnostic: a line ending on `with` / `by` / `of` is unambiguously mid-prepositional-phrase regardless of the line's length. The column-wrap signature M1 detects requires geometric clustering (a defining property of column-wrap); the sub-clause-ending signature M11 detects does not — a single mid-PP break is a sufficient signal on its own.
-
-Commas are NOT included in M11 because comma-ending lines admit legitimate uses (independent-clause coordination, list enumeration where each item is a full clause). When comma-heavy over-fragmentation appears, C2 / C3 / the conventions-text re-read covers it; mechanical comma detection here would produce too many false positives.
-
-Exclude lines inside fenced code blocks, tables, and verbatim quotes. The subagent should pair the `rg` hits with the fence-state of each hit line and drop hits that fall inside a fence.
+For each hit outside fenced code blocks, list `L<n>: "...<offending end token>"` (rule: `gh-body-conventions` § Formatting — "Do NOT break below the clause level"). Commas are excluded (too many legitimate uses); comma-heavy over-fragmentation is caught by C2 / C3. Drop hits that fall inside fences, tables, or verbatim quotes.
 
 ### 3. Contextual audit (main context)
 
@@ -208,6 +163,4 @@ If any ⚠ remains, fix before proceeding. State concretely what will change. Do
 
 ## What this skill does NOT do
 
-- It does not draft the body — that's the caller (`file-issue` / `file-pullreq`).
-- It does not file the issue / PR — that's the caller's responsibility.
-- It does not maintain the rule set — `gh-body-conventions` is SSOT. If a new leak shape recurs in practice, update `gh-body-conventions` first, then add the corresponding M-item / C-item here.
+Does not draft or file the body (caller's job). Does not maintain the rule set — `gh-body-conventions` is SSOT; update it first, then add the corresponding M-item / C-item here.

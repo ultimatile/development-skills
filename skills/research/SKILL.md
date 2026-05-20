@@ -32,7 +32,7 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
 2. Skim the project layout (directory tree, CLAUDE.md, key entry points). Do NOT deep-read files yet; that is the subagent's job.
 3. **Establish baselines.**
    - **Test baseline**: build and run existing tests. Record pre-existing failures so later regressions can be distinguished.
-   - **Memory recall baseline**: read `MEMORY.md` (the index only), and for each feedback / convention entry whose one-line description plausibly intersects the work being scoped, open the full entry and read it. Memory is passively loaded into context but agents do not reliably recall passive context when forming hypotheses, so this step makes the recall deliberate. Representative triggers: adding new `pub` symbols (visibility entries), adding or modifying tests (test convention entries), pre-release work touching deprecation / aliases / shims (backwards-compat policy), naming new helpers (naming-as-claim entries), referencing prior issues / phases (issue-number-in-code bans), touching repo / dev-docs boundaries (documentation channel entries). Scope filter: if a memory entry does not plausibly intersect the work, it is not active for this research pass. The active list shapes hypothesis formation in Step 1.4 and onward — a hypothesis that contradicts an active memory rule is rejected at formation rather than carried into probing.
+   - **Memory recall baseline**: read `MEMORY.md` (index only); for each entry whose one-line description plausibly intersects the work, open and read it. Passive memory load is unreliable for hypothesis formation — make recall deliberate. A hypothesis that contradicts an active memory rule is rejected at formation.
 4. Form hypotheses across three aspects:
    - **What needs to change**: required code modifications
    - **What invariants must hold**: contracts / preconditions / correctness properties
@@ -42,15 +42,12 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
    - `empirical` — resolved by reading code, running tests, observing runtime, inspecting git history, querying spec / external API / caller behavior. Subagent probes in Step 2 handle these.
    - `derivational` — resolved by deductive reasoning from defining equations / type laws / protocol axioms / mathematical or physical first principles. The truth value of a derivational hypothesis does not depend on the state of the codebase; reading more code will not resolve it. Step 2 handles these in the main context, not via subagents.
 
-   Mis-classification fails open: a derivational claim treated as empirical sends a subagent on a probe that cannot resolve it (the code never had the answer in the first place); an empirical claim treated as derivational tries to deduce facts the codebase actually controls. When in doubt, ask: "if the codebase did not exist, would the claim still have a definite truth value?" Yes → derivational. No → empirical.
+   Mis-classification fails open in both directions. Disambiguation test: "if the codebase did not exist, would the claim still have a definite truth value?" Yes → derivational. No → empirical. Two follow-on rules:
 
-   **Numerical verification stays derivational.** A hypothesis whose resolution path is "construct a candidate (formula, fixture, matrix) → check it numerically against an existing oracle (a spec, a reference value, a closed-form ground truth)" is **derivational**, not empirical. The candidate construction is deterministic from public sources, and the verification touches no runtime state of the codebase under research. Such a hypothesis is resolved in Step 2.B by running a scratch script (numpy / sympy / out-of-tree program) against the oracle, not by writing production code in the project tree.
+   - **Numerical verification stays derivational.** "Construct a candidate → check against an oracle (spec, reference value, closed-form ground truth)" is derivational; resolve in Step 2.B with a scratch script outside the project tree.
+   - **Misclassification signal.** If a probe's action is "write code in the project, then check whether it works", it is a derivational gap dressed as an empirical probe — re-classify before the plan exits research.
 
-   The signal that a probe has been misclassified: its action is "write code in the project, then check whether it works." That action is neither empirical (it does not observe runtime) nor a proper derivational step (it produces production-code drift instead of a derivation artifact). It is a derivational gap dressed as an empirical probe — re-classify and resolve in Step 2.B before the plan exits research.
-
-7. **Specific-example claim sweep (REQUIRED when applicable).** If the plan proposes a specific concrete example (a particular Hamiltonian, a particular input fixture, a particular protocol message, a named algorithm, a worked numerical case) AND attaches deductive properties to it ("this example is symmetric", "this example is non-degenerate", "this example exercises the multi-X path"), each such property MUST be enumerated as a separate `derivational` hypothesis. **"Obvious" is not an exemption.** Properties that feel obvious to the plan author are exactly the ones that bypass probing and surface as bugs at fixture construction time.
-
-   For each property P attached to example E, write the hypothesis as: "Example E has property P, derivable from E's defining equations / specification." This forces Step 2 to actually perform the derivation.
+7. **Specific-example claim sweep (REQUIRED when applicable).** If the plan attaches deductive properties to a concrete example ("this example is symmetric / non-degenerate / exercises the multi-X path"), each property MUST be a separate `derivational` hypothesis — "obvious" is not an exemption. Form: "Example E has property P, derivable from E's defining equations / specification."
 
 8. **Present hypotheses to the user for approval before spawning subagents.** Show the `kind` tag for each. The user can narrow scope, split into sub-issues, or correct mis-classifications.
 
@@ -70,7 +67,7 @@ Subagent contract:
    - **Disconfirming probe** — what evidence would refute it; **must be actually executed**, not just listed
    - Scope probe — local vs systemic
 3. **Reading depth matches semantic-review when the hypothesis touches non-trivial existing code.** For each meaningful unit read in the course of probing, the subagent considers `What / Why / Invariants / Failure modes / Connections`. If `Why` is unclear, mark `UNKNOWN — probe: <git blame / callers / tests / ADR>` rather than inventing a reason. Shallow grep-only verification is permitted only for trivially mechanical hypotheses (existence checks, file locations).
-4. **Runtime probe (preferred for behavioral claims).** When the hypothesis is about observable behavior — output ordering, return shape, panic / error-path return, side-effect timing, ABI / FFI layout, signal handling, performance characteristic, anything the runtime decides rather than the source — construct a minimal reproducer and execute it. Reading API docs / source comments is corroboration, not verification. The reproducer should be small (a short scratch program, an out-of-tree project, an ad-hoc invocation of an existing example) — if a small reproducer is not enough, the hypothesis probably needs to be split. Ensure the probe does not harm the workspace: scratch files belong outside the project tree (e.g. under `/tmp/`), and the probe must not modify project sources, dependencies, configuration, persistent stores, or external services. The probe should leave the workspace state unchanged regardless of outcome.
+4. **Runtime probe (preferred for behavioral claims).** Behavioral claims (output ordering, return shape, error-path return, ABI / FFI layout, signal handling, performance) need a minimal reproducer — docs reading is corroboration, not verification. Scratch files belong outside the project tree (e.g. `/tmp/`); the probe must not modify project sources, dependencies, configuration, persistent stores, or external services.
 5. **Boundary cases**: trace minimal/maximal input sizes, type variations, single-element containers. These are common plan-vs-actual divergence sources.
 6. **For "what could break" hypotheses**: classify the change as compile-breaking (new required trait method, type change) or silently semantic (same signature, different behavior). Semantic changes need caller-by-caller contract verification — the compiler will not catch them.
 7. **For safety-critical paths**: if any public API has unchecked internal assumptions (pointer arithmetic trusting an offset, a serializer trusting field order, an index trusting contiguity), flag it. A boundary contract violation propagates silently into these internals.
@@ -89,10 +86,10 @@ Subagents run in parallel. Each subagent owns its own evidence-gated-review ledg
 
 Each `derivational` hypothesis is resolved by working out the deduction explicitly, not by reading code. The deduction may take either form:
 
-- **Symbolic** — pen-and-paper algebra, formal manipulation of defining equations, type-law rewriting, protocol-axiom application.
-- **Numerical** — when the closed form is too messy for pen-and-paper but reduces to a numerical identity verifiable against an existing oracle (a published reference matrix, a closed-form spec, a ground-truth value), run a scratch script (numpy / sympy / out-of-tree program) and compare to the oracle. The numerical run **is part of the derivation**, performed in research, and is not a deferred implementation probe. Production code in the project tree is not written for this lane — only out-of-tree scratch artifacts.
+- **Symbolic** — pen-and-paper algebra / type-law rewriting / protocol-axiom application.
+- **Numerical** — when the closed form is too messy, reduce to a numerical identity against an oracle (published reference matrix, closed-form spec, ground-truth value); run a scratch script outside the project tree. This **is** the derivation, not a deferred implementation probe.
 
-Both stay in research. Subagents are not appropriate here — the derivation lives in the plan, not in the codebase, and a subagent dispatched to "check" it will either (a) re-grep the code (irrelevant) or (b) attempt the same derivation the main context owes the user (no advantage over doing it directly).
+Subagents cannot resolve derivational hypotheses (they'd re-grep code or repeat the deduction).
 
 For each derivational hypothesis:
 
@@ -102,12 +99,10 @@ For each derivational hypothesis:
 4. **Report a Decision** in the same four-state shape as Step 2.A:
    - `confirmed` — derivation completed AND counterexample construction failed
    - `rejected` — counterexample constructed (the claim is false; plan needs revision before continuing)
-   - `inconclusive` — derivation incomplete due to missing axiom / ambiguous spec / unresolved sign or convention conflict between sources; attach the missing piece as a `probe:` (this probe is now empirical — locate the missing axiom or canonical reference — and routes back through Step 2.A). **"The algebra is too messy / I will code it up in the project and check at implementation time" is not a valid `inconclusive` state.** That is a derivational gap and must be resolved by the numerical-derivation lane above (scratch script, out of tree, against an oracle) before the plan exits research.
+   - `inconclusive` — derivation incomplete due to missing axiom / ambiguous spec / convention conflict; attach the missing piece as an empirical `probe:` routing back through Step 2.A. ("Code it up and check at implementation time" is not valid — use the numerical-derivation lane.)
    - `deferred` — outside current scope; attach reason and resolution-point
 
-A `rejected` derivational hypothesis is a **plan bug**. Do not proceed to Step 3 until the plan is corrected and the affected hypotheses are re-derived. Patching the example mid-implementation is the failure mode this step exists to prevent.
-
-**No derivation, no plan.** A plan that attaches deductive properties to specific examples without reproducing the derivation fails this step. The derivation does not need to be long, but it must be present and reproducible.
+A `rejected` derivational hypothesis is a **plan bug**. Correct the plan and re-derive before Step 3. A plan that attaches deductive properties to examples without reproducing the derivation fails this step.
 
 ## Step 3 — Consolidate into implementation plan
 
@@ -147,7 +142,7 @@ This section is **mandatory**. It explicitly carries forward UNKNOWNs into the i
   resolution-point: <when this becomes actionable>
 ```
 
-If there are no inconclusive or deferred items, write `Inconclusive / Deferred items: none identified` explicitly. Silent omission is **forbidden** — it conflates "no UNKNOWNs" with "did not look".
+If none, write `Inconclusive / Deferred items: none identified` explicitly — silent omission conflates "no UNKNOWNs" with "did not look".
 
 ### Filter unresolved questions before listing them
 
@@ -163,30 +158,18 @@ Report the plan back to the main context.
 
 ## Step 3.4 — Contract reachability check (mandatory)
 
-A plan can be **locally closed** (mechanism fits in scope, tests are writable, the docstring is composable) yet **contract-empty** (the semantic contract of any new public surface depends on consumer code that is not yet aligned). Local closure is what `codex-plan-review` and the author's confidence both assess well; contract closure is what they both miss, because it requires looking outward (at downstream consumers) rather than inward (at the plan).
-
-When contract closure fails silently and the plan ships, the symptom shows up later as repeated reviewer friction over the same API contract — "should this parameter accept both values?", "should this panic?", "should this convert?" — i.e., oscillation in the review pipeline that the oscillation-detection rule then has to catch downstream. This step exists to catch it upstream, via mechanical signals that don't require insight.
-
-Run all three checks against the plan body and the proposed public surface. Any one of them firing means the plan's contract is not closed; the response is to escalate scope or defer, not to ship.
+A plan can be locally closed yet **contract-empty** when a new public surface's semantics depend on consumer code outside scope. `codex-plan-review` and author confidence both miss this — it requires looking outward. Any check firing means the plan's contract is not closed; rescope or defer.
 
 ### Check 1 — Dead-on-arrival state
 
-For each new public symbol introduced by the plan (function parameter with non-trivial value range, struct field, accessor, method, type variant), answer:
+For each new public symbol (parameter with non-trivial value range, struct field, accessor, method, variant), ask: does any current or in-plan code path **branch on** this symbol's value (`match`, `if`, conditional dispatch, layout reorder, validation)? Pure references — `Clone` copying, accessor exposure, constructor storing — are not branches.
 
-> Does any current or in-plan code path **branch on** (act on) this symbol's value?
-
-Branching means: reading the value and choosing a code path based on it (`match`, `if`, conditional dispatch, layout reorder, validation, etc.). Pure references that do not branch — `Clone` copying the field, an accessor `pub fn x(&self) -> X { self.x }` exposing it, a constructor storing it — are **not** branches. They are tautological consumers that exist solely to expose the symbol and do not justify the symbol's existence.
-
-- If at least one real branch exists → contract has a consumer that acts on the value; proceed.
-- If no real branch exists → the symbol is dead-on-arrival. Either:
-  - **Expand scope** — add the consumer-side branching to the plan checklist, with its own implementation guards, tests, and impact list.
-  - **Defer the symbol** — drop it from this plan; refile when the consumer materializes.
-
-A `source_order: MemoryOrder` parameter where no current code reads `tensor.order()` to branch on it is dead-on-arrival in the strict sense — every consumer treats the layout authority as something else (e.g., `backend.preferred_order()`). The plan must either resolve the consumer side first or not introduce the parameter.
+- Real branch exists → proceed.
+- No real branch → dead-on-arrival. Either expand scope (add consumer-side branching to the checklist) or defer the symbol until the consumer materializes.
 
 ### Check 2 — Docstring-vocabulary scan
 
-Grep the plan body and any proposed docstrings for the following phrases (case-insensitive):
+Grep the plan body and proposed docstrings (case-insensitive):
 
 ```
 not yet honored | currently restricted | social contract | deferred (mitigation|consumer-side|to a later)
@@ -194,31 +177,22 @@ documented limitation | for future use | in preparation for | analogous to ... c
 in a future PR | follow-up issue tracks | when consumers ... | until consumers ...
 ```
 
-Each hit is a self-admission that the plan's contract depends on something **outside the plan's scope**. Hits are not automatically fatal — sometimes the dependency is in-flight under another tracked issue. But every hit must resolve into either:
-
-- A **`Depends on #N` link** to the issue that closes the gap (in which case the plan's `Inconclusive / Deferred items` carries the dependency explicitly).
-- A **scope expansion** that pulls the gap into this plan.
-- A **defer / close** decision: this issue is not single-actionable; re-frame upstream.
-
-A plan with hits and no resolution route is contract-empty by self-declaration. Do not proceed to Step 3.5; return to Step 1 and rescope.
+Each hit admits an out-of-scope dependency. Each must resolve into a `Depends on #N` link (carried in `Inconclusive / Deferred items`), a scope expansion, or a defer / close decision. Hits without a resolution route → return to Step 1 and rescope.
 
 ### Check 3 — Local-closure vs contract-closure distinction
 
-Restate the plan's claim in one sentence and ask: would this claim still be true if every line of consumer code outside the plan's checklist were arbitrary?
+Restate the plan's claim in one sentence. Would it still be true if every line of consumer code outside the plan were arbitrary?
 
-- **Local closure**: "the new constructor stores the data correctly and propagates the order tag" — true regardless of consumer behavior; plan is locally closed.
-- **Contract closure**: "the new constructor produces a tensor that downstream operations interpret correctly under the declared order" — only true if consumers honor the tag, which is a consumer-side property.
+- **Local closure**: "constructor stores the data correctly and propagates the order tag" — true regardless of consumers.
+- **Contract closure**: "constructor produces a tensor that downstream operations interpret correctly under the declared order" — only true if consumers honor the tag.
 
-If the user-visible value of the plan rests on contract closure (not just local closure) and contract closure is not in scope, the plan is mis-scoped. The fix is to either bring contract closure into scope or step back to the upstream design decision.
+If the user-visible value rests on contract closure and contract closure is out of scope, the plan is mis-scoped. Bring contract closure in or step back to the upstream design decision.
 
-The output of Step 3.4 is one of:
-
-- **clean** — none of Check 1 / 2 / 3 fired; proceed to Step 3.5.
-- **flagged** — list the firings, the proposed resolution route (scope expansion / `Depends on` / defer-and-close), and surface to the user before continuing.
+Output: **clean** (proceed to Step 3.5) or **flagged** (list firings + proposed resolution + surface to user).
 
 ## Step 3.5 — Plan review gate (mandatory offer)
 
-Plan review is consistently mishandled when left to ad-hoc judgement — trivial changes skip it (fine), risky changes also skip it (not fine), and the decision is made on the basis of how confident the plan author feels rather than how exposed the plan is. The gate makes the decision deterministic. Running review before Step 5 (GitHub post) keeps the issue trail clean: only the reviewed plan is ever posted, so a premise problem caught here does not produce a noisy "first plan / revised plan" sequence on the issue.
+Running plan review before Step 5 keeps the issue trail clean — only the reviewed plan is posted.
 
 After Step 3 produces a plan and before Step 4 collects user approval:
 
@@ -239,8 +213,6 @@ After Step 3 produces a plan and before Step 4 collects user approval:
 
 4. **The plan that exits this step is the contract.** Step 5 will post that plan once. Revisions happen here, before posting; there is no "post then revise" loop.
 
-The cost of running `codex-plan-review` once per cycle is minutes; the cost of carrying a wrong-premise plan through implementation is hours-to-days of rework. Bias toward running it.
-
 ## Step 4 — User approval
 
 Present the plan (after any Step 3.5 revisions) and ask for approval before posting to GitHub.
@@ -249,9 +221,7 @@ Present the plan (after any Step 3.5 revisions) and ask for approval before post
 
 ### 5.0 Laundering pass — run `gh-body-check` (MANDATORY)
 
-Before any `gh-post` invocation, run `gh-body-check` on the plan body, regardless of which routing branch below applies. The check delegates mechanical items (hard-wrap, over-fragmented sub-clause breaks, local-path patterns, private skill names, Phase / Step numbering, JP clauses in English bodies, chat-tone scaffolding, Unicode math in prose, unresolved placeholders, line numbers in issue bodies) to a fresh-context subagent — research plans are particularly prone to over-fragmented "clause-per-line" formatting (lines ending on prepositions, mid-noun-phrase, or after list commas) that the author's own re-read passes because they read intent rather than text.
-
-Resolve any ⚠ before invoking `gh-post`. The "per `file-issue` step 5" pointers below refer to the `gh-post` invocation shape only; `file-issue`'s Step 3 laundering pass does NOT run automatically from those pointers, so this 5.0 step is its replacement on the research-post path.
+Run `gh-body-check` on the plan body before any `gh-post` invocation; resolve any ⚠ before posting. Note: `file-issue`'s Step 3 laundering pass does NOT auto-run from the pointers below, so this 5.0 step is its replacement on the research-post path.
 
 ### 5.1 Route to the correct surface
 
@@ -261,7 +231,7 @@ After 5.0 clears, route the plan based on what `$ARGUMENTS` resolves to:
 - **Existing umbrella issue** (the body contains a Phases table or sub-tasks list) → spawn a new sub-issue whose body IS the plan, following `file-issue`'s `Variants > Umbrella sub-issue` shape: `Parent: #<umbrella>` on the first line, `Phase N: <topic>` title, Goal / Scope / Out of scope / Acceptance derived from the plan. After creation, append the new sub-issue's number to the umbrella's Phases table row. The sub-issue body is the canonical contract surface; do not also post the plan as an umbrella comment.
 - **New task** → `gh-post issue create` (per `file-issue` step 5) with the plan in the body; report the new issue number.
 
-When the umbrella vs single-scope classification is ambiguous, surface both options to the user and let them choose. The umbrella branch is the D1 default — the sub-issue body becomes the single referenceable artifact (`Closes #<sub-issue>` from the PR points directly to the plan), avoiding the body/comment two-layer redundancy of the legacy spawn-then-comment flow.
+When ambiguous, ask the user. Umbrella sub-issue is the D1 default — the sub-issue body becomes the single referenceable artifact (`Closes #<sub-issue>` points directly to the plan).
 
 **Issue creation rules:**
 

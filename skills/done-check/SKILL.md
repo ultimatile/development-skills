@@ -15,19 +15,9 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
 
 ## Procedure
 
-0. **Resolve the active rule set.**
+0. **Resolve the active rule set.** Base items live in `quality-list/SKILL.md`; language-specific addenda at `quality-list/lang-<language>.md` realize them concretely.
 
-   The base rule set lives in `quality-list/SKILL.md`. Language-specific addenda live alongside it as `quality-list/lang-<language>.md` and supplement the base rules with triggers, mitigation idioms, and mechanical detection patterns for the language. Items themselves stay language-neutral in the base file; addenda only realize them concretely.
-
-   Detection order for the project language:
-
-   1. Check the project's `CLAUDE.md` (or equivalent contributor / agent-guidance file) for a `Language:` declaration line (e.g., `Language: cpp`). If present, load `quality-list/lang-<value>.md`.
-   2. Otherwise, auto-detect from file extensions in the diff: `.cpp` / `.cc` / `.cxx` / `.h` / `.hpp` / `.hh` → `cpp`; `.rs` → `rust`; `.py` → `python`; `.ts` / `.tsx` → `typescript`; `.go` → `go`; etc.
-   3. Multi-language projects: load every matching `lang-*.md` (one per language present).
-
-   If a detected language has no `lang-<lang>.md`, fall back to the base rules only for that language. Missing addenda are not a concern condition — they just mean the language has no curated realizations yet.
-
-   The active rule set = base items (from `quality-list/SKILL.md`) plus, for each item that has language-specific content in the loaded addendum, that addendum's section for the item. Pass both into the subagent prompt in Step 2 below so the literal audit sees the language realization, not just the generic principle.
+   Detect language from the project's `CLAUDE.md` `Language:` declaration; otherwise auto-detect from diff file extensions (`.rs` → rust, `.cpp`/`.cc`/`.cxx`/`.h`/`.hpp` → cpp, `.py` → python, `.ts`/`.tsx` → typescript, `.go` → go, etc.). Multi-language projects load every matching addendum. Missing addendum → base rules only for that language (not a concern). Pass both base + addendum into the Step 2 subagent prompt.
 
 1. **Identify the diff under audit.** Cover all four sources so recently-added implementation files are not missed:
 
@@ -41,9 +31,9 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
 
    Read the contents of any untracked file relevant to the audit (paths alone do not let you check anything).
 
-2. **Spawn a fresh-context auditor for the mechanical / literal items.** The author of a diff reads what they meant their code and comments to say, not the literal text — the same blindspot that lets reviewers (Copilot, codex) routinely find doc-vs-code drift the author marked ✅. Delegating the literal audit to a subagent that has no access to the conversation history removes that blindspot.
+2. **Spawn a fresh-context auditor for the mechanical / literal items.** Authors read intent; a fresh-context subagent reads literal text — removes the doc-vs-code drift blindspot.
 
-   **Main context MUST NOT load the item bodies.** The subagent reads them in its own fresh context. Main context only composes the prompt (the slug list + diff + repo path) and dispatches it.
+   **Main context MUST NOT load the item bodies.** The subagent reads them in its own fresh context; main only composes the prompt (slug list + diff + repo path) and dispatches.
 
    Use the `Agent` tool with `subagent_type: "general-purpose"` and a prompt of the following shape:
 
@@ -57,17 +47,11 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
      them yourself from the paths below)
    - the literal text of the codebase you can read with your tools
 
-   Item file paths (read each in full):
-
-   - <REPO>/skills/quality-list/items/behavior-coverage.md
-   - <REPO>/skills/quality-list/items/implementation-guards.md
-   - <REPO>/skills/quality-list/items/impact-verification.md
-   - <REPO>/skills/quality-list/items/architectural-boundary.md
-   - <REPO>/skills/quality-list/items/paired-artifact-drift.md
-   - <REPO>/skills/quality-list/items/ported-code-attribution.md
-   - <REPO>/skills/quality-list/items/signature-change-regression.md
-   - <REPO>/skills/quality-list/items/public-doc-durability.md
-   - <REPO>/skills/quality-list/items/public-api-surface.md
+   Read each item file in full under <REPO>/skills/quality-list/items/:
+   behavior-coverage.md, implementation-guards.md, impact-verification.md,
+   architectural-boundary.md, paired-artifact-drift.md,
+   ported-code-attribution.md, signature-change-regression.md,
+   public-doc-durability.md, public-api-surface.md.
 
    Also load the language addendum at
    <REPO>/skills/quality-list/lang-<lang>.md if it exists for the
@@ -125,17 +109,13 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
    - **True positive** — fix before proceeding (same as a main-context ⚠).
    - **False positive due to missing context** — note explicitly why (e.g., "user explicitly approved the boundary deferral in conversation"); the subagent's literal interpretation is wrong because it lacked context, but this should be rare and worth paper-trailing. Do NOT silently override — false-positive classification is itself a triage step that the user can challenge.
 
-   Each result is **✅ pass**, **⚠ concern**, or **⊘ N/A**:
+   Each result is ✅ / ⚠ / ⊘ N/A (definitions per Step 2's prompt). Evidence cell records the basis (command run, manual check, `file:line`, or `not run: <reason>`).
 
-   - **✅ pass** — confidently satisfied; the **Evidence** cell records what makes you confident (a command run, a manual check, a `file:line` read, or `not run: <reason>`)
-   - **⚠ concern** — cite the diff location and what to fix
-   - **⊘ N/A** — state why the rule does not apply (using the item's own N/A criterion)
-
-5. If any **⚠** remains, fix before proceeding. State concretely what will change. Do not proceed until concerns are resolved or the user explicitly waives them with reasoning.
+5. If any ⚠ remains, fix before proceeding. State concretely what will change. Do not proceed until concerns are resolved or the user explicitly waives them with reasoning.
 
 6. Report the audit table.
 
-**When to skip the subagent (step 2).** For purely mechanical changes where literal-text drift is structurally impossible — pure rename across files, formatting only, file move with no content change — the subagent step is wasted overhead. The skip threshold is narrow: if the diff adds or modifies any prose / comment / docstring / log message / error string, run the subagent.
+**When to skip the subagent (step 2).** Pure renames, formatting-only changes, or file moves with no content change — the subagent step is wasted overhead. Any prose / comment / docstring / log / error string add or modify → run the subagent.
 
 ## Output format
 
@@ -162,6 +142,4 @@ self-audit: <commit-range or "uncommitted">
 | public-api-surface            | ⊘ N/A  |                                         | no public API change, no parallel siblings     |
 ```
 
-Item slugs and order must follow the index in `quality-list/SKILL.md` exactly. If the list grows or shrinks, update the table accordingly — the table is generated from the list, not maintained independently.
-
-If any ⚠ remains, fix before proceeding. State concretely what will change. Do not proceed until concerns are resolved or the user explicitly waives them with reasoning.
+Item slugs and order must follow the index in `quality-list/SKILL.md` exactly. The table is generated from the list, not maintained independently.

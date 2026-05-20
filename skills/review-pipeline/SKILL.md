@@ -7,92 +7,7 @@ description: Full automated review pipeline — done-check, codex review, fix lo
 
 Orchestrate the full flow from local changes through PR review, user merge, postmortem elevation, and umbrella drift join. This skill ties together several sub-skills — invoke each by name.
 
-The pipeline crosses a **user-controlled merge gate**: the user (not Claude) merges the PR. Phases before the gate run on the PR branch; phases after the gate run on `main` and on tracking issues. The `← user merges PR ←` line in the diagram marks the boundary explicitly so Claude pauses there.
-
-## Pipeline
-
-```
-  ┌─────────────────────────────────────────────────┐
-  │  Phase 0: Done-check loop (local, pre-commit)   │
-  │                                                 │
-  │  /done-check                                    │
-  │       ↓                                         │
-  │  any ⚠ concerns? ──yes──→ fix → loop back       │
-  │       ↓ no                                      │
-  └───────┼─────────────────────────────────────────┘
-          ↓
-  ┌─────────────────────────────────────────────┐
-  │  Phase 1: Codex review loop (local)         │
-  │                                             │
-  │  /stage-commit-push                         │
-  │       ↓                                     │
-  │  /codex-review                              │
-  │       ↓                                     │
-  │  actionable? ──yes──→ fix                   │
-  │       ↓               ↓                     │
-  │       │         /done-check (delta)         │
-  │       │               ↓                     │
-  │       │         /stage-commit-push          │
-  │       │               ↓                     │
-  │       │         /codex-review → loop back   │
-  │       ↓ no                                  │
-  └───────┼─────────────────────────────────────┘
-          ↓
-  ┌─────────────────────────────────────────────┐
-  │  Phase 2: Copilot review (remote)           │
-  │                                             │
-  │  /file-pullreq → drafts + approves          │
-  │       ↓                                     │
-  │  /copilot-review (creates PR + polls,       │
-  │      using approved title+body)             │
-  │       ↓                                     │
-  │  actionable? ──yes──→ fix                   │
-  │       ↓               ↓                     │
-  │       │         /done-check (delta)         │
-  │       │               ↓                     │
-  │       │         /stage-commit-push          │
-  │       │               ↓                     │
-  │       │         --re-review → loop back     │
-  │       ↓ no                                  │
-  └───────┼─────────────────────────────────────┘
-          ↓
-  ┌─────────────────────────────────────────────────┐
-  │  Phase 3: Postmortem elevation (pre-merge)      │
-  │                                                 │
-  │  3a. /bug-to-contract → test additions          │
-  │       ↓                                         │
-  │  3b. /codex-contract-test-review (narrow pass)  │
-  │       ↓                                         │
-  │  actionable? ──yes──→ revise test → 3b once     │
-  │       ↓ no                                      │
-  │  3c. /finding-to-audit (development-skills)     │
-  │       ↓ (separate repo, no project merge gate)  │
-  │  3d. /stage-commit-push (project test commits)  │
-  └───────┼─────────────────────────────────────────┘
-          ↓
-  ┌─────────────────────────────────────────────────┐
-  │  Phase 4a: PR description delta (pre-merge)     │
-  │                                                 │
-  │  derive plan-vs-actual delta                    │
-  │       ↓                                         │
-  │  edit PR description = full delta + evidence    │
-  └───────┼─────────────────────────────────────────┘
-          ↓
-  ━━━━━━━━━ ← user merges PR ← ━━━━━━━━━━━━━━━━━━━━━━
-          ↓
-  ┌─────────────────────────────────────────────────┐
-  │  Phase 4b: Umbrella drift join (post-merge)     │
-  │                                                 │
-  │  closed sub-issue references `Parent: #N`?     │
-  │       ↓ yes                                     │
-  │  sub-issue closing comment = compressed delta   │
-  │  parent body = update only on design drift      │
-  │       ↓ no parent ref                           │
-  │  skip Phase 4b                                  │
-  └───────┼─────────────────────────────────────────┘
-          ↓
-        Done
-```
+The pipeline crosses a **user-controlled merge gate** (Phase 4a → 4b): the user, not Claude, merges the PR. Phases before the gate run on the PR branch; phases after run on `main` and tracking issues. Claude pauses at the `## ← user merges PR ←` section.
 
 ## Phase 0: Done-check loop
 
@@ -108,40 +23,24 @@ Done-check runs **before** any commit. Resolving its concerns post-commit produc
 1. Run `/stage-commit-push` to stage, commit, and push local changes
 2. Run `/codex-review` to review the branch diff against main
 3. Triage the output — classify each finding as actionable, false positive, or uncertain
-4. If actionable findings exist:
-   - **Oscillation check (iteration N ≥ 2 only).** Compare the current iteration's actionable topics against iteration N-1's preserved topic classifications. If any conceptual topic recurs, halt the fix loop and follow the escalation order in the Rules section — do NOT proceed to fix or done-check.
-   - Fix the code
-   - Run `/done-check` in **delta mode** (see Rules below)
-   - Run `/stage-commit-push` again
-   - Run `/codex-review` again (fresh, full review — no bias from previous iteration)
-   - Preserve the iteration's actionable topic classifications for the next iteration's oscillation check
-   - Re-triage
-5. Repeat until no actionable findings remain
+4. If actionable findings exist, apply the **fix-loop substeps** (see Rules) and repeat until no actionable findings remain.
 
 ## Phase 2: Copilot review
 
 6a. Run `/file-pullreq` in **gate mode** — drafts the PR title + body following `gh-body-conventions` and the standard body skeleton, runs the laundering pass, and gets the user's approval. The skill stops at approval and emits the approved title + body for the next step. It does NOT create the PR itself. 6b. Run `/copilot-review`, passing the approved title + body — this creates the PR with `--reviewer @copilot` and polls until the review arrives.
 7. Triage the review — filter to the latest review's comments only (by `pull_request_review_id`)
 8. Reply to each inline comment individually via `gh-post reply-inline <owner>/<repo> <PR> < /tmp/replies.jsonl`. Build the JSONL with one `{"id": <comment-id>, "body": "<reply>"}` per line; the wrapper validates every body through the hardwrap detector before any send (halt-before-send) and prints un-sent indices on a mid-batch API failure.
-9. If actionable findings exist:
-   - **Oscillation check (iteration N ≥ 2 only).** Compare the current iteration's actionable topics against iteration N-1's preserved topic classifications. If any conceptual topic recurs, halt the fix loop and follow the escalation order in the Rules section — do NOT proceed to fix or done-check.
-   - Fix the code
-   - Run `/done-check` in **delta mode** (see Rules below)
-   - Run `/stage-commit-push`
-   - Run `${CLAUDE_SKILL_DIR}/../copilot-review/scripts/pr-with-copilot-review.sh --re-review <PR_URL>` to trigger and wait for a new review
-   - Preserve the iteration's actionable topic classifications for the next iteration's oscillation check
-   - Triage the new review (only new comments)
-10. Repeat until no actionable findings remain
+9. If actionable findings exist, apply the **fix-loop substeps** (see Rules), replacing the re-review step with `${CLAUDE_SKILL_DIR}/../copilot-review/scripts/pr-with-copilot-review.sh --re-review <PR_URL>`. Triage only new comments. Repeat until no actionable findings remain.
 
 ## Phase 3: Postmortem elevation (pre-merge)
 
 After Phase 1 + 2 are clean, before the user merges, fold review findings into durable artifacts:
 
-11. **`/bug-to-contract`** — for each actionable finding from Phase 1 and 2 (not just fix commits), ask whether an implicit contract was violated and whether it is now tested. Any finding that required a code change is evidence of a missing contract, regardless of whether the fix was a one-line doc tweak or a multi-file refactor.
+11. **`/bug-to-contract`** — for each actionable finding from Phase 1 and 2 (not just fix commits), ask whether an implicit contract was violated and whether it is now tested.
 
-12. **`/codex-contract-test-review`** — for each contract test added in Step 11, run a narrow Codex pass that asks: does the test actually express the claimed contract, and would it fail on the original buggy implementation? This is a lighter substitute for a full re-run of Phase 1 + 2 on the contract-test commits, which would otherwise be excessive.
+12. **`/codex-contract-test-review`** — for each contract test added in Step 11, run a narrow Codex pass: does the test express the claimed contract, and would it fail on the original buggy implementation?
 
-    - If actionable findings: revise the test and re-run this step **once**. Repeated iteration signals the contract itself is unclear — escalate to the user.
+    - If actionable findings: revise the test and re-run this step **once**. Repeated iteration → escalate to the user.
     - If clean: continue.
 
 13. **`/finding-to-audit`** — for findings whose detection would have been **diff-inspectable** (import direction, `pub` widening, missing standard trait impl, debug artifacts, hardcoded values, FFI output dropped, etc.), elevate to a pre-commit audit rule in the `done-check` skill (or the relevant host skill). This edits the `development-skills` repo, which is independent of the project's merge gate — commits land without waiting on Phase 4.
@@ -196,19 +95,27 @@ Runs only after the user has merged.
 
 ## Rules
 
-- **Never skip done-check, including in fix loops.** Phase 0 audits the initial implementation, but every fix commit is itself a diff that can introduce new drift — especially `completion-hygiene` and `paired-artifact-drift`. Skipping a fix-loop done-check is the most common cause of multi-iteration review oscillation on documentation, comments, and PR-body wording.
-- **Fix-loop done-check runs in delta mode.** Report only rows whose status changes from the previous audit, plus any new ⚠ introduced by the fix. Items still passing from Phase 0 stay implicit — do not re-print the full table on every fix iteration. Resolve any new ⚠ before the subsequent `/stage-commit-push`. Pay special attention to:
+- **Fix-loop substeps** (Phase 1 step 4 and Phase 2 step 9):
+  1. **Oscillation check (iteration N ≥ 2).** Compare current actionable topics against the previous iteration's preserved topics. If any conceptual topic recurs, halt and follow the escalation order below — do NOT fix or done-check.
+  2. Fix the code.
+  3. Run `/done-check` in delta mode.
+  4. Run `/stage-commit-push`.
+  5. Re-run the review (fresh, full review — no bias from previous iteration). Phase 2 uses `--re-review` instead.
+  6. Preserve actionable topic classifications for the next iteration's oscillation check.
+  7. Re-triage (Phase 2: only new comments).
+- **Never skip done-check, including in fix loops.** Every fix commit is itself a diff that can introduce new drift — especially `completion-hygiene` and `paired-artifact-drift`.
+- **Done-check delta mode.** Report only rows whose status changes from the previous audit, plus any new ⚠. Resolve every new ⚠ before the subsequent `/stage-commit-push`. Pay special attention to:
   - `paired-artifact-drift`: every comment / docstring / PR-body sentence touched by or referring to the fixed code must still be accurate.
   - `completion-hygiene`: pre-commit hooks catch lint / fmt / line count, but the fix may have added stray `dbg!` / `println!` / scratch test code.
   - The PR description: if a fix invalidates a claim in the description (e.g., "previously-missed mutant is now caught" became "now excluded"), update the description in the same iteration.
 - **Never skip codex review.** Even for small fixes, run the full loop. Codex review catches things that are invisible in the diff alone.
 - **Never inject previous review comments into the next review prompt.** Each review iteration must be fresh and unbiased, so it can catch both regressions from the fix and new problems.
 - **Every commit goes through `/stage-commit-push`.** Do not manually run git add/commit/push during the pipeline. The skill ensures consistent commit message generation.
-- **Pre-commit branch gate.** Before each `/stage-commit-push` invocation in this pipeline, verify the current branch is not the repo's default branch:
+- **Pre-commit branch gate.** Before each `/stage-commit-push`, verify the current branch is not the repo's default branch:
 
-      test "$(git symbolic-ref --short HEAD)" != \ "$(git symbolic-ref --short refs/remotes/origin/HEAD | sed 's@^origin/@@')"
+      test "$(git symbolic-ref --short HEAD)" != "$(git symbolic-ref --short refs/remotes/origin/HEAD | sed 's@^origin/@@')"
 
-  Halt and surface to user if equal. The session-start branch baseline (e.g. `research-and-implement` Phase 0) is one-shot and does not catch silent mid-session branch switches.
+  Halt and surface to user if equal. The session-start branch baseline is one-shot and does not catch silent mid-session branch switches.
 - **Reply to Copilot comments individually**, not as a single PR comment. Use `gh-post reply-inline <owner>/<repo> <PR> < /tmp/replies.jsonl` so every reply body passes the hardwrap validator and the batch halts before send on any body failure. JSONL shape: one `{"id": <comment-id>, "body": "<reply>"}` per line.
 - **Triage is mandatory.** Never present raw review output to the user. Classify findings and lead with actionable items.
 - **Sub-classify actionable findings before fixing.** Not all actionable findings warrant the same response:
@@ -221,6 +128,6 @@ Runs only after the user has merged.
   2. **If yes upstream**: rescope. Close the current PR, refile the upstream design question as a separate issue, and let the current API decision fall out of that resolution. This is the right move even when the current fix is technically correct in isolation.
   3. **If no upstream issue**: present what is known, what is uncertain, and ask the user to choose among the surviving fix options.
 
-  The "no-clarifying-questions" mode (when the user has delegated decision-making) does NOT override this rule. The oscillation-detection escalation IS the escalation the user delegated to the rule itself; bypassing it via reasonable-call judgement when the rule's trigger has fired is the meta-failure mode the rule exists to prevent. If three independent reviewers (plan-review / code-review / Copilot) converge on the same API-contract concern, that is the escalation signal regardless of user mode.
+  The "no-clarifying-questions" mode does NOT override this rule — the escalation IS what the user delegated. Convergence of three independent reviewers on the same API-contract concern is the signal regardless of mode.
 - **Pause at the merge gate.** Phase 4b runs only after the user merges. Do not run `gh pr merge` from Claude unless explicitly asked.
 - **Contract-test review is bounded.** `/codex-contract-test-review` allows at most one revise-and-re-review cycle. If it doesn't converge, the contract itself is unclear — escalate, don't loop.
