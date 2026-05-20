@@ -22,7 +22,7 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
 2. Skim the project layout (directory tree, CLAUDE.md, key entry points). Do NOT deep-read files yet; that is the subagent's job.
 3. **Establish baselines.**
    - **Test baseline**: build and run existing tests. Record pre-existing failures so later regressions can be distinguished.
-   - **Memory recall baseline**: read `MEMORY.md` (index only); for each entry whose one-line description plausibly intersects the work, open and read it. Passive memory load is unreliable for hypothesis formation — make recall deliberate. A hypothesis that contradicts an active memory rule is rejected at formation.
+   - **Memory recall baseline**: read `MEMORY.md` (index only); for each entry whose one-line description plausibly intersects the work, open and read it. A hypothesis that contradicts an active memory rule is rejected at formation.
 4. Form hypotheses across three aspects:
    - **What needs to change**: required code modifications
    - **What invariants must hold**: contracts / preconditions / correctness properties
@@ -32,7 +32,7 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
    - `empirical` — resolved by reading code, running tests, observing runtime, inspecting git history, querying spec / external API / caller behavior. Subagent probes in Step 2 handle these.
    - `derivational` — resolved by deductive reasoning from defining equations / type laws / protocol axioms / mathematical or physical first principles. The truth value of a derivational hypothesis does not depend on the state of the codebase; reading more code will not resolve it. Step 2 handles these in the main context, not via subagents.
 
-   Mis-classification fails open in both directions. Disambiguation test: "if the codebase did not exist, would the claim still have a definite truth value?" Yes → derivational. No → empirical. Two follow-on rules:
+   Disambiguation test: "if the codebase did not exist, would the claim still have a definite truth value?" Yes → derivational. No → empirical. Two follow-on rules:
 
    - **Numerical verification stays derivational.** "Construct a candidate → check against an oracle (spec, reference value, closed-form ground truth)" is derivational; resolve in Step 2.B with a scratch script outside the project tree.
    - **Misclassification signal.** If a probe's action is "write code in the project, then check whether it works", it is a derivational gap dressed as an empirical probe — re-classify before the plan exits research.
@@ -52,25 +52,14 @@ Spawn one subagent per `empirical` hypothesis (or per small related group). Each
 Subagent contract:
 
 1. **Run `evidence-gated-review`** with the assigned hypothesis as the initial Review Claim or Hypothesis.
-2. **Probes are mandatory three-way**:
-   - Supporting probe — what evidence would confirm the claim
-   - **Disconfirming probe** — what evidence would refute it; **must be actually executed**, not just listed
-   - Scope probe — local vs systemic
-3. **Reading depth matches semantic-review when the hypothesis touches non-trivial existing code.** For each meaningful unit read in the course of probing, the subagent considers `What / Why / Invariants / Failure modes / Connections`. If `Why` is unclear, mark `UNKNOWN — probe: <git blame / callers / tests / ADR>` rather than inventing a reason. Shallow grep-only verification is permitted only for trivially mechanical hypotheses (existence checks, file locations).
-4. **Runtime probe (preferred for behavioral claims).** Behavioral claims (output ordering, return shape, error-path return, ABI / FFI layout, signal handling, performance) need a minimal reproducer — docs reading is corroboration, not verification. Scratch files belong outside the project tree (e.g. `/tmp/`); the probe must not modify project sources, dependencies, configuration, persistent stores, or external services.
-5. **Boundary cases**: trace minimal/maximal input sizes, type variations, single-element containers. These are common plan-vs-actual divergence sources.
-6. **For "what could break" hypotheses**: classify the change as compile-breaking (new required trait method, type change) or silently semantic (same signature, different behavior). Semantic changes need caller-by-caller contract verification — the compiler will not catch them.
-7. **For safety-critical paths**: if any public API has unchecked internal assumptions (pointer arithmetic trusting an offset, a serializer trusting field order, an index trusting contiguity), flag it. A boundary contract violation propagates silently into these internals.
-8. Return a **Decision** in one of four states:
-   - `confirmed` — supporting probe succeeded AND disconfirming probe was attempted and failed to refute
-   - `rejected` — disconfirming probe yielded counter-evidence
-   - `inconclusive` — current evidence is insufficient; attach the remaining `probe:` needed to resolve
-   - `deferred` — real concern but outside current scope; attach reason and resolution-point
-9. Report back with concise file paths, line numbers, function signatures, and probe results.
+2. **Probes (per evidence-gated-review §5) are three-way: Supporting / Disconfirming / Scope.** The Disconfirming probe **must be actually executed**, not just listed — this is the most common silent-failure mode.
+3. **For non-trivial existing code, read at semantic-review depth** (its `What / Why / Invariants / Failure / Connections` schema with the UNKNOWN-probe discipline). Shallow grep-only verification is permitted only for trivially mechanical hypotheses (existence checks, file locations).
+4. **Runtime probe (preferred for behavioral claims).** Behavioral claims (output ordering, return shape, error-path return, ABI / FFI layout, signal handling, performance) need a minimal reproducer — docs reading is corroboration, not verification. Boundary cases (minimal/maximal sizes, type variations, single-element containers) belong here.
+5. **Caller-contract verification for change-impact hypotheses.** Classify the change as compile-breaking (new required trait method, type change) or silently semantic (same signature, different behavior). Semantic changes need caller-by-caller verification — the compiler will not catch them. Flag any public API with unchecked internal assumptions (pointer arithmetic trusting an offset, a serializer trusting field order, an index trusting contiguity); boundary-contract violations propagate silently into these.
+6. Return a **Decision** in the four-state shape from evidence-gated-review §6 (`confirmed` / `rejected` / `inconclusive` / `deferred`). For `inconclusive`, attach the remaining `probe:`. For `deferred`, attach reason and resolution-point.
+7. Report back with concise file paths, line numbers, function signatures, and probe results.
 
-**Subagent granularity**: hypotheses requiring only existence checks or single-file grep can be resolved directly from the main context. Reserve subagents for hypotheses that touch multiple files or need deep reading.
-
-Subagents run in parallel. Each subagent owns its own evidence-gated-review ledger; the main context will merge them.
+**Subagent granularity**: hypotheses requiring only existence checks or single-file grep can be resolved directly from the main context. Reserve subagents for hypotheses that touch multiple files or need deep reading. Spawn all empirical-hypothesis subagents in a single message so they run in parallel; each owns its own evidence-gated-review ledger.
 
 ### Step 2.B — Derivational hypotheses (deductive verification in main context)
 
@@ -86,7 +75,7 @@ For each derivational hypothesis:
 1. **State the defining equations / axioms / specification clauses** the example or claim rests on. Quote the source if it is an external spec (RFC, protocol doc, mathematical definition); reproduce it if it is a project-internal definition.
 2. **Derive forward from the defining equations to the claimed property.** Show the deductive steps. A derivation that ends in "therefore P holds" without reproducible steps is unacceptable — it is the same as not deriving at all.
 3. **Attempt a counterexample (the disconfirming step).** Try to construct an instance of the example where the claimed property fails, working from the defining equations. A property that resists counterexample construction is corroborated; one that admits a counterexample falsifies the hypothesis.
-4. **Report a Decision** in the same four-state shape as Step 2.A:
+4. **Report a Decision** in the four-state shape from Step 2.A, with these derivational-specific resolutions:
    - `confirmed` — derivation completed AND counterexample construction failed
    - `rejected` — counterexample constructed (the claim is false; plan needs revision before continuing)
    - `inconclusive` — derivation incomplete due to missing axiom / ambiguous spec / convention conflict; attach the missing piece as an empirical `probe:` routing back through Step 2.A. ("Code it up and check at implementation time" is not valid — use the numerical-derivation lane.)
@@ -199,7 +188,7 @@ After Step 3 produces a plan and before Step 4 collects user approval:
 
    Distinguishing the two: an implementation concern asks "given the plan's assumptions, is the proposed approach sound?"; a premise concern asks "are the plan's assumptions actually true?". If the reviewer would have given a different answer with empirical evidence in hand, it's a premise concern.
 
-3. **Loop gate**: after patching, re-run `codex-plan-review` per its Step 4 re-run rule (only when the revision meaningfully invalidates the prior verdict — triage author's call, not derived from Codex's verdict label). Exit the loop when the last valid verdict is `approve` or `approve with conditions`. Cap: 3 iterations within the same premise. If the cap is reached, or if the loop sits at `reject` with no further re-run warranted, surface the verdict and outstanding findings to the user and ask whether to proceed as-is, patch further manually, or escalate. Premise concerns return to Step 1 and reset the counter — iteration count is per-premise, not lifetime.
+3. **Loop gate**: after patching, re-run `codex-plan-review` per its Step 4 re-run rule. Exit the loop when the last valid verdict is `approve` or `approve with conditions`. Cap: 3 iterations within the same premise. If the cap is reached, or if the loop sits at `reject` with no further re-run warranted, surface the verdict and outstanding findings to the user and ask whether to proceed as-is, patch further manually, or escalate. Premise concerns return to Step 1 and reset the counter — iteration count is per-premise, not lifetime.
 
 4. **The plan that exits this step is the contract.** Step 5 will post that plan once. Revisions happen here, before posting; there is no "post then revise" loop.
 
@@ -211,7 +200,7 @@ Present the plan (after any Step 3.5 revisions) and ask for approval before post
 
 ### 5.0 Laundering pass — run `gh-body-check` (MANDATORY)
 
-Run `gh-body-check` on the plan body before any `gh-post` invocation; resolve any ⚠ before posting. Note: `file-issue`'s Step 3 laundering pass does NOT auto-run from the pointers below, so this 5.0 step is its replacement on the research-post path.
+Run `gh-body-check` on the plan body before any `gh-post` invocation; resolve any ⚠ before posting. This step is the research-post replacement for `file-issue`'s Step 3 laundering pass, which is NOT reached via the pointers below.
 
 ### 5.1 Route to the correct surface
 
@@ -223,12 +212,9 @@ After 5.0 clears, route the plan based on what `$ARGUMENTS` resolves to:
 
 When ambiguous, ask the user. Umbrella sub-issue is the D1 default — the sub-issue body becomes the single referenceable artifact (`Closes #<sub-issue>` points directly to the plan).
 
-**Issue creation rules:**
+**Issue creation rules** (research-specific; body shape and the language / reference / line-number / exclusion rules come from `gh-body-conventions` via `file-issue`):
 
-1. **English only.** Conversation language and issue language are independent.
-2. **Split issues by commit unit.** Each issue corresponds to one atomic, independently committable change. Multi-commit plans become multiple issues with `Depends on #N` links.
-3. **No HPC paths, no cluster context, no local environment details.**
-4. **No line numbers** in issue body (they rot).
-5. **No "rejected alternatives" sections** unless explicitly requested.
+1. **Split issues by commit unit.** Each issue corresponds to one atomic, independently committable change. Multi-commit plans become multiple issues with `Depends on #N` links.
+2. **No "rejected alternatives" sections** unless explicitly requested.
 
-The body / title formatting itself follows `file-issue`'s conventions and (for the umbrella branch) its `Umbrella sub-issue` variant — this skill is the orchestrator, `file-issue` is the SSOT for body shape.
+This skill is the orchestrator; `file-issue` (with `gh-body-conventions` as SSOT) owns body shape and (for the umbrella branch) the `Umbrella sub-issue` variant.
