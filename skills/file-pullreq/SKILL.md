@@ -1,6 +1,6 @@
 ---
 name: file-pullreq
-description: Draft and file a GitHub pull request following the user's conventions. Use this skill whenever the user wants to create, draft, or file a GitHub PR, or when implementation work is ready for review. Enforces formatting rules via `gh-body-conventions` (semantic line breaks, GitHub/LaTeX-safe math, no local references, English by default) and the standard body skeleton (Summary / Changes / Impact / Test plan / Discovery contract status / Notes) before invoking `gh-post pr create`.
+description: Draft and file a GitHub PR using gh-body-conventions and the PR body skeleton, via the gh-post wrapper. Supports a gate mode that stops at user approval.
 ---
 
 # File Pull Request

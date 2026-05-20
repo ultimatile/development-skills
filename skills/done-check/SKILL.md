@@ -1,12 +1,6 @@
 ---
 name: done-check
-description: >
-  Walk through the universal quality items defined in `quality-list` and
-  self-assess whether the current diff satisfies each, before declaring a
-  task complete or before requesting external review. Use this skill when
-  the user says "done check", "ready to commit", "are we done?", "done?",
-  or asks to verify whether universal quality rules are being followed
-  before claiming completion. Single-pass audit — runs once per invocation.
+description: Single-pass audit of the current diff against quality-list items before declaring a task complete or requesting external review.
 ---
 
 # Done-Check

@@ -1,6 +1,6 @@
 ---
 name: stage-commit-push
-description: Stage changed files, generate a conventional commit message, commit, and push in one step. Use this skill during review-fix loops when you need to quickly commit and push a fix without manual intervention. Trigger when the context calls for staging, committing, and pushing changes as part of an automated pipeline (e.g., after fixing a codex-review finding or preparing for a copilot-review cycle).
+description: Stage changed files, generate a conventional commit message, commit, and push in one step. Used inside automated review-fix loops.
 ---
 
 # Stage, Commit, Push

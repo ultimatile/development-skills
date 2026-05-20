@@ -1,11 +1,6 @@
 ---
 name: quality-list
-description: >
-  Single source of truth for universal code-quality items. Item
-  definitions live in `items/<slug>.md`; this SKILL.md is the index
-  plus the audit-lane explanation. Code-quality audit and preflight
-  skills reference items by slug, not by number. Update items here,
-  and referencing skills pick up the change automatically.
+description: Single source of truth for universal code-quality items. Definitions live in items/<slug>.md; audit and preflight skills reference items by slug.
 ---
 
 # Quality List (SSOT)

@@ -1,6 +1,6 @@
 ---
 name: review-pipeline
-description: Full automated review pipeline — done-check, codex review, fix loop, then PR with Copilot review, postmortem elevation, and umbrella drift join. Use this skill when the user says things like "review pipeline", "commit and review", "PR pipeline", "submit for review", or wants to go from local changes all the way through to a reviewed and merged PR. Also trigger when the user has finished implementation and wants to run the full review-and-submit flow.
+description: Full review pipeline from local changes through PR, Copilot review, postmortem elevation, and umbrella drift join. Pauses at the user-controlled merge gate between Phase 4a and 4b.
 ---
 
 # Review Pipeline

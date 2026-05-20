@@ -1,11 +1,6 @@
 ---
 name: reimre
-description: >
-  End-to-end wrapper that runs research-and-implement then review-pipeline
-  back to back, closing the manual gap between the two skills so a single
-  invocation carries a GitHub issue from initial investigation through PR
-  review and the user-controlled merge gate. Use when the user wants the
-  full flow on a GitHub issue end to end (e.g., /reimre 42).
+description: End-to-end wrapper running research-and-implement then review-pipeline on a GitHub issue, carrying it from investigation through the user-controlled merge gate.
 ---
 
 # reimre

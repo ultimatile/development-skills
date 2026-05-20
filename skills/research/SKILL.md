@@ -1,16 +1,6 @@
 ---
 name: research
-description: >
-  Research a GitHub issue (or free-text task) by classifying hypotheses as
-  empirical (resolved by code / runtime probes via subagents) or
-  derivational (resolved by deductive reasoning from defining equations
-  in the main context), and producing an implementation plan with
-  explicit Inconclusive / Deferred items plus reproducible derivations
-  for any specific-example claims. Use when the user wants to investigate
-  an issue before coding under the four-state decision discipline
-  (confirmed / rejected / inconclusive / deferred) with mandatory
-  disconfirming probes. Accepts an issue number or free-text description
-  (e.g., /research 42 or /research add retry logic).
+description: Investigate a GitHub issue or free-text task with empirical (subagent probes) and derivational (in-context deduction) hypotheses, producing a vetted implementation plan with Inconclusive / Deferred items. Accepts an issue number or task text.
 ---
 
 # research

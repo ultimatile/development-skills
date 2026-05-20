@@ -1,6 +1,6 @@
 ---
 name: codex-review
-description: Run code review using OpenAI Codex CLI before creating a PR. Use this skill whenever the user wants to review changes before submitting, says things like "review my changes", "run codex review", "check this before PR", "pre-PR review", or wants to iterate on code quality before pushing. Also trigger when the user mentions "codex review" or wants an automated review loop.
+description: Pre-PR code review on the current branch using the OpenAI Codex CLI, with an iterative fix loop.
 ---
 
 # Codex Review

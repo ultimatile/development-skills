@@ -1,15 +1,6 @@
 ---
 name: finding-to-audit
-description: >
-  Promote review findings or bug fixes into pre-commit audit rules
-  that catch the entire class of issue at diff-inspection time. Use
-  this skill when a review finding could have been caught by
-  inspecting the diff itself — import direction, `pub` widening,
-  missing trait impl on a public type, missing test for new
-  behavior, debug artifacts, hardcoded values, FFI output
-  silently dropped — where a runtime contract test is the wrong
-  tool. Companion to `bug-to-contract`: that skill elevates findings
-  to runtime tests; this one elevates to diff-time rules.
+description: Promote a review finding into a pre-commit audit rule that catches the diff-inspectable issue class (import direction, pub widening, debug artifacts, dropped FFI output). Companion to bug-to-contract.
 ---
 
 # Finding-to-Audit

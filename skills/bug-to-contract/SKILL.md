@@ -1,6 +1,6 @@
 ---
 name: bug-to-contract
-description: Promote review findings or bug fixes into contract tests that prevent the entire class of issue from recurring. Use this skill after a review cycle when the user says things like "bug to contract", "what contract is missing", "promote this finding", "postmortem test", or when you notice review findings or fix commits that address symptoms without testing the underlying invariant.
+description: Promote a review finding or bug fix into a contract test that prevents the underlying invariant violation from recurring. Companion to finding-to-audit, which elevates to diff-time rules instead.
 ---
 
 # Bug-to-Contract

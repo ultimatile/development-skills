@@ -1,12 +1,6 @@
 ---
 name: research-and-implement
-description: >
-  Implement a GitHub issue in two structured phases — research first, then
-  implement. Wraps the evidence-gated-review and execution-loop skills end
-  to end with branch baseline, GitHub integration, and four-state hypothesis
-  decisions. Use when the user wants to work on a GitHub issue end to end
-  (e.g., /research-and-implement 42) under the disconfirming-probe
-  discipline.
+description: Work a GitHub issue end to end in two phases — research, then implement — under evidence-gated-review and execution-loop discipline.
 ---
 
 # research-and-implement

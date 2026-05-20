@@ -1,6 +1,6 @@
 ---
 name: file-issue
-description: Draft and file a GitHub issue following the user's conventions. Use this skill whenever the user wants to create, draft, or file a GitHub issue, or when an investigation or discussion needs to be captured as a tracked issue. Enforces formatting rules (semantic line breaks, GitHub/LaTeX-safe math, no local references, English by default, concise but complete) before invoking `gh-post issue create`.
+description: Draft and file a GitHub issue using gh-body-conventions and the issue body skeleton, via the gh-post wrapper.
 ---
 
 # File Issue

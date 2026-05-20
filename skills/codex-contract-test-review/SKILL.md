@@ -1,15 +1,6 @@
 ---
 name: codex-contract-test-review
-description: >
-  Run a narrow Codex pass on a newly added contract test to verify it
-  actually expresses the claimed contract (not a tautology, not a
-  degenerate-input-only check, would fail on the original buggy
-  implementation). Use this skill after `bug-to-contract` produces a
-  test addition and a lightweight external review is wanted before
-  merging without going through the full codex-review / copilot-review
-  loop. Invokable as a pipeline step or directly when the user says
-  "narrow review the contract test", "codex check this contract test",
-  or similar.
+description: Narrow Codex pass on a newly added contract test, verifying it is not tautological and would fail on the original buggy implementation. Lightweight alternative to the full codex-review / copilot-review loop.
 ---
 
 # Codex Contract-Test Review

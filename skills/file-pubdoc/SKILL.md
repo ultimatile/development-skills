@@ -1,6 +1,6 @@
 ---
 name: file-pubdoc
-description: Draft README.md and other visitor-facing markdown surfaces (top-level *.md other than CONTRIBUTING/LICENSE/NOTICE/CHANGELOG, and docs/**/*.md) using the canonical visitor-facing skeleton. Use this skill whenever you write a new README, do a major README rewrite, or author new public documentation for a repo. Enforces the visitor-vs-author audience boundary at authoring time, complementing the edit-time `quality-list` `public-doc-durability` denylist audit.
+description: Draft README.md or visitor-facing markdown (top-level *.md, docs/**/*.md) using the canonical skeleton, complementing the public-doc-durability audit.
 ---
 
 # File Public Document

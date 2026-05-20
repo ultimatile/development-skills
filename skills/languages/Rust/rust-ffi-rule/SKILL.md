@@ -1,11 +1,6 @@
 ---
 name: rust-ffi-rule
-description: >
-  Rules for implementing a Rust safe wrapper around an external
-  (C / Fortran / FFI) call. Read this before writing `unsafe { foo_c(...) }`
-  blocks, `extern "C"` declarations, or `bindgen`-based safe wrappers,
-  or when the user asks to wrap a C / Fortran function, write an FFI
-  binding, or implement a safe wrapper around an external library.
+description: Rules for implementing a Rust safe wrapper around an external (C / Fortran / FFI) call. Read before writing unsafe FFI blocks, extern "C" declarations, or bindgen-based wrappers.
 ---
 
 # Rust FFI Rule

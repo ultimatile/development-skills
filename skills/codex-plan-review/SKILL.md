@@ -1,6 +1,6 @@
 ---
 name: codex-plan-review
-description: Review an implementation plan using OpenAI Codex before coding. Use this skill when an implementation plan exists and the user wants a second opinion before starting work, says things like "codex plan review", "review the plan", "get codex opinion on this plan", or "second opinion on this plan".
+description: Review an implementation plan with OpenAI Codex before coding, getting a second opinion on assumptions and approach.
 ---
 
 # Codex Plan Review

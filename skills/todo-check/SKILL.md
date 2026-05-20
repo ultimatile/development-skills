@@ -1,13 +1,6 @@
 ---
 name: todo-check
-description: >
-  Preflight (forward-looking) sweep of the universal quality items defined
-  in `quality-list`, used before or during implementation to set up the
-  work so the items will pass when `done-check` runs at the end. Use this
-  skill when the user says "todo check", "preflight", "before I implement",
-  or invokes it from `implement` between units. Dual of `done-check`:
-  same item set, but framed as "what do I need to set up?" instead of
-  "did the diff satisfy this?".
+description: Preflight sweep of quality-list items before or during implementation, framed as 'what to set up so done-check passes at the end'. Dual of done-check.
 ---
 
 # Todo-Check

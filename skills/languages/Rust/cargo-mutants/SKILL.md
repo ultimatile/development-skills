@@ -1,6 +1,6 @@
 ---
 name: cargo-mutants
-description: Configure and run cargo-mutants for Rust mutation testing. Covers invoking mutation runs (--file, --list, --list-skipped, --jobs, --no-shuffle), reading mutants.out/{missed,caught,timeout,unviable}.txt, writing exclude_re patterns that actually match cargo-mutants' mutant-name format (the format differs by mutation type — getting this wrong silently produces dead config), and choosing between exclude_re and #[mutants::skip]. Use when triaging mutation results, editing .cargo/mutants.toml, or writing tests to kill missed mutants.
+description: Configure and run cargo-mutants for Rust mutation testing — invoking runs, reading mutants.out, writing exclude_re patterns matching cargo-mutants' mutant-name format, and choosing exclude_re vs #[mutants::skip].
 ---
 
 # cargo-mutants

@@ -1,12 +1,6 @@
 ---
 name: gh-body-conventions
-description: >
-  Single source of truth for the formatting and content conventions that
-  apply to GitHub issue bodies and pull request bodies / descriptions.
-  Defines semantic line-break rules, LaTeX-safe math syntax, reference /
-  exclusion policies, and language defaults. This is a definition file;
-  skills drafting body content reference these rules rather than
-  duplicating them.
+description: Single source of truth for GitHub issue / PR body conventions — semantic line breaks, LaTeX-safe math, reference / exclusion policies, language defaults. Definition file, not a procedure.
 ---
 
 # GitHub Body Conventions (SSOT)

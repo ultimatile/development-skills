@@ -1,13 +1,6 @@
 ---
 name: driftreaper
-description: >
-  Audit docstrings in the codebase for drift — claims that no longer match the
-  actual code behavior. Use this skill when the user says things like
-  "check for docstring drift", "audit docstrings", "driftreaper", "find stale docs",
-  or after a major refactor that may have left docstrings inconsistent.
-  Accepts an optional scope argument: a file path, directory, or module name
-  (e.g., /driftreaper crates/ariadnetor-linalg/src/block_sparse_decomp.rs).
-  Without arguments, audits the entire workspace.
+description: Audit docstrings for drift — claims that no longer match actual code behavior. Optional scope argument (file path, directory, or module name); without arguments, audits the entire workspace.
 ---
 
 # driftreaper

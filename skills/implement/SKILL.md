@@ -1,13 +1,6 @@
 ---
 name: implement
-description: >
-  Implement changes from a prior research plan by delegating the
-  Read → Plan → Execute → Review → Fix → Verify loop to the execution-loop
-  skill, with GitHub issue integration, plan-vs-actual drift surfacing,
-  done-check before completion, and conventional commit generation.
-  Use when a research plan exists (in a GitHub issue or recent context)
-  and the user wants to execute it under the execution-loop discipline.
-  Optionally accepts an issue number (e.g., /implement 42).
+description: Execute a prior research plan via execution-loop with GitHub issue integration, plan-vs-actual drift, done-check, and conventional commits. Optional issue number argument.
 ---
 
 # implement

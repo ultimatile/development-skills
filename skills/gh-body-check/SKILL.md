@@ -1,14 +1,6 @@
 ---
 name: gh-body-check
-description: >
-  Audit a drafted GitHub issue / PR body against `gh-body-conventions`.
-  Use before showing a drafted body for approval, before applying
-  delta edits to an existing body, or directly to audit an
-  already-filed body. Routes leakage detection through a
-  fresh-context cold-reader subagent that judges by public state
-  alone, neutralizing the author's blindspot for what their own
-  draft literally implies. Returns ✅ / ⚠; any unresolved ⚠ blocks
-  the caller.
+description: Audit a drafted or filed GitHub issue / PR body against gh-body-conventions via a fresh-context subagent. Any unresolved ⚠ blocks the caller.
 ---
 
 # GH Body Check

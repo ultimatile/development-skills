@@ -1,6 +1,6 @@
 ---
 name: copilot-review
-description: Create a GitHub PR and get Copilot code review with automated polling. Use this skill whenever the user wants to create a PR with Copilot review, says things like "PRを作って", "create a PR", "Copilotにレビューしてもらって", "PR with review", or wants to submit changes for automated review. Also trigger when the user mentions "Copilot review" or wants to check PR review status.
+description: Create a GitHub PR with Copilot as reviewer and poll until the review arrives.
 ---
 
 # Copilot Review
