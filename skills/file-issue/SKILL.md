@@ -76,11 +76,11 @@ Section headings are optional for short issues — a 5-line body often needs no 
 
 ### 3. Laundering pass — run `gh-body-check`
 
-Run `gh-body-check` against the drafted body. The check delegates mechanical items (hard-wrap, local-path patterns, private skill names, Phase / Step numbering, JP clauses in English bodies, chat-tone scaffolding, Unicode math in prose, unresolved placeholders, line numbers in issue bodies) to a fresh-context subagent — the author has just drafted the text and is primed to read what they meant rather than what they wrote, which has repeatedly let documented exclusions slip past a self-administered cold re-read.
+Run `gh-body-check` against the drafted body. The check runs a Unicode-math regex scan and a cold-reader subagent that judges whether every referent in the body resolves from the target repo's public state alone — the author has just drafted the text and is primed to read what they meant rather than what they wrote, which has repeatedly let private-context tokens slip past a self-administered cold re-read.
 
-Pass artifact kind `issue` and the target language. The check returns a per-item ✅ / ⚠ / ⊘ N/A table. Mandatory before every `gh-post issue create` / `gh-post issue comment`. Any ⚠ blocks step 4; revise the draft and re-run until no unresolved ⚠ remains, or explicitly waive a finding with a one-line justification.
+Pass artifact kind `issue`, the target repo, and the target language. The check returns a ✅ / ⚠ status. Mandatory before every `gh-post issue create` / `gh-post issue comment`. Any ⚠ blocks step 4; revise the draft and re-run until no unresolved ⚠ remains, or explicitly waive a finding with a one-line justification.
 
-See `gh-body-check/SKILL.md` for the full item list, detection patterns, and the contextual-axis cold re-read covering novel leak shapes.
+See `gh-body-check/SKILL.md` for the procedure.
 
 ### 4. Show for approval
 

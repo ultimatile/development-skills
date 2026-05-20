@@ -72,15 +72,13 @@ Artifact-specific length expectations live in the referencing skills (`file-issu
 
 ## Exclusions
 
-This list is the mechanical-detection half of the private-to-public laundering protocol (see CLAUDE.md "Two-surface boundary and laundering before publishing"). The cold re-read across the five axes is the substantive half; the patterns below are the leak shapes most often caught.
+The operative rule: the body must not contain any token whose referent cannot be resolved from the target repo's public state (README, public issues / PRs, public code, well-known external standards). `gh-body-check` enforces this via a cold-reader subagent that has no access to chat history, private notes, or workflow internals — whatever the cold reader cannot resolve is, by definition, leakage.
 
-The body must NOT contain:
+Common leak shapes (illustrative, not exhaustive — the rule above is what governs, and novel shapes are still caught by the cold reader):
 
 - Local filesystem paths (`/Users/...`, `~/...`, absolute paths).
-- HPC cluster names, hostnames, queue names, or scheduler-specific context that is irrelevant to the upstream reader.
+- HPC cluster names, hostnames, queue names, or scheduler-specific context irrelevant to the upstream reader.
 - References to the user's private repos, skills, or workflow internals (e.g., `/file-pullreq`, `research-and-implement`, `done-check`). These are author-side tools, not reader-facing artifacts; the public body must justify itself from the repo's own state.
 - Phase / step numbers from the working session ("Phase 2 of the umbrella", "Step 3 of the plan") unless the artifact is *itself* an umbrella sub-issue / sub-PR where that structure is public.
 - "As we discussed" / "following up from chat" / other chat-tone scaffolding that resolves only via the private context.
 - Inline Japanese clauses in an otherwise-English body (see Language).
-
-Before filing, perform the cold re-read across References / Tone / Language / Structure / Trigger-flag (CLAUDE.md axes). The list above covers the patterns the cold re-read most often catches; novel leak shapes still require the cold re-read.
