@@ -1,6 +1,6 @@
 ---
 name: breachreaper
-description: Audit existing code for stock-detectable API-contract breaches — defensive-transformation replication, parallel-impl surface asymmetry, architectural-boundary violations, sibling-method guard asymmetry. Optional scope argument (file path, directory, or module name); without arguments, audits the entire workspace.
+description: Audit existing code for stock-detectable API-contract breaches.
 ---
 
 # breachreaper
