@@ -45,7 +45,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | `finding-to-audit` | Promote review findings into pre-commit audit rules that catch issues at diff-inspection time |
 | `codex-contract-test-review` | Narrow Codex pass to verify a newly added contract test actually expresses the claimed contract |
 | `driftreaper` | Audit docstrings for drift against actual code behavior |
-| `breachreaper` | Audit existing production code for stock-detectable API-contract breaches (defensive-transformation replication, parallel-impl surface asymmetry, architectural-boundary violations, sibling-method guard asymmetry). Report only |
+| `breachreaper` | Audit existing code for stock-detectable API-contract breaches (defensive-transformation replication, parallel-impl surface asymmetry, architectural-boundary violations, sibling-method guard asymmetry) |
 
 ### Language-specific
 
