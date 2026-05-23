@@ -61,11 +61,12 @@ For each finding:
 After triaging, reply to each inline comment individually. Use `gh-post reply-inline` so every reply body is validated (hardwrap detector + halt-before-send) and a single batch covers the full review:
 
 ```bash
-# 1. Collect inline comment IDs (filter to the latest review if multiple have arrived).
-gh api repos/{owner}/{repo}/pulls/{number}/comments \
-  --jq '.[] | {id, path, line, body: (.body | .[0:80])}'
+# 1. Collect target threads — by default this filters to Copilot-authored heads
+#    and reports per-thread state (resolved? has reply? outdated?).
+#    Use --unresolved --unreplied to narrow to threads that actually need a reply.
+${CLAUDE_SKILL_DIR}/scripts/list-pr-threads.sh {owner}/{repo} {number} --unresolved --unreplied
 
-# 2. Build a JSONL file: one {"id": <comment-id>, "body": "<reply text>"} per line.
+# 2. Build a JSONL file: one {"id": <head-comment-id>, "body": "<reply text>"} per line.
 #    Each reply should be concise — state the classification (fixed, false positive,
 #    acknowledged) and the reasoning in 1-2 sentences.
 
@@ -75,7 +76,9 @@ gh api repos/{owner}/{repo}/pulls/{number}/comments \
 gh-post reply-inline {owner}/{repo} {number} < /tmp/replies.jsonl
 ```
 
-Direct `gh api .../comments/{id}/replies -F body=...` is still possible but defeats the funneling guarantee — use it only for one-off cases where the JSONL ceremony is overhead (and pair with the `PreToolUse` deny hook once it is extended to cover the replies endpoint).
+If `list-pr-threads.sh --unresolved --unreplied` returns zero lines: every Copilot thread is already resolved or already has a reply — do NOT post additional replies. Surface this to the user and ask before doing anything else. Stacking a duplicate "addressed in …" reply on a closed thread is the failure mode this wrapper exists to prevent.
+
+Direct `gh api .../comments/{id}/replies -F body=...` is still possible but defeats both the body-validation guarantee and the thread-state filter — use it only for one-off cases where the JSONL ceremony is overhead, and verify thread state via `list-pr-threads.sh` first.
 
 ## Prerequisites
 
