@@ -58,7 +58,7 @@ For each finding:
 
 ## Respond to review
 
-After triaging, reply to each inline comment individually. Use `gh-post reply-inline` so every reply body is validated (hardwrap detector + halt-before-send) and a single batch covers the full review:
+Each Copilot finding lives on an inline thread; that thread is the unit of response. After triaging, reply within each thread via `gh-post reply-inline` — every reply body is validated (hardwrap detector + halt-before-send) and a single batch covers the full review:
 
 ```bash
 # 1. Collect target threads — by default this filters to Copilot-authored heads
