@@ -15,10 +15,22 @@ Orchestrate `codex exec review` to review branch changes, iterate on fixes, and 
 
 ## Core commands
 
+### Stdin redirection is mandatory
+
+Every `codex exec` invocation from this skill MUST redirect stdin:
+
+```bash
+codex exec ... </dev/null
+```
+
+**Why:** `codex exec` reads stdin as a `<stdin>` block; Bash tool leaves the child's stdin open, so codex hangs waiting for EOF. No `--no-stdin` flag.
+
+`Reading additional input from stdin...` always prints — absence of the subsequent `OpenAI Codex v...` banner is the hang signal.
+
 ### Review branch diff against base
 
 ```bash
-codex exec review --base <branch> -o <output-file>
+codex exec review --base <branch> -o <output-file> </dev/null
 ```
 
 This runs `git diff <base-SHA>` internally and reviews the entire diff. The review covers all committed changes on the current branch relative to the base — both the original work and any subsequent fix commits.
@@ -27,9 +39,10 @@ This runs `git diff <base-SHA>` internally and reviews the entire diff. The revi
 
 | Command | Scope |
 |---|---|
-| `codex exec review --base main` | All commits since branching from main |
-| `codex exec review --uncommitted` | Staged + unstaged + untracked changes |
-| `codex exec review --commit <SHA>` | A single commit's diff |
+| `codex exec review --base main </dev/null` | All commits since branching from main |
+| `codex exec review --uncommitted </dev/null` | Staged + unstaged + untracked changes |
+| `codex exec review --commit <SHA> </dev/null` | A single commit's diff |
+| `codex exec "<inline prompt>" </dev/null` | Free-form prompt with inline context (use when phased-rollout context needs to be passed in instead of `--base`) |
 
 ### Output options
 
@@ -67,7 +80,7 @@ Each iteration runs a full, unbiased review of the entire diff against base. Do 
 
 1. **Run review**
    ```bash
-   codex exec review --base main -o /tmp/codex-review.md
+   codex exec review --base main -o /tmp/codex-review.md </dev/null
    ```
 
 2. **Triage the output** using the process above. Present classified findings to the user.
@@ -94,6 +107,7 @@ A biased prompt ("check if X was fixed") answers only the first. A fresh review 
 
 ## Important constraints
 
+- **Stdin redirect**: every `codex exec` invocation needs `</dev/null` — see "Stdin redirection is mandatory" above.
 - **No resume**: `codex review` does not support session resumption. Each invocation is independent. This is fine — fresh reviews are the correct approach for iteration.
 - **Non-interactive only**: Always use `codex exec review`, not `codex review`, when running from scripts or automation. The `exec` variant runs non-interactively and exits when done.
 - **Timeout**: Set timeout to 600000ms (10 minutes) when calling from Bash. Reviews of large diffs can take several minutes.
