@@ -15,18 +15,6 @@ Orchestrate `codex exec review` to review branch changes, iterate on fixes, and 
 
 ## Core commands
 
-### Stdin redirection is mandatory
-
-Every `codex exec` invocation from this skill MUST redirect stdin:
-
-```bash
-codex exec ... </dev/null
-```
-
-**Why:** `codex exec` reads stdin as a `<stdin>` block; Bash tool leaves the child's stdin open, so codex hangs waiting for EOF. No `--no-stdin` flag.
-
-`Reading additional input from stdin...` always prints — absence of the subsequent `OpenAI Codex v...` banner is the hang signal.
-
 ### Review branch diff against base
 
 ```bash
@@ -107,7 +95,7 @@ A biased prompt ("check if X was fixed") answers only the first. A fresh review 
 
 ## Important constraints
 
-- **Stdin redirect**: every `codex exec` invocation needs `</dev/null` — see "Stdin redirection is mandatory" above.
+- **Stdin redirect**: every `codex exec` invocation needs `</dev/null`; hang signal is absence of the `OpenAI Codex v...` banner after `Reading additional input from stdin...`.
 - **No resume**: `codex review` does not support session resumption. Each invocation is independent. This is fine — fresh reviews are the correct approach for iteration.
 - **Non-interactive only**: Always use `codex exec review`, not `codex review`, when running from scripts or automation. The `exec` variant runs non-interactively and exits when done.
 - **Timeout**: Set timeout to 600000ms (10 minutes) when calling from Bash. Reviews of large diffs can take several minutes.
