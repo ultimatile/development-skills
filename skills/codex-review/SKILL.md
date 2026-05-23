@@ -30,7 +30,7 @@ This runs `git diff <base-SHA>` internally and reviews the entire diff. The revi
 | `codex exec review --base main </dev/null` | All commits since branching from main |
 | `codex exec review --uncommitted </dev/null` | Staged + unstaged + untracked changes |
 | `codex exec review --commit <SHA> </dev/null` | A single commit's diff |
-| `codex exec "<inline prompt>" </dev/null` | Free-form prompt with inline context (use when phased-rollout context needs to be passed in instead of `--base`) |
+| `codex exec "<inline prompt>" </dev/null` | Free-form prompt with inline context (see "Switching to `exec` with inline context" below) |
 
 ### Output options
 
@@ -39,6 +39,32 @@ This runs `git diff <base-SHA>` internally and reviews the entire diff. The revi
 | `-o <file>` | Write final review message to file |
 | `--json` | Emit JSONL event stream to stdout |
 | `"custom prompt"` | Positional arg — additional review instructions |
+
+## Switching to `exec` with inline context
+
+`codex exec review --base ...` operates on `git diff` alone — it cannot read GitHub Issues, ADRs, or any design intent encoded outside the diff. For self-contained changes this is fine; for **phased rollouts** where the judgement criteria live outside the diff, `review` mode systematically misjudges intentional design decisions as regressions. Switch to free-form `codex exec "<inline prompt>"` to attach the context.
+
+**Trigger — before every codex review, check:**
+
+- Is this commit part of a numbered phase in a tracked Issue?
+- Does the relevant ADR contain phrases like "unmeasured → sentinel X", "tracked separately in a follow-up", "intentional default until <later phase>", "out of this phase's scope"?
+- Are there thresholds, defaults, or scoped-off paths that look like bugs from the diff but are ADR / Issue-intentional?
+
+If any of the above is yes, skip `codex exec review` and use `codex exec "<inline prompt>"` instead.
+
+**Why the workaround is needed:** `--base` and the positional `[PROMPT]` are mutually exclusive on `codex exec review`, so phase context cannot be attached to a `review` invocation. The free-form `codex exec "..."` accepts an arbitrary prompt that can direct codex to read the surrounding context first.
+
+**Inline prompt template** — the prompt should tell codex to:
+
+1. Run `git log <base>..HEAD --oneline` and `git show <sha>` to read the commits.
+2. Read the tracking Issue (`gh issue view <n>`) and the relevant ADRs (pass absolute paths so codex doesn't have to search).
+3. Enumerate explicitly which states are intentional (sentinel values, scoped-off paths, deferred behaviors) and must NOT be flagged as regressions.
+4. List what the review should focus on (forwarding correctness, default / expert contract consistency, docstring drift, missed call sites, etc. — project-specific).
+5. List what to ignore — the enumerated intentional states from step 3.
+
+This collapses the two-round failure mode (codex flags intentional design → human explains in reply → codex retreats) into a single focused review.
+
+**For non-phased self-contained changes**, keep using vanilla `codex exec review --base main`. The inline-context workaround is only needed when judgement criteria live outside the diff.
 
 ## Triaging review output
 
