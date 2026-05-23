@@ -136,6 +136,25 @@ Distinguish them before reaching for `exclude_re`. The default is to **kill the 
 
 A pattern: when both `with true` and `with false` survive on the same predicate, that's almost always two different reasons (one is a coverage gap, one is genuinely equivalent). Don't bulk-exclude — handle each direction independently.
 
+## Killing surviving mutants — type-axis parametrization
+
+When the stronger-test response above must cover multiple trait impls of an identical algebraic property (e.g., `Scalar` for `f32` / `f64` / `Complex<f32>` / `Complex<f64>`), the right shape is a generic test parameterized over the type, not N copy-paste functions.
+
+```rust
+fn conj_involutive<T: Scalar>(x: T) {
+    assert_eq!(T::conj(T::conj(x)), x);
+}
+
+#[test] fn conj_involutive_f32() { conj_involutive::<f32>(1.5); }
+#[test] fn conj_involutive_f64() { conj_involutive::<f64>(1.5); }
+#[test] fn conj_involutive_c32() { conj_involutive::<Complex<f32>>(Complex::new(1.5, 2.5)); }
+#[test] fn conj_involutive_c64() { conj_involutive::<Complex<f64>>(Complex::new(1.5, 2.5)); }
+```
+
+This is **type-axis** parametrization, not test-logic abstraction. The algebraic identity is the same statement for all `T`; only the type varies. Per-type copy-paste of the same `assert_eq!` is duplication along a single axis, not the "tests document behavior independently" pattern that argues against DRY-in-tests.
+
+Reserve this for properties that genuinely hold across the type set with the same shape. If `f32` and `f64` need different tolerances, or `Complex` needs an additional `im` check, write the test fully per type — type-axis parametrization is only the right tool when the property is the same statement for every `T`.
+
 ## `mutants.toml` knobs
 
 Beyond `exclude_re`:
