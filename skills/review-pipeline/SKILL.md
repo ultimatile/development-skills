@@ -89,7 +89,12 @@ Runs only after the user has merged.
 
 18. **Sub-issue closing comment.** Post a compressed delta (≈ 5–10 lines) plus the merged PR link via `gh-post issue comment <leaf#> --repo <owner>/<repo> --body-file /tmp/<descriptive-name>.md`, then close the sub-issue with `gh issue close <leaf#>`. (Direct `gh issue comment ... --body*` is blocked by the companion `PreToolUse` hook; `gh issue close` is read-only-equivalent and remains direct.)
 
-19. **Umbrella body update.** Edit only when the delta changes a **parent-level design assumption** — a new deferral that affects another phase, a scope shift that invalidates the Phases table, a decision that contradicts the umbrella's "Decisions captured" section. A clean implementation with no parent-level implications gets no umbrella edit.
+19. **Umbrella body update.** Two independent axes:
+
+    - **Progress reflection (default action).** If the umbrella tracks sub-items by status annotation (`- [x] foo` checkbox, `_[Promoted to #N.]_` / `_[Done in #M.]_` inline tag, `Phases | Status` table column, etc.), update the item the leaf was promoted from so the umbrella reader sees completion without traversing every sub-issue. The skill that filed the leaf already wrote the "promoted" annotation; the merge step closes the loop by switching it to "done". Skip only if the umbrella truly has no per-item status convention.
+    - **Design-assumption change.** Edit additionally when the delta changes a parent-level design assumption — a new deferral that affects another phase, a scope shift that invalidates the Phases table, a decision that contradicts the umbrella's "Decisions captured" section.
+
+    A clean implementation with no parent-level implications still gets the progress-reflection edit; the design-assumption axis can be skipped, but progress tracking on its own merits an umbrella update.
 
 20. **Do not edit the sub-issue body.** It was the frozen plan-confirmed contract; the closing comment is the journal entry. Editing the body rewrites history that other surfaces (PR title, commit messages) already point to.
 
