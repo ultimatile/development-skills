@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "End-to-end development workflow skills for Claude Code — research, implement, review, PR",
-    "version": "2026.5.76"
+    "version": "2026.5.77"
   },
   "plugins": [
     {
@@ -35,6 +35,7 @@
         "./skills/finding-to-audit",
         "./skills/codex-contract-test-review",
         "./skills/file-issue",
+        "./skills/file-adr",
         "./skills/file-pullreq",
         "./skills/file-pubdoc",
         "./skills/gh-body-conventions",
