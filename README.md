@@ -53,6 +53,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 |---|---|
 | `languages/Rust/cargo-mutants` | Configure and run cargo-mutants for Rust mutation testing |
 | `languages/Rust/rust-ffi-rule` | Rules for implementing a Rust safe wrapper around an external (C / Fortran / FFI) call |
+| `languages/Cpp/stdlib-audit` | Audit C++ source for known-bad standard library defaults via a TSV-driven, extensible rule table |
 
 ## End-to-end flow
 

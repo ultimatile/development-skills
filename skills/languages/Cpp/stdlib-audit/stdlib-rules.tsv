@@ -1,0 +1,55 @@
+# C++ standard library audit rules.
+# Format (TAB-separated, 4 columns): id<TAB>severity<TAB>regex<TAB>note
+#   id        short label printed in the summary table
+#   severity  one of: crit | high | mid | low
+#   regex     Rust-regex (ripgrep) pattern; use \b for word boundaries
+#   note      one-line replacement / rationale, printed in the report
+# Lines starting with '#' and blank lines are ignored. Rows with fewer than
+# 4 non-empty TAB-separated fields, or with an unknown severity, emit a
+# warning AND make the run exit 2 — they are treated as bad rules because a
+# silently disabled rule leaves a coverage gap CI cannot detect.
+# To add a rule, append a new TAB-separated line. No code change needed.
+#
+# Severity guide:
+#   crit  removed by current standard; appearance is a compile-time bug
+#   high  active footgun with a known-better replacement (function/regex/list/async)
+#   mid   structural smell that needs case-by-case judgement (map/set/vector<bool>)
+#   low   acceptable but worth knowing (deque / iostream output)
+#
+# --- crit: should never appear in C++17+ code ---
+std::auto_ptr	crit	\bstd::auto_ptr\b	Removed in C++17. Use std::unique_ptr.
+std::random_shuffle	crit	\bstd::random_shuffle\b	Removed in C++17. Use std::shuffle with a real engine.
+std::declare_reachable	crit	\bstd::(declare_reachable|undeclare_reachable|declare_no_pointers|undeclare_no_pointers|get_pointer_safety|pointer_safety)\b	C++11 GC interface, removed in C++23 and never implemented (incl. the std::pointer_safety enum).
+std::bind-adapters	crit	\bstd::(bind1st|bind2nd|ptr_fun|mem_fun|mem_fun_ref|unary_function|binary_function|pointer_to_unary_function|pointer_to_binary_function)\b	Removed in C++17. Use lambdas.
+dynamic-exception-spec	mid	\)\s*((const|volatile|&&?)\s+)*throw\s*\(\s*\)	Empty function-trailer `throw()` deprecated in C++17 (== noexcept(true)), removed in C++20 (incl. ref-qualified `& throw()` / `&& throw()` and cv-qualified forms). Use noexcept. Promote to crit when the project targets C++20+. (Non-empty `throw(X)` removed in C++17 itself, but is not regexed here to avoid false positives on `throw (T)` expressions; the C++17 compiler catches it.)
+trigraphs	crit	\?\?[=/'()!<>\-]	Trigraphs removed in C++17.
+gets-removed	crit	(^|[\s;{(=,])(::|std::)?gets\s*\(	C gets() removed in C11/C++14 (incl. ::gets and std::gets). Use fgets / std::getline.
+
+# --- high: avoid in new code ---
+std::function	high	\bstd::function\b	const op() invokes non-const callable. Prefer template parameter, tl::function_ref (C++17), or std::move_only_function (C++23).
+std::regex	high	\bstd::(basic_regex|w?regex|smatch|cmatch|wsmatch|wcmatch|w?(s|c)?regex_iterator|w?(s|c)?regex_token_iterator|regex_match|regex_search|regex_replace|regex_traits|regex_error)\b|<regex>	std::regex is documented-slow (P1844R1). Use CTRE (compile-time pattern), RE2 (user input), or Boost.Regex (general).
+std::list	high	\bstd::(pmr::)?list\b|<list>	Almost always wrong. Use std::vector (default), std::deque (two-ended), or Boost.Intrusive (true intrusive list).
+std::async	high	\bstd::async\b	Returned future blocks in destructor (deadlock trap). Use a thread pool or std::thread directly.
+
+# --- mid: needs case-by-case judgement ---
+std::random_device	mid	\bstd::random_device\b	Standard explicitly permits implementations to be deterministic (libstdc++ MinGW shipped this way for years). Verify entropy on target platform; test-only seeding is usually fine.
+std::valarray	mid	\bstd::valarray\b	Expression-template optimization never implemented. Use Eigen / xtensor / Blaze.
+std::aligned_storage	mid	\bstd::aligned_(storage|union)(_t)?\b	Deprecated in C++23 (incl. _t alias templates). Use alignas(T) std::byte[sizeof(T)] directly.
+std::iterator-base	mid	:\s*(public\s+|protected\s+|private\s+)?std::iterator\s*<[^<>]*>\s+[,{]	std::iterator base class deprecated in C++17. Requires whitespace before `,` or `{` so brace-init member-initializer forms like `X() : std::iterator<...>{}` are not flagged. Misses inheritance with no space before `{`/`,` (uncommon style) and nested templates in std::iterator's args. Define the five iterator typedefs yourself.
+std::not1	mid	\bstd::(not1|not2|unary_negate|binary_negate)\b	Deprecated in C++17, removed in C++20. Use std::not_fn or lambda.
+std::vector<bool>	mid	\bstd::(pmr::)?vector\s*<\s*bool\s*[,>]	Proxy semantics break generic code expecting std::vector<T>& (incl. allocator-template form `std::vector<bool, Alloc>` and std::pmr::vector<bool>). Use std::vector<std::uint8_t> or boost::dynamic_bitset.
+std::map	mid	\bstd::(pmr::)?(map|multimap)\s*<	Red-black tree, node-per-element. Prefer absl::btree_map or boost::container::flat_map. If keys are dense ints, use std::vector.
+std::set	mid	\bstd::(pmr::)?(set|multiset)\s*<	Same as std::map.
+std::unordered_map	mid	\bstd::(pmr::)?unordered_(map|multimap)\b	Standard's bucket interface and reference-stability rules effectively rule out open addressing. Use absl::flat_hash_map, boost::unordered_flat_map, or ankerl::unordered_dense.
+std::unordered_set	mid	\bstd::(pmr::)?unordered_(set|multiset)\b	Same as std::unordered_map.
+std::get_temporary_buffer	mid	\bstd::(get_temporary_buffer|return_temporary_buffer|raw_storage_iterator)\b	Deprecated in C++17, removed in C++20. Use std::vector or std::uninitialized_*.
+std::result_of	mid	\bstd::result_of(_t)?\b	Deprecated in C++17, removed in C++20 (incl. _t alias). Use std::invoke_result.
+std::is_pod	mid	\bstd::is_pod(_v)?\b	Deprecated in C++20 (incl. _v variable template). Use std::is_trivially_copyable && std::is_standard_layout.
+std::uncaught_exception	mid	\bstd::uncaught_exception\b	Single-form deprecated in C++17, removed in C++20 (incl. function-pointer references). Use std::uncaught_exceptions().
+std::experimental	mid	\bstd::experimental::	TS namespace; migrate to the standardized C++17/20/23 equivalent.
+register-keyword	mid	\bregister\s+(const\s+|volatile\s+)?(unsigned\s+|signed\s+|short\s+|long\s+)*(int|char|short|long|float|double|bool|void|auto|wchar_t|char(8|16|32)_t|size_t|ssize_t|ptrdiff_t|u?int(8|16|32|64)_t|std::\w+)\s+[A-Za-z_]\w*\s*[=;,)\[]	register removed as storage-class in C++17. Demoted to mid because the English word "register" generates comment / docstring false positives. Type list intentionally restricted to primitives and `std::`-prefixed types; `register UserType x;` is missed because the user-type form is uncommon and a permissive pattern re-introduces comment FPs.
+std::strstream	mid	\bstd::(strstream|ostrstream|istrstream|strstreambuf)\b|<strstream>	Deprecated since C++98 (still in the standard, never removed). Use std::stringstream.
+
+# --- low: acceptable but worth knowing ---
+std::deque	low	\bstd::(pmr::)?deque\b	Acceptable for two-ended FIFO. MSVC STL has known cache-unfriendly block size (microsoft/STL#147).
+iostream-output	low	\bstd::(cout|cerr|clog)\b	Slow, locale-bound, thread-unsafe formatting. Prefer fmt::print (C++17) or std::print (C++23). Acceptable behind a verbose flag.
