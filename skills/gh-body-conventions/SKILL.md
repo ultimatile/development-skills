@@ -5,7 +5,7 @@ description: Single source of truth for GitHub issue / PR body conventions — s
 
 # GitHub Body Conventions (SSOT)
 
-Skills that draft GitHub issue / PR body content apply these conventions by reference. Do not copy these rules into them — point at them by name.
+This skill is **a definition file, not a runnable procedure**. Skills that draft GitHub issue / PR body content apply these conventions by reference. Do not copy these rules into them — point at them by name.
 
 ## Formatting
 
@@ -28,7 +28,7 @@ Skills that draft GitHub issue / PR body content apply these conventions by refe
 
 ## Authoring via file
 
-Write the body to a file (typically under `/tmp/`) and pass it to the `gh-post` wrapper via `--body-file`. Direct `gh (issue|pr) (create|edit|comment) --body*` is blocked by a `PreToolUse` hook. Heredocs are fine for writing the body file itself (`cat > /tmp/body.md <<'EOF' ... EOF`).
+Write the body to a file (typically under `/tmp/`) and pass it to the `gh-post` wrapper via `--body-file`. Direct `gh (issue|pr) (create|edit|comment) --body*` is blocked by a `PreToolUse` hook. The block applies at the GitHub API boundary only, so heredocs writing the body file itself (`cat > /tmp/body.md <<'EOF' ... EOF`) are fine.
 
 ## Math
 
@@ -37,17 +37,20 @@ Write the body to a file (typically under `/tmp/`) and pass it to the `gh-post` 
 - Plain text inside backticks is fine when the symbol must match a code identifier verbatim (e.g., `` `alpha_t` ``).
 - Do NOT write raw Unicode math characters (α, β, ⊗, ∑, ∇, †, etc.) in prose. Use `` $`\alpha`$ ``, `` $`\otimes`$ ``, `` $`\sum`$ ``, `` $`\nabla`$ ``, `` $`\dagger`$ `` instead.
 - Avoid `\_` in GitHub/LaTeX math. Use `` $`\mathrm{\textunderscore}`$ `` when an underscore glyph is required in math mode.
-- Do NOT use `\textunderscore` inside `\text{...}` or `\texttt{...}`. Restructure the expression, or put the literal identifier in Markdown backticks outside math.
+- Do NOT use `\textunderscore` inside `\text{...}` or `\texttt{...}`. Restructure the expression, or put the literal identifier in Markdown backticks outside math when exact code spelling matters.
 - When two inline math spans are separated by punctuation, put a space before the second math opener. Write `` $`K_1`$/ $`K_2`$ ``, not `` $`K_1`$/$`K_2`$ ``.
 
 ## References
 
-- Do NOT cite local file paths, local notes, HPC cluster paths, or anything an external reader cannot open.
-- If the substance of a local reference matters, inline its content (quote, paraphrase, or reproduce the relevant snippet).
+Citations must point to something an external reader can open.
+
+- Do NOT cite local file paths, local notes, HPC cluster paths, or private-repo paths.
+- If the substance of a local reference matters, inline its content (quote, paraphrase, or reproduce the relevant snippet) so the body is self-contained.
 - External references (arXiv, DOI, public repo URLs, public docs, other issues / PRs in the same or public repos) are fine.
-- Cross-repo references to *private* repos are off-limits.
 
 ### Line numbers
+
+Line-number citations are governed by whether the surrounding artifact anchors them to a stable commit:
 
 - **Issue body — forbidden.** Inline a code snippet instead if a specific location matters.
 - **PR body — permitted within this PR's own diff.** For a single specific line, prefer an inline review comment.
@@ -62,17 +65,18 @@ Write the body to a file (typically under `/tmp/`) and pass it to the `gh-post` 
 
 - Be concise but do not omit explanation. Say what is needed and stop.
 - Skip narrative scaffolding ("As we discussed...", "Following up on..."), restated context the reader can see from the repo, and exhaustive option enumeration when one option is clearly preferred.
-- Every paragraph should be earning its place.
+
+Artifact-specific length expectations live in the referencing skills (`file-issue`, `file-pullreq`).
 
 ## Exclusions
 
-The body must not contain any token whose referent cannot be resolved from the target repo's public state (README, public issues / PRs, public code, well-known external standards). `gh-body-check` enforces this.
+The body must not contain any token whose referent cannot be resolved from the target repo's public state (README, public issues / PRs, public code, well-known external standards). `gh-body-check` enforces this via a cold-reader subagent with no access to chat history, private notes, or workflow internals — whatever the cold reader cannot resolve is, by definition, leakage.
 
-Common leak shapes:
+Common leak shapes — each fails the cold-reader test:
 
-- Local filesystem paths (`/Users/...`, `~/...`, absolute paths).
-- HPC cluster names, hostnames, queue names, or scheduler-specific context.
-- References to the user's private repos, skills, or workflow internals (e.g., `/file-pullreq`, `research-and-implement`, `done-check`).
-- Phase / step numbers from the working session ("Phase 2 of the umbrella", "Step 3 of the plan") unless the artifact is itself an umbrella sub-issue / sub-PR.
-- "As we discussed" / "following up from chat" / other chat-tone scaffolding.
+- Local paths (`/Users/...`, `~/...`, absolute paths).
+- HPC infra (cluster / host / queue / scheduler names).
+- Private repos, skills, or workflow internals (e.g. `/file-pullreq`, `research-and-implement`, `done-check`).
+- Working-session phase / step numbers ("Phase 2 of the umbrella", "Step 3 of the plan") — unless the artifact is itself a public umbrella sub-issue / sub-PR.
+- Chat-tone scaffolding ("As we discussed", "Following up from chat", etc.).
 - Inline Japanese clauses in an otherwise-English body.
