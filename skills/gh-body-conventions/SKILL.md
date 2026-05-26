@@ -22,6 +22,10 @@ This skill is **a definition file, not a runnable procedure**. Skills that draft
   - Before a coordinating conjunction (`and` / `or` / `but`) when it joins phrases rather than clauses.
 - The failure shape this rule blocks: "many short fragments, several of them clearly sub-clause" — i.e. clause-per-line over-applied until lines end on `with`, `by`, `of`, the subject NP, or a list comma. The visual rhythm of such a paragraph is harder to read than column-wrapped prose, not easier; it is a failure mode, not a style. When in doubt, prefer flat prose (the third option above) over over-fragmented "clauses".
 
+## Titles
+
+- Do NOT put issue numbers in PR titles — no trailing `(#123)` suffix (e.g. `fix: blah-blah (#123)`) and no bare `#123`. Issue linkage goes in the body via `Closes #N`.
+
 ## Authoring via file
 
 Write the body to a file (typically under `/tmp/`) and pass it to the `gh-post` wrapper via `--body-file`. The wrapper validates the body and forwards to `gh` with `--body-file`, eliminating shell-escape concerns entirely. Direct `gh (issue|pr) (create|edit|comment) --body*` is blocked by the companion `PreToolUse` hook, so no heredoc-direct-to-API path exists; heredocs are still fine for writing the body file itself (`cat > /tmp/body.md <<'EOF' ... EOF`), since the file-write step is not a GitHub API boundary.
