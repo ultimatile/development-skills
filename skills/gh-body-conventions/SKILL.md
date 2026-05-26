@@ -5,22 +5,22 @@ description: Single source of truth for GitHub issue / PR body conventions — s
 
 # GitHub Body Conventions (SSOT)
 
-This skill is **a definition file, not a runnable procedure**. Skills that draft GitHub issue / PR body content apply these conventions by reference. When a rule changes here, referencing skills pick up the change automatically; do not copy these rules into them — point at them by name.
+Skills that draft GitHub issue / PR body content apply these conventions by reference. Do not copy these rules into them — point at them by name.
 
 ## Formatting
 
-- **Semantic line breaks, not column wrapping.** Do NOT hard-wrap to 72/80 columns the way commit message bodies do. Break lines at sentence boundaries, clause boundaries, or paragraph boundaries — wherever the structure of the prose suggests. The reader uses a wide viewport with its own wrapping; column-wrapped bodies render as random ragged text.
+- **Semantic line breaks, not column wrapping.** Do NOT hard-wrap to 72/80 columns. Break lines at sentence, clause, or paragraph boundaries.
   - One sentence per line, OR
   - One clause per line for long sentences, OR
   - Plain paragraphs with blank-line separation.
-- Pick whichever of the three above is most readable for the content; do not mix styles within one section.
-- **Do NOT break below the clause level.** A line break must land on a sentence boundary, an independent clause boundary, or a coordinated-clause boundary (`and` / `or` / `but` that joins full clauses, not phrases). Never break inside a clause. Specifically forbidden break positions:
-  - Between subject and verb (`parse_pr_url in foo.sh \n assumes single-line input.`).
-  - After a preposition or a preposition + object fragment (`emitted via ... \n followed by ...`, `the summary block with \n Title: / State: / ...`).
+- Pick whichever of the three is most readable; do not mix styles within one section.
+- **Do NOT break below the clause level.** A line break must land on a sentence boundary, an independent clause boundary, or a coordinated-clause boundary (`and` / `or` / `but` joining full clauses, not phrases). Forbidden break positions:
+  - Between subject and verb.
+  - After a preposition or a preposition + object fragment.
   - Inside a noun phrase or after a determiner / adjective stranding its head noun.
-  - After a comma that separates list items, appositives, or modifiers *within* one clause (as opposed to a comma between independent clauses, which is a valid break).
-  - Before a coordinating conjunction (`and` / `or` / `but`) when it joins phrases rather than clauses.
-- The failure shape this rule blocks: "many short fragments, several of them clearly sub-clause" — i.e. clause-per-line over-applied until lines end on `with`, `by`, `of`, the subject NP, or a list comma. The visual rhythm of such a paragraph is harder to read than column-wrapped prose, not easier; it is a failure mode, not a style. When in doubt, prefer flat prose (the third option above) over over-fragmented "clauses".
+  - After a comma that separates list items, appositives, or modifiers within one clause.
+  - Before a coordinating conjunction (`and` / `or` / `but`) joining phrases rather than clauses.
+- When in doubt, prefer flat prose over fragmented clauses.
 
 ## Titles
 
@@ -28,37 +28,35 @@ This skill is **a definition file, not a runnable procedure**. Skills that draft
 
 ## Authoring via file
 
-Write the body to a file (typically under `/tmp/`) and pass it to the `gh-post` wrapper via `--body-file`. The wrapper validates the body and forwards to `gh` with `--body-file`, eliminating shell-escape concerns entirely. Direct `gh (issue|pr) (create|edit|comment) --body*` is blocked by the companion `PreToolUse` hook, so no heredoc-direct-to-API path exists; heredocs are still fine for writing the body file itself (`cat > /tmp/body.md <<'EOF' ... EOF`), since the file-write step is not a GitHub API boundary.
+Write the body to a file (typically under `/tmp/`) and pass it to the `gh-post` wrapper via `--body-file`. Direct `gh (issue|pr) (create|edit|comment) --body*` is blocked by a `PreToolUse` hook. Heredocs are fine for writing the body file itself (`cat > /tmp/body.md <<'EOF' ... EOF`).
 
 ## Math
 
-- Use LaTeX notation for mathematical expressions, rendered with GitHub's `` $`...`$ `` syntax for inline math and `$$...$$` syntax for display math.
-- Prefer `` $`...`$ `` over `$...$` for inline math; it avoids common Markdown parsing conflicts.
-- Plain text inside backticks is fine when the symbol must match a code identifier verbatim (e.g., `` `alpha_t` `` referring to a variable named `alpha_t` in the code).
-- Do NOT write raw Unicode math characters (α, β, ⊗, ∑, ∇, †, etc.) in prose. Use `` $`\alpha`$ ``, `` $`\otimes`$ ``, `` $`\sum`$ ``, `` $`\nabla`$ ``, `` $`\dagger`$ `` instead. Unicode-math-in-prose is the user's strongest formatting dislike.
+- Use LaTeX notation rendered with GitHub's `` $`...`$ `` syntax for inline math and `$$...$$` for display math.
+- Prefer `` $`...`$ `` over `$...$` for inline math.
+- Plain text inside backticks is fine when the symbol must match a code identifier verbatim (e.g., `` `alpha_t` ``).
+- Do NOT write raw Unicode math characters (α, β, ⊗, ∑, ∇, †, etc.) in prose. Use `` $`\alpha`$ ``, `` $`\otimes`$ ``, `` $`\sum`$ ``, `` $`\nabla`$ ``, `` $`\dagger`$ `` instead.
 - Avoid `\_` in GitHub/LaTeX math. Use `` $`\mathrm{\textunderscore}`$ `` when an underscore glyph is required in math mode.
-- Do NOT use `\textunderscore` inside `\text{...}` or `\texttt{...}`; GitHub's LaTeX-style math rendering does not accept it there. Restructure the expression, or put the literal identifier in Markdown backticks outside math when exact code spelling matters.
-- When two inline math spans are separated by punctuation, put a space before the second math opener so GitHub recognizes it. Write `` $`K_1`$/ $`K_2`$ ``, not `` $`K_1`$/$`K_2`$ ``.
+- Do NOT use `\textunderscore` inside `\text{...}` or `\texttt{...}`. Restructure the expression, or put the literal identifier in Markdown backticks outside math.
+- When two inline math spans are separated by punctuation, put a space before the second math opener. Write `` $`K_1`$/ $`K_2`$ ``, not `` $`K_1`$/$`K_2`$ ``.
 
 ## References
 
 - Do NOT cite local file paths, local notes, HPC cluster paths, or anything an external reader cannot open.
-- If the substance of a local reference matters, inline its content (quote, paraphrase, or reproduce the relevant snippet) so the body is self-contained.
+- If the substance of a local reference matters, inline its content (quote, paraphrase, or reproduce the relevant snippet).
 - External references (arXiv, DOI, public repo URLs, public docs, other issues / PRs in the same or public repos) are fine.
-- Cross-repo references to *private* repos are also off-limits — same reason.
+- Cross-repo references to *private* repos are off-limits.
 
 ### Line numbers
 
-Line-number citations are governed by whether the surrounding artifact anchors them to a stable commit:
-
-- **Issue body — forbidden.** Issue bodies refer to the default branch's `HEAD` implicitly, which moves; cited line numbers go stale within hours of the next merge. If a specific location matters, inline a code snippet instead.
-- **PR body — permitted within this PR's own diff.** A PR is anchored to explicit ours/theirs commits, so a line number cited against a file in this PR's diff does not rot. Even so, when the comment is about a single specific line, prefer an inline review comment over a body reference; the inline comment is rendered next to the code.
+- **Issue body — forbidden.** Inline a code snippet instead if a specific location matters.
+- **PR body — permitted within this PR's own diff.** For a single specific line, prefer an inline review comment.
 
 ## Language
 
 - Default to English for the title and body.
 - Use Japanese only when the user explicitly asks for it, or when the surrounding repo's existing issues / PRs are predominantly Japanese.
-- Inline Japanese clauses inside an otherwise-English body are leakage from the private surface (chat is mixed JP/EN; the public surface picks one). Re-cast in the chosen language even when the Japanese clause technically conveys information.
+- Do NOT inline Japanese clauses in an otherwise-English body. Re-cast in the chosen language.
 
 ## Length
 
@@ -66,17 +64,15 @@ Line-number citations are governed by whether the surrounding artifact anchors t
 - Skip narrative scaffolding ("As we discussed...", "Following up on..."), restated context the reader can see from the repo, and exhaustive option enumeration when one option is clearly preferred.
 - Every paragraph should be earning its place.
 
-Artifact-specific length expectations live in the referencing skills (`file-issue`, `file-pullreq`).
-
 ## Exclusions
 
-The operative rule: the body must not contain any token whose referent cannot be resolved from the target repo's public state (README, public issues / PRs, public code, well-known external standards). `gh-body-check` enforces this via a cold-reader subagent that has no access to chat history, private notes, or workflow internals — whatever the cold reader cannot resolve is, by definition, leakage.
+The body must not contain any token whose referent cannot be resolved from the target repo's public state (README, public issues / PRs, public code, well-known external standards). `gh-body-check` enforces this.
 
-Common leak shapes (illustrative, not exhaustive — the rule above is what governs, and novel shapes are still caught by the cold reader):
+Common leak shapes:
 
 - Local filesystem paths (`/Users/...`, `~/...`, absolute paths).
-- HPC cluster names, hostnames, queue names, or scheduler-specific context irrelevant to the upstream reader.
-- References to the user's private repos, skills, or workflow internals (e.g., `/file-pullreq`, `research-and-implement`, `done-check`). These are author-side tools, not reader-facing artifacts; the public body must justify itself from the repo's own state.
-- Phase / step numbers from the working session ("Phase 2 of the umbrella", "Step 3 of the plan") unless the artifact is *itself* an umbrella sub-issue / sub-PR where that structure is public.
-- "As we discussed" / "following up from chat" / other chat-tone scaffolding that resolves only via the private context.
-- Inline Japanese clauses in an otherwise-English body (see Language).
+- HPC cluster names, hostnames, queue names, or scheduler-specific context.
+- References to the user's private repos, skills, or workflow internals (e.g., `/file-pullreq`, `research-and-implement`, `done-check`).
+- Phase / step numbers from the working session ("Phase 2 of the umbrella", "Step 3 of the plan") unless the artifact is itself an umbrella sub-issue / sub-PR.
+- "As we discussed" / "following up from chat" / other chat-tone scaffolding.
+- Inline Japanese clauses in an otherwise-English body.
