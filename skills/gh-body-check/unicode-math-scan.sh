@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# unicode-math-scan.sh — flag Unicode math / Greek glyphs in a GitHub body draft.
+#
+# Mechanical half of gh-body-check. Reports any character in the Greek block,
+# the two Mathematical Operators blocks, or the dagger / double-dagger pair —
+# all of which gh-body-conventions § Math forbids in prose (use $`\alpha`$ etc.
+# instead of bare `α`). Code-block hits are out of scope here; the SKILL.md
+# procedure judges those in main context.
+#
+# Exit codes: 0 = no hits (clean), 1 = hits found, 2 = usage or environment
+# error. (rg's native convention is the opposite — match=0, no-match=1 — so
+# this script flips it so callers can use the more natural "non-zero = problem"
+# convention.)
+
+set -uo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage: unicode-math-scan.sh <body-file>
+
+Scans <body-file> for Unicode math characters (Greek, Math Operators,
+Supplemental Math Operators, †, ‡) that gh-body-conventions forbids in prose.
+
+Prints rg output (path:line:matched) and exits 1 if any hit is found.
+EOF
+}
+
+case "${1:-}" in
+  ''|-h|--help) usage; [ -z "${1:-}" ] && exit 2 || exit 0 ;;
+esac
+
+BODY_FILE=$1
+[ -f "$BODY_FILE" ] || { echo "error: file not found: $BODY_FILE" >&2; exit 2; }
+command -v rg >/dev/null 2>&1 || { echo "error: ripgrep (rg) is required" >&2; exit 2; }
+
+# Ranges:
+#   U+0370–U+03FF  Greek and Coptic
+#   U+2200–U+22FF  Mathematical Operators
+#   U+2A00–U+2AFF  Supplemental Mathematical Operators
+#   U+2020, U+2021 dagger, double dagger
+rg -nP '[\x{0370}-\x{03FF}\x{2200}-\x{22FF}\x{2A00}-\x{2AFF}\x{2020}\x{2021}]' "$BODY_FILE"
+rc=$?
+# rg: 0 match, 1 no match, 2+ real error.
+case "$rc" in
+  0) exit 1 ;;   # hits found → problem
+  1) exit 0 ;;   # no hits → clean
+  *) exit 2 ;;   # rg failed (bad regex, IO error)
+esac

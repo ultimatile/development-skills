@@ -1,6 +1,7 @@
 ---
 name: gh-body-check
 description: Audit a drafted or filed GitHub issue / PR body against gh-body-conventions via a fresh-context subagent. Any unresolved ⚠ blocks the caller.
+allowed-tools: Bash(*/gh-body-check/unicode-math-scan.sh:*)
 ---
 
 # GH Body Check
@@ -35,10 +36,10 @@ Determine: artifact kind (`issue` / `pr`), target repo (e.g., `owner/repo` — t
 ### 2. Unicode math scan
 
 ```bash
-rg -nP '[\x{0370}-\x{03FF}\x{2200}-\x{22FF}\x{2A00}-\x{2AFF}\x{2020}\x{2021}]' "$BODY_FILE"
+${CLAUDE_SKILL_DIR}/unicode-math-scan.sh "$BODY_FILE"
 ```
 
-Any hit in prose → ⚠ (rule: `gh-body-conventions` § Math — Unicode math in prose is the user's strongest formatting dislike; use `` $`\alpha`$ `` instead of `α`). Hits inside fenced code blocks (rare — Greek-named identifiers etc.) → ⊘ N/A, judged by main-context inspection of each hit.
+Exit 0 = clean, 1 = hits found (printed as `line:match`), 2 = usage / environment error. The script wraps the rg regex for the Greek block, the two Mathematical Operators blocks, and dagger / double-dagger — `gh-body-conventions` § Math forbids these in prose. Any hit in prose → ⚠ (rule: Unicode math in prose is the user's strongest formatting dislike; use `` $`\alpha`$ `` instead of `α`). Hits inside fenced code blocks (rare — Greek-named identifiers etc.) → ⊘ N/A, judged by main-context inspection of each hit.
 
 ### 3. Cold-reader audit (fresh-context subagent)
 
