@@ -33,6 +33,7 @@ Listed in canonical reading order. Reference items by slug (e.g., `behavior-cove
 - [completion-hygiene](items/completion-hygiene.md) — contextual
 - [architectural-boundary](items/architectural-boundary.md) — mechanical
 - [paired-artifact-drift](items/paired-artifact-drift.md) — mechanical
+- [docstring-drift](items/docstring-drift.md) — contextual
 - [discovery-surfacing](items/discovery-surfacing.md) — contextual
 - [ported-code-attribution](items/ported-code-attribution.md) — mechanical (+ contextual half)
 - [signature-change-regression](items/signature-change-regression.md) — mechanical
