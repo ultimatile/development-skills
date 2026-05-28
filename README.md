@@ -9,10 +9,14 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | Skill | Description |
 |---|---|
 | `research` | Hypothesis-driven investigation under the four-state decision discipline (confirmed / rejected / inconclusive / deferred). Classifies hypotheses as empirical (subagent-verified) vs derivational (deduced in main context); posts the resulting plan to the issue body (umbrella-spawned sub-issue) or comment (single-scope issue). Depends on [haru0416-dev/agent-skills](https://github.com/haru0416-dev/agent-skills) (`evidence-gated-review`) |
+| `research-quaere` | Quaere-based variant of `research`. Same workflow with the internal subagent contract delegated to `quaere-evidence`. Depends on [haru0416-dev/quaere](https://github.com/haru0416-dev/quaere) (`quaere-evidence`, `quaere-semantic`) |
 | `codex-plan-review` | Review the implementation plan with Codex against the actual codebase before coding |
 | `implement` | Execute a plan via the execution-loop discipline (Read → Plan → Execute → Review → Fix → Verify) with drift surfacing and done-check before completion. Reads the plan from the sub-issue body (umbrella-spawned) or comments (single-scope). Depends on [haru0416-dev/agent-skills](https://github.com/haru0416-dev/agent-skills) (`execution-loop`) |
+| `implement-quaere` | Quaere-based variant of `implement`. Same workflow with the inner loop delegated to `quaere-execution` (Plan → Do → Study → Act). Depends on [haru0416-dev/quaere](https://github.com/haru0416-dev/quaere) (`quaere-execution`) |
 | `research-and-implement` | End-to-end wrapper that runs `research` (Phase 1) then `implement` (Phase 2), with a branch baseline gate up front. Depends on [haru0416-dev/agent-skills](https://github.com/haru0416-dev/agent-skills) (`evidence-gated-review` + `execution-loop`) |
+| `research-and-implement-quaere` | Quaere-based variant of `research-and-implement`. Sequences `research-quaere` then `implement-quaere`. Depends on [haru0416-dev/quaere](https://github.com/haru0416-dev/quaere) (`quaere-evidence` + `quaere-execution`) |
 | `reimre` | Full end-to-end wrapper — runs `research-and-implement` then `review-pipeline` back to back, with an automatic seam rule that skips the duplicate `done-check` at the boundary. Stops at the user-controlled merge gate inherited from `review-pipeline`. |
+| `reimre-quaere` | Quaere-based variant of `reimre`. Runs `research-and-implement-quaere` then `review-pipeline` with the same seam rule and merge gate. |
 
 ### Issue & PR drafting
 
@@ -80,6 +84,14 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 claude plugin marketplace add ultimatile/development-skills
 claude plugin install development-skills
 ```
+
+The `*-quaere` variants (`research-quaere`, `implement-quaere`, `research-and-implement-quaere`, `reimre-quaere`) additionally require the upstream Quaere skills (`quaere-evidence`, `quaere-execution`, `quaere-semantic`) installed under `~/.claude/skills/`:
+
+```bash
+npx quaere-cli install --target claude
+```
+
+The original variants (without the `-quaere` suffix) continue to depend on the archived [haru0416-dev/agent-skills](https://github.com/haru0416-dev/agent-skills) (`evidence-gated-review`, `execution-loop`).
 
 ## Credits
 
