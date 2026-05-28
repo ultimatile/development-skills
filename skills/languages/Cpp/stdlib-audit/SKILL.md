@@ -1,6 +1,7 @@
 ---
 name: stdlib-audit
 description: Audit C++ source for known-bad standard library defaults (std::function, std::regex, std::list, std::map, std::unordered_map, std::async, std::vector<bool>, etc.) using a TSV-driven rule table that is extended by appending lines. Wraps a ripgrep-based shell script; reports per-rule hit counts and sample locations, exits non-zero on configurable severity (for CI). Targets C++17+ codebases.
+allowed-tools: Bash(*/stdlib-audit/stdlib-audit.sh:*)
 ---
 
 # stdlib-audit

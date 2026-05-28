@@ -1,6 +1,7 @@
 ---
 name: copilot-review
 description: Create a GitHub PR with Copilot as reviewer and poll until the review arrives.
+allowed-tools: Bash(*/copilot-review/scripts/pr-with-copilot-review.sh:*), Bash(*/copilot-review/scripts/list-pr-threads.sh:*)
 ---
 
 # Copilot Review
