@@ -37,8 +37,9 @@ For each extracted claim:
 
 1. **Read the code** that the claim describes. Follow the actual control flow, not what the docstring says the flow is.
 2. **Cross-reference with tests** — if a test exercises the claimed behavior, the claim is corroborated (though not proven; the test itself could be trivial). If no test covers the claim, note this as an untested claim.
-3. **Classify the result**:
-   - **Verified**: code matches claim, optionally backed by a test
+3. **Run a code-execution probe when reading is not sufficient.** If the claim depends on a third-party library's behavior (`mdformat.text`, `serde_json::from_str`, …), on a refactor that delegated logic to an external module, or on any path where the visible local code does not by itself prove or disprove the claim, construct a minimal call and observe the output. Treat commit messages, PR descriptions, and even prior in-house implementations as leads, never as evidence — squash-merged PRs in particular concatenate intermediate states whose behavior differs from the final shape, and reading the message in isolation will mislead. The chain of authority is: **execution > current code > tests > docstring > commit message / PR description**.
+4. **Classify the result**:
+   - **Verified**: code matches claim, optionally backed by a test or a successful execution probe
    - **Drifted**: code contradicts claim — the docstring is stale or wrong
    - **Untested**: claim is plausible but no test or code path directly confirms it — flag for manual review
    - **Ambiguous**: docstring is vague enough to be technically correct but misleading — suggest a more precise wording
@@ -70,5 +71,7 @@ For large codebases, prioritize:
 ## Principles
 
 - **Code is ground truth, not docstrings.** When code and docstring disagree, the code is almost always right and the docstring is stale. The exception is when the docstring represents an intentional spec and the code has a bug — but that requires explicit user confirmation.
+- **Commit messages, PR descriptions, and code comments about history are leads, never evidence.** They describe what an author *intended* or what an *intermediate step* did. Squash-merged PRs in particular concatenate the trajectory of multiple intermediate commits whose behavior differs from the final shape — reading the message in isolation will mislead. Use them only to locate where to look in the code, never to conclude what the code does.
+- **When local code delegates to a third-party library or to a refactor whose final shape is non-obvious, supplement reading with execution.** Construct a minimal call and observe the output. Reading alone is insufficient when behavior is owned by an external module — the chain of authority is execution > current code > tests > docstring > commit message.
 - **One drift fix per claim.** Do not batch unrelated fixes. Each correction should be independently reviewable.
 - **Don't add docstrings.** This skill audits and fixes existing docstrings. Adding docstrings to undocumented functions is a separate task.
