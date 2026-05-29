@@ -87,3 +87,57 @@ The base item's N/A clause requires either no public signature change OR exhaust
 - Conditional compilation (`#ifdef`): every preprocessor branch must be exercised. Grepping past `#if 0` blocks or platform-gated regions can hide stale call sites.
 
 If any of these conditions hold and the call-site sweep was not exhaustive in *both* the lexical and the build-configuration dimensions, the item is **not** N/A; demand a sentinel overload or a strong type.
+
+---
+
+## `implementation-guards`
+
+### Triggers (C++)
+
+The base item warns that "overflowed bounds → empty range, silently-allocated zero buffer" can bypass error paths. In C++ with fixed-width unsigned integers (`std::size_t`, `std::uint32_t` / `uint64_t`, library typedefs like `cytnx_uint64`), a particularly silent class of guard failure is the **bounds-check arithmetic that itself overflows the value type**:
+
+```cpp
+// Hazardous: begin + length can wrap past 0 if both operands are large.
+// e.g. begin = UINT64_MAX - 1, length = 4 wraps to a small value <= shape,
+// and the check false-passes.
+if (begin + length > shape) {
+  throw std::invalid_argument("...");
+}
+```
+
+The hazard surfaces wherever a public function accepts user-supplied unsigned `begin` / `length` / `offset` / `count` / `end` values whose sum is compared against a capacity / shape / extent. The check looks correct under "normal" inputs but admits adversarial or accidentally-huge inputs that wrap the sum.
+
+Signed integer arithmetic is technically undefined on overflow (so the check is *also* unsound) but is at least caught by `-fsanitize=signed-integer-overflow` in debug builds and is often optimized away by compilers assuming non-overflow; the unsigned form is well-defined wraparound and therefore silent.
+
+### Mitigation idiom
+
+Rewrite as two unsigned comparisons whose intermediates cannot wrap:
+
+```cpp
+if (begin > shape || length > shape - begin) {
+  throw std::invalid_argument("...");
+}
+```
+
+The first comparison guarantees `shape - begin` is well-defined (no wrap), so the second can be evaluated safely. Equivalent forms with `__builtin_add_overflow` or `std::numeric_limits<T>::max() - begin < length` are acceptable; the subtraction form is the most idiomatic.
+
+### Mechanical detection
+
+Grep new and modified diff lines for unsigned-typed `a + b` appearing on the left side of a `>` / `>=` / `<` / `<=` comparator inside an `if` / loop condition where any operand is a user-supplied parameter:
+
+```sh
+git diff <base>..HEAD -- '*.h' '*.hpp' '*.cpp' \
+  | rg '^[+].*\b(if|while|assert)\b.*\w+\s*\+\s*\w+\s*(>|>=|<|<=)'
+```
+
+False-positive review: confirm each hit is (a) a bounds check, not unrelated arithmetic, and (b) at least one operand has an unsigned type that can plausibly be near its max (a `size_t` parameter from a user-supplied range counts; a hardcoded enum integer does not).
+
+Runtime corroboration: build with `-fsanitize=unsigned-integer-overflow` (Clang) and exercise tests that pass values near `T_MAX`. The sanitizer flags the wrap at the addition site.
+
+### N/A elaboration
+
+The base item's N/A clause ("no new invariants") covers diffs that don't add a guard at all. This C++ realization is N/A when the guard's arithmetic operates exclusively on:
+
+- compile-time constants
+- signed integer values whose path is sanitizer-instrumented and whose tests cover near-max inputs
+- values whose maximum is enforced by an upstream guard that itself complies with this realization
