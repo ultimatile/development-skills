@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "End-to-end development workflow skills for Claude Code — research, implement, review, PR",
-    "version": "2026.5.86"
+    "version": "2026.5.87"
   },
   "plugins": [
     {
@@ -36,6 +36,7 @@
         "./skills/languages/Rust/rust-ffi-rule",
         "./skills/languages/Cpp/stdlib-audit",
         "./skills/finding-to-audit",
+        "./skills/gate-miss-to-issue",
         "./skills/codex-contract-test-review",
         "./skills/file-issue",
         "./skills/file-adr",
