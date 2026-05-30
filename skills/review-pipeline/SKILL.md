@@ -49,6 +49,8 @@ After Phase 1 + 2 are clean, before the user merges, fold review findings into d
 
 A finding can map to either `bug-to-contract`, `finding-to-audit`, both, or neither. Use both when both apply.
 
+**`/gate-miss-to-issue`** (process-postmortem) — when a defect surfaced only at Phase 1/2 review or by user pushback that an earlier gate should have caught, file the gate gap against `development-skills` (independent of the project merge gate, like `/finding-to-audit`). Skip when every defect was caught at its earliest gate — nothing underperformed.
+
 ## Phase 4a: PR description delta (pre-merge)
 
 Skip when the work is not tied to an umbrella tracking issue. Trigger only when the merged-bound PR or its `Closes #N` references a sub-issue with a `Parent: #<umbrella>` line.
