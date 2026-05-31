@@ -2,7 +2,6 @@
 name: codex-plan-review
 description: Review an implementation plan with OpenAI Codex before coding, getting a second opinion on assumptions and approach.
 ---
-
 # Codex Plan Review
 
 Ask Codex to review an implementation plan against the actual codebase before implementation begins.
@@ -19,6 +18,7 @@ Ask Codex to review an implementation plan against the actual codebase before im
 Use the XML-block template below. Each block is optional — drop any block that does not fit the task, but keep the order stable so Codex sees a predictable structure.
 
 Gather first:
+
 - The implementation plan (from the current conversation)
 - The list of repository files Codex should read before evaluating
 - 2–4 specific evaluation questions (not "what do you think?")
@@ -77,6 +77,7 @@ Drop speculative or stylistic nits.
 ```
 
 Block selection rationale:
+
 - `grounding_rules`: plan review drifts into invented code otherwise
 - `structured_output_contract`: forces a shape that maps directly to the triage step in §3
 - `dig_deeper_nudge`: without it Codex tends to stop at the first plausible concern
@@ -92,6 +93,7 @@ codex exec "<prompt>" < /dev/null -o /tmp/codex-plan-review.md
 ```
 
 **Important:**
+
 - Always use `< /dev/null` to prevent stdin hanging in background/automated contexts
 - Set timeout to 600000ms (10 minutes)
 - Use `-o` to capture output to a file for reliable retrieval

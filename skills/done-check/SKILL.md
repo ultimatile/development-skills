@@ -2,7 +2,6 @@
 name: done-check
 description: Single-pass audit of the current diff against quality-list items before declaring a task complete or requesting external review.
 ---
-
 # Done-Check
 
 Post-hoc audit against the current diff. Item definitions live in `quality-list`; this skill is the **runner**. Update `quality-list`, not this file, when adding or modifying items.

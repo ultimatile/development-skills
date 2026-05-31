@@ -2,7 +2,6 @@
 name: codex-contract-test-review
 description: Narrow Codex pass on a newly added contract test, verifying it is not tautological and would fail on the original buggy implementation. Lightweight alternative to the full codex-review / copilot-review loop.
 ---
-
 # Codex Contract-Test Review
 
 A focused Codex pass that asks one question: **does this test express the contract its name/comment claims?** Secondary: any critical bug in the test code itself.
@@ -19,7 +18,7 @@ This is *not* a full review — alternative test designs, additional test sugges
 ### 1. Gather inputs
 
 | Input | What to collect |
-|---|---|
+| -- | -- |
 | Original finding | The review comment / bug report that triggered the contract elevation. 1–2 sentences or quoted text. |
 | Claimed contract | One sentence — the implicit specification the test is asserting (the output of `bug-to-contract` Step 2). |
 | New test location | `file:line` range of the added test. |
@@ -120,6 +119,7 @@ findings to fill the slots.
 ```
 
 Block selection rationale:
+
 - `grounding_rules`: prevents the reviewer from trusting the test name / docstring instead of reading the assertions
 - `structured_output_contract`: hard caps (max 3 primary, max 2 secondary, max 5 total) keep the output narrow and triageable
 - `dig_deeper_nudge`: enumerates the failure modes that contract tests typically fall into — without this list the reviewer tends to stop at the first plausible concern

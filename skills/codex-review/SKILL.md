@@ -2,7 +2,6 @@
 name: codex-review
 description: Pre-PR code review on the current branch using the OpenAI Codex CLI, with an iterative fix loop.
 ---
-
 # Codex Review
 
 Orchestrate `codex exec review` to review branch changes, iterate on fixes, and optionally proceed to PR creation with Copilot review.
@@ -26,7 +25,7 @@ This runs `git diff <base-SHA>` internally and reviews the entire diff. The revi
 ### Other review modes
 
 | Command | Scope |
-|---|---|
+| -- | -- |
 | `codex exec review --base main </dev/null` | All commits since branching from main |
 | `codex exec review --uncommitted </dev/null` | Staged + unstaged + untracked changes |
 | `codex exec review --commit <SHA> </dev/null` | A single commit's diff |
@@ -35,7 +34,7 @@ This runs `git diff <base-SHA>` internally and reviews the entire diff. The revi
 ### Output options
 
 | Flag | Effect |
-|---|---|
+| -- | -- |
 | `-o <file>` | Write final review message to file |
 | `--json` | Emit JSONL event stream to stdout |
 | `"custom prompt"` | Positional arg — additional review instructions |
@@ -71,11 +70,13 @@ This collapses the two-round failure mode (codex flags intentional design → hu
 codex review operates on `git diff` output alone — it has no access to the broader project context, test results, runtime behavior, or design rationale. This means a significant fraction of its findings will be false positives: technically plausible concerns that don't apply given information the reviewer can't see.
 
 Typical false positive patterns:
+
 - **Assumed standard behavior**: "this regex won't match standard X format" when the actual data uses a project-specific format (verified by tests)
 - **Missing context on intentional decisions**: flagging a design choice as a bug when it was deliberate and tested
 - **Hypothetical edge cases**: warning about inputs that can't occur given the system's constraints
 
 When presenting review output, triage each finding:
+
 1. **Read the review output** and identify each distinct finding (usually formatted as `[P1/P2] summary — file:line`)
 2. **Cross-check against project context** you already have — test results, prior conversation, code you've read. You have far more context than the reviewer did.
 3. **Classify each finding**:
@@ -93,6 +94,7 @@ Each iteration runs a full, unbiased review of the entire diff against base. Do 
 ### Procedure
 
 1. **Run review**
+
    ```bash
    codex exec review --base main -o /tmp/codex-review.md </dev/null
    ```
@@ -114,6 +116,7 @@ No actionable findings after triage. A review with only false positives or minor
 ### Why fresh reviews matter
 
 The goal of each iteration is to answer two questions:
+
 - Did the fix correctly address the previous issue?
 - Did the fix introduce any new problems?
 

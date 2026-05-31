@@ -2,7 +2,6 @@
 name: implement-quaere
 description: Execute a prior research plan via quaere-execution with GitHub issue integration, plan-vs-actual drift, done-check, and conventional commits. Quaere-based variant of `implement` — depends on `quaere-execution` instead of `execution-loop`. Optional issue number argument.
 ---
-
 # implement-quaere
 
 GitHub-integrated wrapper around `quaere-execution`. Drives the Plan → Do → Study → Act workflow with plan-vs-actual drift surfacing and a final `done-check` audit.

@@ -2,7 +2,6 @@
 name: file-adr
 description: Draft an Architecture Decision Record (a timeless decision, distinct from an implementation schedule) and write the file. Use file-issue instead when the artifact is a task list, bug report, or phase plan.
 ---
-
 # File ADR
 
 Draft a project Architecture Decision Record (ADR) body that matches the project's existing structure and follows a timeless-decision discipline. Show for approval, then write to the project's ADR directory.
@@ -27,7 +26,7 @@ Skip this skill when the artifact is:
 Before any drafting, classify the topic against this distinction:
 
 | Artifact kind | What it captures | Skill |
-|---|---|---|
+| -- | -- | -- |
 | **Decision** | A choice between alternatives with context and consequences, expressed in timeless tense. | `file-adr` |
 | **Schedule** | When / by whom / in what order something is implemented. Phases, checklists, dates. | `file-issue` |
 
@@ -38,7 +37,7 @@ Diagnostic question: read the candidate body imagining the project is two years 
 ## Status taxonomy
 
 | Status | Meaning | Body mutability |
-|---|---|---|
+| -- | -- | -- |
 | **Proposed** | Drafted, under review. Not yet in force. | Mutable until acceptance. |
 | **Accepted** | Decision in effect. | **Frozen.** Refinements go in a new ADR or downstream Issue body, not in this file. |
 | **Superseded by ADR-NNNN** | Replaced by a later ADR. | Frozen, mark status and cross-link. |

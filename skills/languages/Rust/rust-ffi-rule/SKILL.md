@@ -2,12 +2,12 @@
 name: rust-ffi-rule
 description: Rules for implementing a Rust safe wrapper around an external (C / Fortran / FFI) call. Read before writing unsafe FFI blocks, extern "C" declarations, or bindgen-based wrappers.
 ---
-
 # Rust FFI Rule
 
 ## Procedure
 
 1. **Triage the bare API.** Enumerate every input parameter and every output channel of the underlying call:
+
    - Inputs: every formal parameter (including in-out)
    - Outputs: the C return value, every `*mut` / in-out parameter the callee writes back, every status / info / error code
 
@@ -16,6 +16,7 @@ description: Rules for implementing a Rust safe wrapper around an external (C / 
 3. **Present the non-default decisions to the user for approval before writing any Rust code.** Defaults (`expose` for inputs, `keep` for outputs) are silent — they preserve information and the caller's ability to vary inputs. Anything else (`derive`, `hardcode`, `fold`, `drop`) hides or fixes a value and requires explicit user approval with a stated reason. This is the gate that prevents implicit silent dropping / hardcoding.
 
    Format:
+
    ```
    FFI triage: <function name>
 
@@ -33,6 +34,7 @@ description: Rules for implementing a Rust safe wrapper around an external (C / 
    | info == 1  | fold to MaxIterReached  | distinct retryable case |
    | iparam[8]  | drop                    | <reason> |
    ```
+
    Items that follow the default need not be listed.
 
 4. **Wait for user approval.** Do not implement the wrapper until the non-default decisions are confirmed.
@@ -69,9 +71,9 @@ Required at every FFI call site, independent of the input/output classification:
 
 ## Common traps
 
-8. **Thread safety.** First read the upstream's reentrancy / thread-safety contract. Many BLAS/LAPACK builds and handle-local C APIs are thread-safe and a process-wide lock would over-serialize them (performance loss, nested-call deadlock risk). Serialize through a single process-wide `Mutex` only when the contract says non-reentrant, the library has Fortran `SAVE` variables, or the contract is unclear. Hold the lock across the entire call sequence (not just one FFI call), and recover from poisoning via `unwrap_or_else(|p| p.into_inner())`. The failure mode for misclassified non-reentrant libraries shows up under `cargo test`'s parallel runner: tests pass solo, fail in parallel.
+08. **Thread safety.** First read the upstream's reentrancy / thread-safety contract. Many BLAS/LAPACK builds and handle-local C APIs are thread-safe and a process-wide lock would over-serialize them (performance loss, nested-call deadlock risk). Serialize through a single process-wide `Mutex` only when the contract says non-reentrant, the library has Fortran `SAVE` variables, or the contract is unclear. Hold the lock across the entire call sequence (not just one FFI call), and recover from poisoning via `unwrap_or_else(|p| p.into_inner())`. The failure mode for misclassified non-reentrant libraries shows up under `cargo test`'s parallel runner: tests pass solo, fail in parallel.
 
-9. **In/out buffer aliasing.** When the API hands the wrapper offsets into a single buffer for both the read and the write side (reverse-communication, scratch-pool APIs), do not assume the offsets are disjoint. The upstream contract typically does not promise it, and aliased `&` / `&mut` through Rust's borrow rules is UB. Copy the read region into a scratch buffer first, then write through a separate, non-overlapping borrow.
+09. **In/out buffer aliasing.** When the API hands the wrapper offsets into a single buffer for both the read and the write side (reverse-communication, scratch-pool APIs), do not assume the offsets are disjoint. The upstream contract typically does not promise it, and aliased `&` / `&mut` through Rust's borrow rules is UB. Copy the read region into a scratch buffer first, then write through a separate, non-overlapping borrow.
 
 10. **`repr(C)` layout-compat pointer cast.** When the bindgen-generated type and the canonical Rust crate type satisfy **all** of: (a) both `#[repr(C)]`, (b) identical fields in identical order with identical types, (c) crate-side documents stable layout (e.g. `num_complex` does for `Complex<T>`), (d) no invalid bit pattern constraints differ — own the storage as the canonical Rust type and cast the pointer at the FFI call site. Do not element-wise copy every call. Guard the assumption with `static_assertions::assert_eq_size!` / `assert_eq_align!` (or `const _:` size/align asserts) so a future upstream layout change breaks the build, not the runtime.
 

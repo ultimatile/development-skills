@@ -2,7 +2,6 @@
 name: file-pullreq
 description: Draft and file a GitHub PR using gh-body-conventions and the PR body skeleton, via the gh-post wrapper. Supports a gate mode that stops at user approval.
 ---
-
 # File Pull Request
 
 Draft a GitHub PR title and body that follow the user's conventions, show the draft for approval, then file via `gh` (or hand off to the review pipeline).

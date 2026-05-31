@@ -2,7 +2,6 @@
 name: stage-commit-push
 description: Stage changed files, generate a conventional commit message, commit, and push in one step. Used inside automated review-fix loops.
 ---
-
 # Stage, Commit, Push
 
 One-shot skill for the review-fix loop: stage modified files, generate a commit message, commit, and push.
@@ -31,6 +30,7 @@ git log --oneline -5
 ```
 
 **Type selection** — based on what changed and why:
+
 - Documentation only → `docs`
 - Build/CI config → `ci` or `build`
 - Code style/formatting → `style`
@@ -45,6 +45,7 @@ Size doesn't determine type. API signature changes that correct a mistake are `f
 **Title length** — keep the commit title (first line) to 72 characters or fewer. Use the body for details.
 
 **Exclusions** — the message must NOT contain:
+
 - Phase/step numbers ("Phase 1", "Step 2")
 - Plan or task references ("As part of...", "Following the plan...")
 - Internal implementation context
@@ -72,5 +73,6 @@ If the branch has no upstream, use `git push -u origin <branch>`.
 ### 5. Report
 
 After pushing, show the user:
+
 - The commit hash and message title
 - The branch and remote status

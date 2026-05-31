@@ -2,7 +2,6 @@
 name: research-and-implement-quaere
 description: Work a GitHub issue end to end in two phases — research, then implement — under quaere-evidence and quaere-execution discipline. Quaere-based variant of `research-and-implement`.
 ---
-
 # research-and-implement-quaere
 
 End-to-end wrapper. Runs `research-quaere` (Phase 1) and `implement-quaere` (Phase 2) in sequence, with a branch baseline gate up front.

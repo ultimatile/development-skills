@@ -2,7 +2,6 @@
 name: finding-to-audit
 description: Promote a review finding into a pre-commit audit rule that catches the diff-inspectable issue class (import direction, pub widening, debug artifacts, dropped FFI output). Companion to bug-to-contract.
 ---
-
 # Finding-to-Audit
 
 A single fix prevents one bug. An audit rule prevents the entire class without waiting for the next bug to surface.
@@ -10,7 +9,7 @@ A single fix prevents one bug. An audit rule prevents the entire class without w
 ## When to use vs `bug-to-contract`
 
 | Catch at | Tool |
-|---|---|
+| -- | -- |
 | Runtime — output value, behavior under input, invariant on data, concurrency | `bug-to-contract` (contract test) |
 | Diff-inspection — structural property visible from `git diff`, imports, `pub` surface, presence of tests, debug artifacts, hardcoded values | `finding-to-audit` (this skill) |
 
@@ -19,7 +18,7 @@ A single finding can map to either, both, or neither. Use both when both apply.
 ## Inputs
 
 | Input | What to collect |
-|---|---|
+| -- | -- |
 | Review findings | Actionable findings that resulted in code changes — the reviewer's framing of the issue |
 | Fix commits | Branch commits whose subject signals a fix: `git log main..HEAD --oneline --grep="fix" -i`, then `git show <sha>` |
 
@@ -50,7 +49,7 @@ Examples that fit this skill:
 ### 3. Identify the host audit skill
 
 | Concern | Host |
-|---|---|
+| -- | -- |
 | General code-quality / pre-commit checklist | `done-check` (add a section, or extend an existing one) |
 | FFI safe-wrapper rules | `rust-ffi-rule` (or language-specific equivalent) |
 | Other domain-specific audit | The matching skill |

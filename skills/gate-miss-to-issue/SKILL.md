@@ -2,7 +2,6 @@
 name: gate-miss-to-issue
 description: Promote a late-caught defect — one an earlier gate should have caught — into a development-skills issue proposing a fix to that gate's procedure.
 ---
-
 # Gate-Miss-to-Issue
 
 A gate's failure is invisible to the gates downstream of it — they judge the product, not which earlier step should have caught the defect. This skill captures that gap as a development-skills issue.

@@ -2,7 +2,6 @@
 name: cargo-mutants
 description: Configure and run cargo-mutants for Rust mutation testing — invoking runs, reading mutants.out, writing exclude_re patterns matching cargo-mutants' mutant-name format, and choosing exclude_re vs #[mutants::skip].
 ---
-
 # cargo-mutants
 
 `cargo-mutants` mutates Rust source and re-runs the test suite to find spec gaps. The trap is not the tool itself but the gap between **what you think a mutant is named** and **what cargo-mutants actually emits** — that gap silently turns `exclude_re` entries into dead config.
@@ -10,7 +9,7 @@ description: Configure and run cargo-mutants for Rust mutation testing — invok
 ## Running mutation runs
 
 | Command | Purpose |
-|---|---|
+| -- | -- |
 | `cargo mutants --file <path>` | Run mutations on one file (fast iteration) |
 | `cargo mutants --regex '<pattern>'` | Restrict to mutants whose name matches |
 | `cargo mutants --list` | Print every mutant name **after** `exclude_re` filtering — your single source of truth for valid regex targets |
@@ -22,7 +21,7 @@ description: Configure and run cargo-mutants for Rust mutation testing — invok
 Output lives in `mutants.out/`:
 
 | File | Meaning |
-|---|---|
+| -- | -- |
 | `caught.txt` | Test suite failed — mutant killed |
 | `missed.txt` | Test suite passed — **spec gap** (or equivalent mutant) |
 | `unviable.txt` | Code didn't compile — usually a type-system save |
@@ -39,7 +38,7 @@ Output lives in `mutants.out/`:
 `exclude_re` matches against the **full mutant name string** as printed by `cargo mutants --list`. The string format depends on the mutation kind:
 
 | Mutation kind | Mutant name format | Example |
-|---|---|---|
+| -- | -- | -- |
 | Binary operator in fn body (`+ → -`, `&& → \|\|`, `== → !=`, `< → >`, etc.) | `replace X with Y in <fn>` | `replace == with != in einsum_pair` |
 | `delete !` (boolean negation) | `delete ! in <fn>` | `delete ! in contract_to_tensor` |
 | `delete match arm <pat>` | `delete match arm <pat> in <fn>` | `delete match arm 0 in einsum` |
@@ -89,10 +88,12 @@ If a regex looks plausible but matches **nothing** in `--list`, it's dead config
 Two anchoring strategies, with different trade-offs:
 
 **Function-name-based** (`replace X with Y in <fn>$` or `<T>::<method>`):
+
 - Stable across line-number drift.
 - **Fails when multiple operands on the same expression generate identical names** — e.g., `let x = !a && !b;` produces two `delete ! in <fn>` mutants whose names are identical aside from the `:line:col` prefix. A function-name regex would unintentionally exclude both.
 
 **Line:col-anchored** (`<file>:<line>:<col>: <suffix>`):
+
 - Surgical: kills exactly one mutant.
 - Fragile: silently breaks on line/column shifts. Always pair with a comment explaining what's at that location and why it's equivalent, so a future editor can re-anchor after a refactor.
 
@@ -103,7 +104,7 @@ Rule of thumb: prefer function-name when the mutant name is unique within its fu
 Both suppress mutants. They are not interchangeable.
 
 | Use `exclude_re` (config) when | Use `#[mutants::skip]` (attribute) when |
-|---|---|
+| -- | -- |
 | The fn or expression has **specific** mutations that are equivalent, but others are still in scope | The fn is wholly equivalent (e.g., a stub, or all paths inside it are invariants under all operator mutations) |
 | You want surgical line:col anchoring | You want function-level granularity and don't care about precision |
 | The fn is downstream code you don't want to annotate | You own the fn and want the rationale to live next to the code |
@@ -160,7 +161,7 @@ Reserve this for properties that genuinely hold across the type set with the sam
 Beyond `exclude_re`:
 
 | Key | Purpose |
-|---|---|
+| -- | -- |
 | `examine_re` | Allowlist: only test mutants whose names match. Inverse of `exclude_re`. |
 | `examine_globs` / `exclude_globs` | File-pathname filters (independent of mutant names). |
 | `timeout_multiplier` | Multiply baseline test time. Default 5.0; for FFI-heavy crates 2.0 is often enough and saves cycles. |

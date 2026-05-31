@@ -3,7 +3,6 @@ name: stdlib-audit
 description: Audit C++ source for known-bad standard library defaults (std::function, std::regex, std::list, std::map, std::unordered_map, std::async, std::vector<bool>, etc.) using a TSV-driven rule table that is extended by appending lines. Wraps a ripgrep-based shell script; reports per-rule hit counts and sample locations, exits non-zero on configurable severity (for CI). Targets C++17+ codebases.
 allowed-tools: Bash(*/stdlib-audit/stdlib-audit.sh:*)
 ---
-
 # stdlib-audit
 
 Static audit of C++ source for the catalogue of "do not use this, use that instead" standard library entries (the C++26-era walk-back catalogue plus the structurally-frozen container defaults). Rule table is data, not code — add a check by appending one TAB-separated line.
@@ -31,7 +30,7 @@ stdlib-audit/
 ```
 
 | Flag | Meaning | Default |
-|---|---|---|
+| -- | -- | -- |
 | `-r FILE` | Rule TSV path | `stdlib-rules.tsv` next to script |
 | `-e GLOB` | ripgrep exclude glob | `**/external/**` |
 | `-n N` | Detail samples per rule | `5` |
@@ -62,7 +61,7 @@ Lines starting with `#` and blank lines are ignored. To add a new check, append 
 ## Severity scale
 
 | Severity | Meaning | Examples |
-|---|---|---|
+| -- | -- | -- |
 | `crit` | Removed by current standard; any hit is a real bug | `std::auto_ptr`, `std::random_shuffle`, `gets()`, trigraphs |
 | `high` | Active footgun with a documented better replacement | `std::function`, `std::regex`, `std::list`, `std::async` |
 | `mid` | Structural smell; needs case-by-case judgement | `std::map`, `std::unordered_map`, `std::vector<bool>` |
@@ -84,7 +83,7 @@ For each hit, decide:
 ## C++17 replacement quick reference
 
 | Rule | C++17-available replacement |
-|---|---|
+| -- | -- |
 | `std::function` | template parameter; `tl::function_ref` (header-only, **non-owning** — only for function-parameter use, not for storage); `boost::function2` |
 | `std::regex` | CTRE (header-only, compile-time pattern); RE2; Boost.Regex |
 | `std::list` | `std::vector` (default); `std::deque`; `boost::intrusive::list` |

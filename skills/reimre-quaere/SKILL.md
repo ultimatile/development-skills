@@ -2,7 +2,6 @@
 name: reimre-quaere
 description: End-to-end wrapper running research-and-implement-quaere then review-pipeline on a GitHub issue, carrying it from investigation through the user-controlled merge gate. Quaere-based variant of `reimre`.
 ---
-
 # reimre-quaere
 
 End-to-end wrapper.

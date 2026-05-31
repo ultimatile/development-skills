@@ -2,7 +2,6 @@
 name: research-quaere
 description: Investigate a GitHub issue or free-text task with empirical (subagent probes) and derivational (in-context deduction) hypotheses, producing a vetted implementation plan with Inconclusive / Deferred items. Quaere-based variant of `research` — depends on `quaere-evidence` instead of `evidence-gated-review`. Accepts an issue number or task text.
 ---
-
 # research-quaere
 
 GitHub-integrated wrapper around `quaere-evidence`. Drives the Finding → Hypothesis → Defense → Probe → Decision workflow with parallel subagents and posts the resulting plan to GitHub. Do NOT write any production code in this skill.
@@ -19,16 +18,24 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
 ## Step 1 — Read issue/task and form hypotheses
 
 1. If existing issue, read it with `gh issue view`. Otherwise use the free text.
+
 2. Skim the project layout (directory tree, CLAUDE.md, key entry points). Do NOT deep-read files yet; that is the subagent's job.
+
 3. **Establish baselines.**
+
    - **Test baseline**: build and run existing tests. Record pre-existing failures so later regressions can be distinguished.
    - **Memory recall baseline**: read `MEMORY.md` (index only); for each entry whose one-line description plausibly intersects the work, open and read it. A hypothesis that contradicts an active memory rule is rejected at formation.
+
 4. Form hypotheses across three aspects:
+
    - **What needs to change**: required code modifications
    - **What invariants must hold**: contracts / preconditions / correctness properties
    - **What could break**: existing code paths affected by the change, especially where new inputs flow through existing APIs
+
 5. Each hypothesis is phrased as a **falsifiable Review Claim or Hypothesis** in the `quaere-evidence` sense — concrete enough that a subagent can attempt to disprove it.
+
 6. **Tag each hypothesis with a `kind`:**
+
    - `empirical` — resolved by reading code, running tests, observing runtime, inspecting git history, querying spec / external API / caller behavior. Subagent probes in Step 2 handle these.
    - `derivational` — resolved by deductive reasoning from defining equations / type laws / protocol axioms / mathematical or physical first principles. The truth value of a derivational hypothesis does not depend on the state of the codebase; reading more code will not resolve it. Step 2 handles these in the main context, not via subagents.
 
@@ -183,6 +190,7 @@ After Step 3 produces a plan and before Step 4 collects user approval:
    Bypassing is a deliberate user choice, not the default.
 
 2. **If review runs**: triage the findings.
+
    - **Implementation concerns** (algorithm details, error handling, test coverage gaps, naming): patch the plan in place and proceed to the loop gate below.
    - **Premise concerns** (the assumed root cause may be wrong, the described mechanism doesn't match how the code actually fails, a fixture's claimed properties may not hold, an "obvious" derivation is unproven): **return to Step 1**. Do not patch the plan in place — the hypothesis set itself is suspect, and incremental edits perpetuate the bad premise across iterations.
 

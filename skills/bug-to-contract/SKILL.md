@@ -2,7 +2,6 @@
 name: bug-to-contract
 description: Promote a review finding or bug fix into a contract test that prevents the underlying invariant violation from recurring. Companion to finding-to-audit, which elevates to diff-time rules instead.
 ---
-
 # Bug-to-Contract
 
 Review findings and bug fixes address symptoms. This skill asks: **what implicit specification was violated, and is that specification now tested?**
@@ -14,7 +13,7 @@ A single fix prevents one bug. A contract test prevents the entire class.
 This skill works from two kinds of input:
 
 | Input | What to collect |
-|---|---|
+| -- | -- |
 | Review findings | Actionable findings from any review pass (codex, Copilot, human reviewer) that resulted in code changes. The reviewer's framing of the issue. |
 | Fix commits | Branch commits whose subject signals a fix: `git log main..HEAD --oneline --grep="fix" -i`, then `git show <sha>`. |
 
@@ -25,9 +24,11 @@ When both are available, prefer review findings — a reviewer saying "this does
 ### 1. Collect signals
 
 **From review findings:**
+
 - For each actionable finding that resulted in a code change, note what the issue was and what changed.
 
 **From fix commits:**
+
 - Examine the diff of each fix commit:
   ```bash
   git log main..HEAD --oneline --grep="fix" -i
@@ -62,7 +63,7 @@ If a test exists that covers the general contract, the contract is already guard
 Identifying the category helps write a general test rather than a point fix test.
 
 | Category | Description | Example |
-|---|---|---|
+| -- | -- | -- |
 | Representation invariance | Result is independent of internal representation choices | Memory layout, stride order, storage format |
 | Algebraic identity | Mathematical property that must hold | Involution, associativity, commutativity |
 | Structural preservation | Shape, type, or metadata properties preserved through operations | Output shape matches specification, dtype preserved |

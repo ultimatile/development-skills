@@ -2,7 +2,6 @@
 name: file-pubdoc
 description: Draft README.md or visitor-facing markdown (top-level *.md, docs/**/*.md) using the canonical skeleton, complementing the public-doc-durability audit.
 ---
-
 # File Public Document
 
 Draft visitor-facing markdown (README and `docs/`) using a fixed skeleton so the resulting page documents present-tense, audience-public capability — not the author's session log, rationale dump, or roadmap.
@@ -121,6 +120,7 @@ Walk the skeleton top to bottom. For each section, write the minimum content tha
 Re-read the draft as if you had never seen the project. Two checks:
 
 - **Comprehensibility**: does a stranger learn what this project does and how to use it from sections 1–4 alone?
+
 - **Forbidden content sweep**: run the `quality-list` `public-doc-durability` mechanical patterns against the draft:
 
   ```bash

@@ -2,7 +2,6 @@
 name: review-pipeline
 description: Full review pipeline from local changes through PR, Copilot review, postmortem elevation, and umbrella drift join. Pauses at the user-controlled merge gate between Phase 4a and 4b.
 ---
-
 # Review Pipeline
 
 Orchestrate the full flow from local changes through PR review, user merge, postmortem elevation, and umbrella drift join. This skill ties together several sub-skills — invoke each by name.
@@ -12,9 +11,10 @@ The pipeline crosses a **user-controlled merge gate** (Phase 4a → 4b): the use
 ## Phase 0: Done-check loop
 
 0a. Run `/done-check` against the current diff (committed + staged + unstaged + untracked) 0b. Triage the audit table — every `⚠` concern is actionable 0c. If concerns exist:
-   - Fix the code
-   - Run `/done-check` again (fresh, full audit — same rule as the codex review loop: do not bias the next pass with the previous concerns list)
-   - Re-triage 0d. Repeat until all rows are `✅` or `⊘ N/A`
+
+- Fix the code
+- Run `/done-check` again (fresh, full audit — same rule as the codex review loop: do not bias the next pass with the previous concerns list)
+- Re-triage 0d. Repeat until all rows are `✅` or `⊘ N/A`
 
 Done-check runs **before** any commit. Resolving its concerns post-commit produces noisy fix-up commits in the codex review history; resolving them pre-commit keeps each commit a meaningful unit.
 
@@ -28,9 +28,9 @@ Done-check runs **before** any commit. Resolving its concerns post-commit produc
 ## Phase 2: Copilot review
 
 6a. Run `/file-pullreq` in **gate mode** — drafts the PR title + body following `gh-body-conventions` and the standard body skeleton, runs the laundering pass, and gets the user's approval. The skill stops at approval and emits the approved title + body for the next step. It does NOT create the PR itself. 6b. Run `/copilot-review`, passing the approved title + body — this creates the PR with `--reviewer @copilot` and polls until the review arrives.
-7. Triage the review — filter to the latest review's comments only (by `pull_request_review_id`)
-8. Reply to each inline comment individually via `gh-post reply-inline <owner>/<repo> <PR> < /tmp/replies.jsonl`. Build the JSONL with one `{"id": <comment-id>, "body": "<reply>"}` per line; the wrapper validates every body through the hardwrap detector before any send (halt-before-send) and prints un-sent indices on a mid-batch API failure.
-9. If actionable findings exist, apply the **fix-loop substeps** (see Rules), replacing the re-review step with `${CLAUDE_SKILL_DIR}/../copilot-review/scripts/pr-with-copilot-review.sh --re-review <PR_URL>`. Triage only new comments. Repeat until no actionable findings remain.
+7\. Triage the review — filter to the latest review's comments only (by `pull_request_review_id`)
+8\. Reply to each inline comment individually via `gh-post reply-inline <owner>/<repo> <PR> < /tmp/replies.jsonl`. Build the JSONL with one `{"id": <comment-id>, "body": "<reply>"}` per line; the wrapper validates every body through the hardwrap detector before any send (halt-before-send) and prints un-sent indices on a mid-batch API failure.
+9\. If actionable findings exist, apply the **fix-loop substeps** (see Rules), replacing the re-review step with `${CLAUDE_SKILL_DIR}/../copilot-review/scripts/pr-with-copilot-review.sh --re-review <PR_URL>`. Triage only new comments. Repeat until no actionable findings remain.
 
 ## Phase 3: Postmortem elevation (pre-merge)
 
@@ -64,6 +64,7 @@ Skip when the work is not tied to an umbrella tracking issue. Trigger only when 
     No match → skip Phase 4a and 4b entirely.
 
 16. **Derive the plan-vs-actual delta.** Compare the sub-issue's Scope / Out of scope / Acceptance against the merged-bound PR's actual diff and behavior. Cover:
+
     - Scope additions (work that landed but was not in the original Scope) — was it justified, or scope creep?
     - Scope subtractions (Scope items that were deferred or dropped) — were they punted to a follow-up issue?
     - Out-of-scope churn (deferrals that became in-scope, or new deferrals discovered during implementation)
@@ -103,6 +104,7 @@ Runs only after the user has merged.
 ## Rules
 
 - **Fix-loop substeps** (Phase 1 step 4 and Phase 2 step 9):
+
   1. **Oscillation check (iteration N ≥ 2).** Compare current actionable topics against the previous iteration's preserved topics. If any conceptual topic recurs, halt and follow the escalation order below — do NOT fix or done-check.
   2. Fix the code.
   3. Run `/done-check` in delta mode.
@@ -110,31 +112,48 @@ Runs only after the user has merged.
   5. Re-run the review (fresh, full review — no bias from previous iteration). Phase 2 uses `--re-review` instead.
   6. Preserve actionable topic classifications for the next iteration's oscillation check.
   7. Re-triage (Phase 2: only new comments).
+
 - **Never skip done-check, including in fix loops.** Every fix commit is itself a diff that can introduce new drift — especially `completion-hygiene` and `paired-artifact-drift`.
+
 - **Done-check delta mode.** Report only rows whose status changes from the previous audit, plus any new ⚠. Resolve every new ⚠ before the subsequent `/stage-commit-push`. Pay special attention to:
+
   - `paired-artifact-drift`: every comment / docstring / PR-body sentence touched by or referring to the fixed code must still be accurate.
   - `completion-hygiene`: pre-commit hooks catch lint / fmt / line count, but the fix may have added stray `dbg!` / `println!` / scratch test code.
   - The PR description: if a fix invalidates a claim in the description (e.g., "previously-missed mutant is now caught" became "now excluded"), update the description in the same iteration.
+
 - **Never skip codex review.** Even for small fixes, run the full loop. Codex review catches things that are invisible in the diff alone.
+
 - **Never inject previous review comments into the next review prompt.** Each review iteration must be fresh and unbiased, so it can catch both regressions from the fix and new problems.
+
 - **Every commit goes through `/stage-commit-push`.** Do not manually run git add/commit/push during the pipeline. The skill ensures consistent commit message generation.
+
 - **Pre-commit branch gate.** Before each `/stage-commit-push`, verify the current branch is not the repo's default branch:
 
-      test "$(git symbolic-ref --short HEAD)" != "$(git symbolic-ref --short refs/remotes/origin/HEAD | sed 's@^origin/@@')"
+  ```
+  test "$(git symbolic-ref --short HEAD)" != "$(git symbolic-ref --short refs/remotes/origin/HEAD | sed 's@^origin/@@')"
+  ```
 
   Halt and surface to user if equal. The session-start branch baseline is one-shot and does not catch silent mid-session branch switches.
+
 - **Reply to Copilot comments individually**, not as a single PR comment. Use `gh-post reply-inline <owner>/<repo> <PR> < /tmp/replies.jsonl` so every reply body passes the hardwrap validator and the batch halts before send on any body failure. JSONL shape: one `{"id": <comment-id>, "body": "<reply>"}` per line.
+
 - **Triage is mandatory.** Never present raw review output to the user. Classify findings and lead with actionable items.
+
 - **Sub-classify actionable findings before fixing.** Not all actionable findings warrant the same response:
+
   - **Surface** (typo, stale comment, wrong API name): fix is self-evident. Commit immediately.
   - **Invariant** (claims about mathematical properties, semantic validity, precondition necessity): the finding's *conclusion* may be correct, but its *premise* may be wrong. Before committing a fix, verify the premise — check whether the invariant the finding assumes actually holds, by reading code, tests, and running targeted experiments. If unsure, ask codex a single targeted question via `codex exec "<fix proposal + one specific question about the premise>" -o /tmp/fix-check.md` before committing.
+
 - **Oscillation detection.** Run at the start of each fix-loop iteration (the first sub-bullet under "If actionable findings exist" in Phase 1 step 4 and Phase 2 step 9), BEFORE fix and done-check. If the same conceptual topic (not the same literal comment, but the same underlying question — e.g., "is this input valid?", "does this property hold?", "should this parameter accept both values?") appears across 2+ consecutive review iterations, stop fixing and escalate to the user. Repeated findings on one topic signal that the underlying invariant is not understood well enough for a confident fix.
 
   **Escalation order.** Before presenting the fix-direction question (panic vs allow vs convert vs ...), FIRST ask whether the original plan scope is correct. Oscillation in the fix-direction space is the symptom that the contract is empty or depends on something outside the plan's scope — refining the fix without rescoping just re-anchors the same empty contract from a different angle. Ask in this order:
+
   1. **Is this question even single-actionable inside the current plan?** Does the disagreement among reviewers concern an upstream undecided design question (consumer semantics, system invariant, layout authority, etc.) that the plan implicitly assumed?
   2. **If yes upstream**: rescope. Close the current PR, refile the upstream design question as a separate issue, and let the current API decision fall out of that resolution. This is the right move even when the current fix is technically correct in isolation.
   3. **If no upstream issue**: present what is known, what is uncertain, and ask the user to choose among the surviving fix options.
 
   The "no-clarifying-questions" mode does NOT override this rule — the escalation IS what the user delegated. Convergence of three independent reviewers on the same API-contract concern is the signal regardless of mode.
+
 - **Pause at the merge gate.** Phase 4b runs only after the user merges. Do not run `gh pr merge` from Claude unless explicitly asked.
+
 - **Contract-test review is bounded.** `/codex-contract-test-review` allows at most one revise-and-re-review cycle. If it doesn't converge, the contract itself is unclear — escalate, don't loop.

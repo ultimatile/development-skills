@@ -2,7 +2,6 @@
 name: breachreaper
 description: Audit existing code for stock-detectable API-contract breaches.
 ---
-
 # breachreaper
 
 Audit production code for stock-detectable API-contract breaches. Report findings only; do not edit production code. Resolutions (API redesign, trait extraction, dependency-direction repair, shared validator extraction) are architectural decisions left to the user.

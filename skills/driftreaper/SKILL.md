@@ -2,7 +2,6 @@
 name: driftreaper
 description: Audit docstrings for drift — claims that no longer match actual code behavior. Optional scope argument (file path, directory, or module name); without arguments, audits the entire workspace.
 ---
-
 # driftreaper
 
 Audit docstrings for SSOT violations (drift between documentation and code). Do NOT write production code — only fix docstrings or report findings.
@@ -21,7 +20,7 @@ Docstrings are the primary source of truth for both human callers and AI agents.
 For each public item in scope, read the docstring and extract verifiable claims. Claims fall into these categories:
 
 | Category | Example | How to verify |
-|---|---|---|
+| -- | -- | -- |
 | Return type / shape | "returns (Q, R) where Q has flux = identity()" | Read the function body or the callee it delegates to |
 | Precondition | "panics if center >= chain.len()" | Search for the assert/panic in the body |
 | Postcondition | "after completion, canonical form is Mixed { center }" | Trace the code path to the set_canonical_form call |

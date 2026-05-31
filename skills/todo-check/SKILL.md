@@ -2,7 +2,6 @@
 name: todo-check
 description: Preflight sweep of quality-list items before or during implementation, framed as 'what to set up so done-check passes at the end'. Dual of done-check.
 ---
-
 # Todo-Check
 
 Forward-looking preflight against the current scope. Item definitions live in `quality-list`; this skill is the **runner**. Update `quality-list`, not this file, when adding or modifying items.
@@ -36,6 +35,7 @@ It is acceptable to invoke `todo-check` more than once during a task. `done-chec
    The active rule set = base items plus, for each item with content in the loaded addendum, that addendum's section. The preflight framing in Step 2 considers both.
 
 1. **Identify the work scope.** Pull from the plan if one exists, otherwise from the current task description. Determine:
+
    - What files / modules will change
    - What public symbols, schemas, or contracts will move
    - What invariants the change introduces or modifies

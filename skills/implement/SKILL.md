@@ -2,7 +2,6 @@
 name: implement
 description: Execute a prior research plan via execution-loop with GitHub issue integration, plan-vs-actual drift, done-check, and conventional commits. Optional issue number argument.
 ---
-
 # implement
 
 GitHub-integrated wrapper around `execution-loop`. Drives the Read → Plan → Execute → Review → Fix → Verify → Commit workflow with plan-vs-actual drift surfacing and a final `done-check` audit.

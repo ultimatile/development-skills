@@ -2,7 +2,6 @@
 name: quality-list
 description: Single source of truth for universal code-quality items. Definitions live in items/<slug>.md; audit and preflight skills reference items by slug.
 ---
-
 # Quality List (SSOT)
 
 This skill is **a definition file, not a runnable procedure**. Skills that audit or preflight against universal code-quality apply these items by reference. When an item changes, referencing skills pick up the change automatically — do not copy item text into them.

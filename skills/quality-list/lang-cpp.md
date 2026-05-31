@@ -4,7 +4,7 @@ This file extends `SKILL.md` with C++-specific triggers, mitigation idioms, and 
 
 This file does **not** introduce new audit items. Items live in `items/<slug>.md` and are language-neutral. Each section below corresponds to an existing item slug and provides the C++ realization: what to grep for, what conversion semantics apply, what idioms remediate the concern. When auditing, treat the language addendum as the concrete answer to "how does this generic item manifest in C++ specifically?"
 
----
+______________________________________________________________________
 
 ## `signature-change-regression`
 
@@ -25,22 +25,27 @@ Implicit conversions in C++ are abundant and the failure mode of this item manif
 ### Mitigation idioms
 
 - **`= delete;` overload with the old signature shape:**
+
   ```cpp
   // New API
   inline void f(Bar b);
   // Sentinel — fails to compile on any old call form with leading `Foo`
   void f(Foo /* removed parameter */, Bar) = delete;
   ```
+
   Use when the migration window is short and you want hard failure at every stale call site.
 
 - **`[[deprecated]]` overload forwarding to the new form** during a phased migration window:
+
   ```cpp
   [[deprecated("Pass Bar directly; Foo argument removed")]]
   inline void f(Foo /* old */, Bar b) { f(b); }
   ```
+
   Use when downstream callers need a grace period (out-of-tree consumers, public library API).
 
 - **Strong typedef / phantom-tagged newtype** over the affected parameters. Eliminates the implicit-conversion edge at the type system level — the audit becomes vacuous because `T → U` is no longer a valid conversion:
+
   ```cpp
   // Instead of: void f(double cutoff, double tolerance);
   struct Cutoff    { double v; explicit Cutoff(double x) : v(x) {} };
@@ -49,6 +54,7 @@ Implicit conversions in C++ are abundant and the failure mode of this item manif
   // Old call `f(0.1, 0.2)` now fails to compile; caller must write
   // `f(Cutoff{0.1}, Tolerance{0.2})`, making the meaning explicit.
   ```
+
   Use when the parameter family is a domain concept that recurs throughout the project (SSOT candidates, units, ID classes).
 
 - **Avoid default arguments on SSOT-required parameters.** Default arguments are the most common source of silent positional drift: when the slot moves or its type changes, the caller's defaulted-away argument silently rebinds. Requiring callers to write the argument explicitly (no default) makes the positional slot visible at every call site.
@@ -58,14 +64,17 @@ Implicit conversions in C++ are abundant and the failure mode of this item manif
 Step-by-step:
 
 1. **Detect signature changes in the diff.** Grep for changed function declarations:
+
    ```sh
    git diff <base>..HEAD -- '*.h' '*.hpp' '*.cpp' | rg '^[+-].*\binline\b|^[+-].*\)\s*[{;]' | rg -B1 -A1 '^[+-]'
    ```
+
    Or more reliably, eyeball each header-file hunk for parameter-list changes.
 
 2. **For each changed signature**, capture old types `T₁, T₂, …` and new types `U₁, U₂, …`.
 
 3. **For each removed / substituted parameter type `T_old` at position `k`**, ask: does there exist any `U_j` (in the new signature) reachable from the same syntactic position at the call site, such that `T_old → U_j` is implicit?
+
    - Construction edges: is `U_j` constructible from `T_old`? (`std::optional<X>(double)`, `std::string(const char*)`, etc.)
    - Conversion operators on `T_old`.
    - Standard arithmetic / pointer conversions.
@@ -88,7 +97,7 @@ The base item's N/A clause requires either no public signature change OR exhaust
 
 If any of these conditions hold and the call-site sweep was not exhaustive in *both* the lexical and the build-configuration dimensions, the item is **not** N/A; demand a sentinel overload or a strong type.
 
----
+______________________________________________________________________
 
 ## `implementation-guards`
 

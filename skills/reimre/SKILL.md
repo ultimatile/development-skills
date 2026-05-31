@@ -2,7 +2,6 @@
 name: reimre
 description: End-to-end wrapper running research-and-implement then review-pipeline on a GitHub issue, carrying it from investigation through the user-controlled merge gate.
 ---
-
 # reimre
 
 End-to-end wrapper.

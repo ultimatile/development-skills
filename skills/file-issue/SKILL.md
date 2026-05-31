@@ -2,7 +2,6 @@
 name: file-issue
 description: Draft and file a GitHub issue using gh-body-conventions and the issue body skeleton, via the gh-post wrapper.
 ---
-
 # File Issue
 
 Draft a GitHub issue body that follows the user's conventions, show the draft for approval, then file via `gh`.
@@ -44,6 +43,7 @@ After filing, append the new sub-issue's number to the umbrella's Phases table r
 ### 1. Confirm scope
 
 Before drafting, identify:
+
 - Target repo (`gh repo view` if unclear).
 - Whether this is a bug, feature, design discussion, or umbrella sub-issue. The default body shape covers the first three; umbrella sub-issues use the shape defined in `Variants > Umbrella sub-issue` above.
 - Any related issues/PRs to link.
@@ -106,5 +106,6 @@ If labels or assignees are appropriate and the user mentioned them, add `--label
 ### 6. Report
 
 After filing, show the user:
+
 - The issue number and URL.
 - Any follow-up actions (e.g., linking from a parent umbrella issue, mentioning in a PR).

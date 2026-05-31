@@ -3,7 +3,6 @@ name: copilot-review
 description: Create a GitHub PR with Copilot as reviewer and poll until the review arrives.
 allowed-tools: Bash(*/copilot-review/scripts/pr-with-copilot-review.sh:*), Bash(*/copilot-review/scripts/list-pr-threads.sh:*)
 ---
-
 # Copilot Review
 
 Create a GitHub PR, request Copilot review, poll until it arrives, and triage the results.
@@ -53,6 +52,7 @@ This skips PR creation and review request, going straight to polling.
 Copilot reviews see the diff and file contents but lack project-specific knowledge about design decisions, test coverage, or runtime verification.
 
 For each finding:
+
 1. **Cross-check** against what you already know from the current conversation — code you've read, tests you've run, decisions made with the user
 2. **Classify** as actionable, false positive (with reasoning), or uncertain
 3. **Present the triage** to the user — don't dump raw review output

@@ -9,7 +9,7 @@ Renames, removals, and module-structure changes have to be threaded through ever
 - For each new public callsite that produces, returns, or attaches behavior to an existing public type (new function / method, added trait implementation, added subclass / extension, etc.):
   - Re-read that type's own definition-level docstring against the current producer set. Definition-level docstrings often list producers / consumers / sources of an instance (e.g. "raised by X", "returned by X", "produced by X", "consumed by X") and silently rot when the list grows.
   - **Additionally, run a file-scoped grep over the shared type's source file for the existing sibling's identifier.** When a sibling function / method / handler / impl already exists, that file frequently names it in surfaces that are *not* the type's primary docstring:
-    - doc cross-references / link macros (rustdoc `[`X`]`, Sphinx `:func:`X``, JSDoc `{@link X}`, KDoc `[X]`, etc.)
+    - doc cross-references / link macros (rustdoc `[`X`]`, Sphinx `:func:`X\`\`, JSDoc `{@link X}`, KDoc `[X]`, etc.)
     - user-facing message strings (formatter / `__str__` / `Display` output, error messages, log lines, exception messages)
     - per-case docs inside enumerated types (enum variants, sum-type cases, discriminated-union members)
     - example or "raised by" / "returned by" snippets in module-level / namespace-level prose. Evaluate each hit for whether the new sibling should also be named — patching only what an external review tool flags lets findings cluster by surface kind and converge slowly across multiple review rounds.
