@@ -24,6 +24,15 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 |---|---|
 | `file-issue` | Draft and file a GitHub issue following formatting conventions (semantic line breaks, LaTeX math, no local references). Includes an umbrella sub-issue variant (Parent: linkage, Goal/Scope/Out of scope/Acceptance shape) used by `research` when spawning sub-issues from an umbrella |
 | `file-adr` | Draft an Architecture Decision Record (a timeless decision, distinct from an implementation schedule) and write the file under the project's ADR directory. Enforces classification against `file-issue` and a frozen-after-Acceptance discipline |
+| `file-pullreq` | Draft and file a GitHub PR following the PR body skeleton, routed through the `gh-post` wrapper. Supports a gate mode that stops at user approval before posting |
+| `gh-body-conventions` | Single source of truth for GitHub issue / PR body conventions — semantic line breaks, LaTeX-safe math, reference / exclusion policies, language defaults. Definition file referenced by the drafting and check skills, not a procedure |
+| `gh-body-check` | Audit a drafted or filed GitHub issue / PR body against `gh-body-conventions` via a fresh-context subagent; any unresolved ⚠ blocks the caller |
+
+### Documentation
+
+| Skill | Description |
+|---|---|
+| `file-pubdoc` | Draft `README.md` or visitor-facing markdown (top-level `*.md`, `docs/**/*.md`) from the canonical skeleton, complementing the public-doc-durability audit |
 
 ### Code → Review → Ship
 
