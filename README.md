@@ -15,8 +15,6 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | `implement-quaere` | Quaere-based variant of `implement`. Same workflow with the inner loop delegated to `quaere-execution` (Plan → Do → Study → Act). Depends on [haru0416-dev/quaere](https://github.com/haru0416-dev/quaere) (`quaere-execution`) |
 | `research-and-implement` | End-to-end wrapper that runs `research` (Phase 1) then `implement` (Phase 2), with a branch baseline gate up front. Depends on [haru0416-dev/agent-skills](https://github.com/haru0416-dev/agent-skills) (`evidence-gated-review` + `execution-loop`) |
 | `research-and-implement-quaere` | Quaere-based variant of `research-and-implement`. Sequences `research-quaere` then `implement-quaere`. Depends on [haru0416-dev/quaere](https://github.com/haru0416-dev/quaere) (`quaere-evidence` + `quaere-execution`) |
-| `reimre` | Full end-to-end wrapper — runs `research-and-implement` then `review-pipeline` back to back, with an automatic seam rule that skips the duplicate `done-check` at the boundary. Stops at the user-controlled merge gate inherited from `review-pipeline`. |
-| `reimre-quaere` | Quaere-based variant of `reimre`. Runs `research-and-implement-quaere` then `review-pipeline` with the same seam rule and merge gate. |
 
 ### Issue & PR drafting
 
@@ -42,6 +40,13 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | `codex-review` | Run OpenAI Codex review with triage before PR creation |
 | `copilot-review` | Create PR with GitHub Copilot review, poll for results, triage |
 | `review-pipeline` | Orchestrator — runs the full flow from local changes to reviewed PR |
+
+### End-to-end composite
+
+| Skill | Description |
+| -- | -- |
+| `reimre` | Full end-to-end wrapper — runs `research-and-implement` then `review-pipeline` back to back, with an automatic seam rule that skips the duplicate `done-check` at the boundary. Stops at the user-controlled merge gate inherited from `review-pipeline`. |
+| `reimre-quaere` | Quaere-based variant of `reimre`. Runs `research-and-implement-quaere` then `review-pipeline` with the same seam rule and merge gate. |
 
 ### Quality Gates
 
@@ -72,20 +77,26 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 
 ## Install
 
+### development-skills
+
 ```bash
 claude plugin marketplace add ultimatile/development-skills
 claude plugin install development-skills
 ```
 
+### gh-post
+
 The skills that draft or post GitHub issue / PR bodies (`file-issue`, `file-pullreq`, `copilot-review`, `review-pipeline`, `research`, `implement`, and their wrappers / `-quaere` variants) route every body through the [`gh-post`](https://github.com/ultimatile/gh-post) wrapper — a `gh` front-end that accepts bodies only via `--body-file` / `--body-stdin` and re-runs a hard-wrap validator before forwarding to `gh`. Install it and make sure `gh-post` is on `PATH`.
 
-The `*-quaere` variants (`research-quaere`, `implement-quaere`, `research-and-implement-quaere`, `reimre-quaere`) additionally require the upstream Quaere skills (`quaere-evidence`, `quaere-execution`, `quaere-semantic`) installed under `~/.claude/skills/`:
+### Quaere skills
+
+The `*-quaere` variants (`research-quaere`, `implement-quaere`, `research-and-implement-quaere`, `reimre-quaere`) require the upstream Quaere skills (`quaere-evidence`, `quaere-execution`, `quaere-semantic`) installed under `~/.claude/skills/`:
 
 ```bash
 npx quaere-cli install --target claude
 ```
 
-The original variants (without the `-quaere` suffix) continue to depend on the archived [haru0416-dev/agent-skills](https://github.com/haru0416-dev/agent-skills) (`evidence-gated-review`, `execution-loop`).
+The original variants (without the `-quaere` suffix) instead depend on the archived [haru0416-dev/agent-skills](https://github.com/haru0416-dev/agent-skills) (`evidence-gated-review`, `execution-loop`).
 
 ## Credits
 
