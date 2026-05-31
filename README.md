@@ -70,24 +70,6 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | `languages/Rust/rust-ffi-rule` | Rules for implementing a Rust safe wrapper around an external (C / Fortran / FFI) call |
 | `languages/Cpp/stdlib-audit` | Audit C++ source for known-bad standard library defaults via a TSV-driven, extensible rule table |
 
-## End-to-end flow
-
-```
-/research <issue>        → plan posted to issue
-     ↓
-/codex-plan-review       → plan validated against codebase
-     ↓
-/implement <issue>       → code written, tests green
-     ↓
-/review-pipeline         → codex review loop → PR with Copilot review → fix loop
-     ↓
-/bug-to-contract         → contract tests added for findings
-     ↓
-/driftreaper             → periodic docstring audit
-```
-
-`/reimre <issue>` collapses the first four steps (research → plan review → implement → review-pipeline) into one invocation with the seam handled automatically.
-
 ## Install
 
 ```bash
