@@ -28,7 +28,7 @@ This skill is **a definition file, not a runnable procedure**. Skills that draft
 
 ## Authoring via file
 
-Write the body to a file (typically under `/tmp/`) and pass it to the `gh-post` wrapper via `--body-file`. Direct `gh (issue|pr) (create|edit|comment) --body*` is blocked by a `PreToolUse` hook. The block applies at the GitHub API boundary only, so heredocs writing the body file itself (`cat > /tmp/body.md <<'EOF' ... EOF`) are fine.
+Write the body to a file (typically under `/tmp/`) and pass it to the `gh-post` wrapper via `--body-file`. Never pass the body inline to `gh` (`gh (issue|pr) (create|edit|comment) --body*`); route it through `gh-post`. Writing the body file itself with a heredoc (`cat > /tmp/body.md <<'EOF' ... EOF`) is fine.
 
 ## Math
 

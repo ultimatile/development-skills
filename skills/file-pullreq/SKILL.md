@@ -114,7 +114,7 @@ gh-post pr create \
   --body-file /tmp/<descriptive-name>.md
 ```
 
-`gh-post` funnels every body through stream input and re-runs the hardwrap validator before forwarding to `gh`. Direct `gh pr create --body ...` is blocked by the companion `PreToolUse` hook. Add `--draft` if the user wants a draft PR; extra flags (`--label`, `--reviewer <login>`, etc.) are forwarded to `gh` verbatim.
+`gh-post` funnels every body through stream input and re-runs the hardwrap validator before forwarding to `gh`, so always create the PR through `gh-post` rather than `gh pr create --body ...` directly. Add `--draft` if the user wants a draft PR; extra flags (`--label`, `--reviewer <login>`, etc.) are forwarded to `gh` verbatim.
 
 Do not auto-add `@copilot` here — Copilot review is `copilot-review`'s responsibility (gate mode below).
 
