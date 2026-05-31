@@ -1,0 +1,8 @@
+# partfmt: split frontmatter from body, format each region, merge back.
+# Standalone config form — keys are top-level (no [tool.partfmt] prefix).
+
+[frontmatter]
+run = ["prettier", "--parser", "yaml"]
+
+[body]
+run = ["mdformat", "--number", "--compact-tables", "-"]

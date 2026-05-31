@@ -1,0 +1,11 @@
+# partfmt has no .pre-commit-hooks.yaml, so it is wired as a local system hook
+# invoking the installed `partfmt` CLI. `files` restricts it to Markdown only.
+repos:
+  - repo: local
+    hooks:
+      - id: partfmt
+        name: partfmt (frontmatter-aware Markdown formatting)
+        entry: partfmt write
+        language: system
+        files: \.md$
+        require_serial: true
