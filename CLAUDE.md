@@ -16,6 +16,7 @@ Surface-specific overrides (apply first):
 
 - **Documentation-only** change (top-level doc files including `README.md` and `CLAUDE.md`, anything under `docs/` if added later) → `docs` (regardless of add/remove). These don't change plugin behavior, so no bump and no tag (see Versioning below).
 - **`.claude-plugin/marketplace.json` only** change → `chore` (regardless of add/remove). Routine version bumps with no other change fall here.
+- **Pure formatting pass** (whitespace, table padding, list renumbering, or any other output of a formatter such as `partfmt`/`mdformat` with no semantic content change) → `style`, regardless of which files it touches (`skills/` included). These change no plugin behavior, so no bump and no tag (see Versioning below).
 
 For changes touching skills / code / other content (coarse rule):
 
@@ -41,7 +42,7 @@ For changes touching skills / code / other content (coarse rule):
 **Bump rule:**
 
 - Bump `metadata.version` on **`feat` and `fix` commits only**. These represent plugin-behavior changes that consumers should be able to pin to.
-- **Do NOT bump on `docs` or `chore` commits.** These are out-of-band housekeeping (README rewording, marketplace.json formatting / metadata edits that aren't a version) and produce no consumer-visible behavior delta.
+- **Do NOT bump on `docs`, `chore`, or `style` commits.** These are out-of-band housekeeping (README rewording, marketplace.json formatting / metadata edits that aren't a version, formatter output) and produce no consumer-visible behavior delta.
 - When bumped, the new version becomes the git tag for that commit. No `v` prefix.
 - Example: current `2026.5.51` → next `feat`/`fix` commit tags `2026.5.52`. A `docs` or `chore` commit between them carries no tag and leaves the version untouched.
 
@@ -61,14 +62,21 @@ Language-specific skills go under `skills/languages/<Language>/<skill-name>/` (c
 For every commit:
 
 1. Make the code / skill / doc changes.
+
 2. Update `.claude-plugin/marketplace.json` as applicable:
+
    - Bump `metadata.version` — **only on `feat` / `fix` commits**; skip on `docs` / `chore`.
    - Update `plugins[0].skills` (only if adding or removing a skill).
+
 3. Update `README.md` skill table (only if adding or removing a skill).
+
 4. Stage and commit with a conventional-commit message per the rules above.
-5. **On `feat` / `fix` commits only**: `git tag <new-version>` on the commit just created. `docs` and `chore` commits are not tagged.
+
+5. **On `feat` / `fix` commits only**: `git tag <new-version>` on the commit just created. `docs`, `chore`, and `style` commits are not tagged.
+
 6. Push:
+
    - `feat` / `fix`: `git push && git push origin <new-version>` (commit then tag explicitly).
-   - `docs` / `chore`: `git push`.
+   - `docs` / `chore` / `style`: `git push`.
 
    Tags in this repo are **lightweight** (`git tag <name>`, no `-a`). `git push --follow-tags` only pushes annotated tags, so it will silently skip lightweight tags — always push lightweight tags by name. If a `feat` / `fix` commit lands on the remote without its corresponding tag, that is a broken state — push the tag immediately.
