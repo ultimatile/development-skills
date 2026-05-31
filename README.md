@@ -86,6 +86,8 @@ claude plugin marketplace add ultimatile/development-skills
 claude plugin install development-skills
 ```
 
+The skills that draft or post GitHub issue / PR bodies (`file-issue`, `file-pullreq`, `copilot-review`, `review-pipeline`, `research`, `implement`, and their wrappers / `-quaere` variants) route every body through the [`gh-post`](https://github.com/ultimatile/gh-post) wrapper — a `gh` front-end that accepts bodies only via `--body-file` / `--body-stdin` and re-runs a hard-wrap validator before forwarding to `gh`. Install it and make sure `gh-post` is on `PATH`.
+
 The `*-quaere` variants (`research-quaere`, `implement-quaere`, `research-and-implement-quaere`, `reimre-quaere`) additionally require the upstream Quaere skills (`quaere-evidence`, `quaere-execution`, `quaere-semantic`) installed under `~/.claude/skills/`:
 
 ```bash
