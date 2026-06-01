@@ -39,4 +39,4 @@ Listed in canonical reading order. Reference items by slug (e.g., `behavior-cove
 - [public-doc-durability](items/public-doc-durability.md) — mechanical
 - [public-api-surface](items/public-api-surface.md) — mechanical
 
-Language-specific addenda live alongside this file as `lang-<language>.md` and supplement specific items with triggers and mitigation idioms (current example: `lang-cpp.md`).
+Language-specific addenda live alongside this file as `lang-<language>.md` and supplement specific items with triggers and mitigation idioms (current examples: `lang-cpp.md`, `lang-rust.md`).
