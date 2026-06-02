@@ -13,7 +13,7 @@ Both skills walk the same list. Both reference `quality-list`.
 ## When to use
 
 - Immediately before implementation begins, against the plan / spec.
-- Between units inside `execution-loop` or `implement` when the next unit changes the active item set (e.g., a unit introduces a new public API → `impact-verification`, `paired-artifact-drift` become active).
+- Between implementation units, when the next unit changes the active item set (e.g., a unit introduces a new public API → `impact-verification`, `paired-artifact-drift` become active).
 - Before adding or designing tests, when `behavior-coverage` is the constraint to honor.
 
 It is acceptable to invoke `todo-check` more than once during a task. `done-check` runs once at the end as the audit.
