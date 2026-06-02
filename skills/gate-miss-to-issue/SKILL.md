@@ -35,5 +35,3 @@ Hand `file-issue` these four points:
 - **Proposed improvement** — a concrete procedure change (a new sweep, a tightened definition, an added probe class). A proposal; the fix is settled in the issue.
 
 Toolchain names (skills, gates, review tools) are in-context for this repo — it *is* that toolchain — so the issue may reference them freely, unlike work-repo artifacts.
-
-Optionally tag the issue with the run's discipline (e.g. quaere / non-quaere); the accumulated log then doubles as workflow-eval data.

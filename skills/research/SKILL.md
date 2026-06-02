@@ -4,7 +4,7 @@ description: Investigate a GitHub issue or free-text task with empirical (subage
 ---
 # research
 
-GitHub-integrated wrapper around `evidence-gated-review`. Drives the Finding → Hypothesis → Defense → Probe → Decision workflow with parallel subagents and posts the resulting plan to GitHub. Do NOT write any production code in this skill.
+GitHub-integrated wrapper around `quaere-evidence`. Drives the Finding → Hypothesis → Defense → Probe → Decision workflow with parallel subagents and posts the resulting plan to GitHub. Do NOT write any production code in this skill.
 
 **Issue / task:** $ARGUMENTS
 
@@ -32,7 +32,7 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
    - **What invariants must hold**: contracts / preconditions / correctness properties
    - **What could break**: existing code paths affected by the change, especially where new inputs flow through existing APIs
 
-5. Each hypothesis is phrased as a **falsifiable Review Claim or Hypothesis** in the evidence-gated-review sense — concrete enough that a subagent can attempt to disprove it.
+5. Each hypothesis is phrased as a **falsifiable Review Claim or Hypothesis** in the `quaere-evidence` sense — concrete enough that a subagent can attempt to disprove it.
 
 6. **Tag each hypothesis with a `kind`:**
 
@@ -52,21 +52,21 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
 
 Hypotheses split by `kind`. Empirical hypotheses go through subagent probes (Step 2.A). Derivational hypotheses are resolved in the main context (Step 2.B). Both must complete before Step 3 consolidates.
 
-### Step 2.A — Empirical hypotheses (subagents under evidence-gated-review)
+### Step 2.A — Empirical hypotheses (subagents under quaere-evidence)
 
-Spawn one subagent per `empirical` hypothesis (or per small related group). Each subagent operates under the `evidence-gated-review` skill and follows its workflow exactly. The wrapper's job is to pre-fill the contract; the subagent's job is to honor it.
+Spawn one subagent per `empirical` hypothesis (or per small related group). Each subagent operates under the `quaere-evidence` skill and follows its workflow exactly. The wrapper's job is to pre-fill the contract; the subagent's job is to honor it.
 
 Subagent contract:
 
-1. **Run `evidence-gated-review`** with the assigned hypothesis as the initial Review Claim or Hypothesis.
-2. **Probes (per evidence-gated-review §5) are three-way: Supporting / Disconfirming / Scope.** The Disconfirming probe **must be actually executed**, not just listed — this is the most common silent-failure mode.
-3. **For non-trivial existing code, read at semantic-review depth** (its `What / Why / Invariants / Failure / Connections` schema with the UNKNOWN-probe discipline). Shallow grep-only verification is permitted only for trivially mechanical hypotheses (existence checks, file locations).
+1. **Run `quaere-evidence`** with the assigned hypothesis as the initial Review Claim or Hypothesis.
+2. **Probes (per `quaere-evidence` §5) are three-way: Supporting / Disconfirming / Scope.** The Disconfirming probe **must be actually executed**, not just listed — this is the most common silent-failure mode.
+3. **For non-trivial existing code, read at `quaere-semantic` depth** (its `What / Why / Invariants / Failure / Connections` schema with the UNKNOWN-probe discipline). Shallow grep-only verification is permitted only for trivially mechanical hypotheses (existence checks, file locations).
 4. **Runtime probe (preferred for behavioral claims).** Behavioral claims (output ordering, return shape, error-path return, ABI / FFI layout, signal handling, performance) need a minimal reproducer — docs reading is corroboration, not verification. Boundary cases (minimal/maximal sizes, type variations, single-element containers) belong here.
 5. **Caller-contract verification for change-impact hypotheses.** Classify the change as compile-breaking (new required trait method, type change) or silently semantic (same signature, different behavior). Semantic changes need caller-by-caller verification — the compiler will not catch them. Flag any public API with unchecked internal assumptions (pointer arithmetic trusting an offset, a serializer trusting field order, an index trusting contiguity); boundary-contract violations propagate silently into these.
-6. Return a **Decision** in the four-state shape from evidence-gated-review §6 (`confirmed` / `rejected` / `inconclusive` / `deferred`). For `inconclusive`, attach the remaining `probe:`. For `deferred`, attach reason and resolution-point.
+6. Return a **Decision** in the four-state shape from `quaere-evidence` §6 (`confirmed` / `rejected` / `inconclusive` / `deferred`). For `inconclusive`, attach the remaining `probe:`. For `deferred`, attach reason and resolution-point.
 7. Report back with concise file paths, line numbers, function signatures, and probe results.
 
-**Subagent granularity**: hypotheses requiring only existence checks or single-file grep can be resolved directly from the main context. Reserve subagents for hypotheses that touch multiple files or need deep reading. Spawn all empirical-hypothesis subagents in a single message so they run in parallel; each owns its own evidence-gated-review ledger.
+**Subagent granularity**: hypotheses requiring only existence checks or single-file grep can be resolved directly from the main context. Reserve subagents for hypotheses that touch multiple files or need deep reading. Spawn all empirical-hypothesis subagents in a single message so they run in parallel; each owns its own `quaere-evidence` ledger.
 
 ### Step 2.B — Derivational hypotheses (deductive verification in main context)
 

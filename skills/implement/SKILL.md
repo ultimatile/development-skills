@@ -1,10 +1,10 @@
 ---
 name: implement
-description: Execute a prior research plan via execution-loop with GitHub issue integration, plan-vs-actual drift, done-check, and conventional commits. Optional issue number argument.
+description: Execute a prior research plan via quaere-execution with GitHub issue integration, plan-vs-actual drift, done-check, and conventional commits. Optional issue number argument.
 ---
 # implement
 
-GitHub-integrated wrapper around `execution-loop`. Drives the Read → Plan → Execute → Review → Fix → Verify → Commit workflow with plan-vs-actual drift surfacing and a final `done-check` audit.
+GitHub-integrated wrapper around `quaere-execution`. Drives the Plan → Do → Study → Act workflow with plan-vs-actual drift surfacing and a final `done-check` audit.
 
 **Issue / task:** $ARGUMENTS
 
@@ -34,13 +34,13 @@ If the plan has no `Inconclusive / Deferred items` section at all, treat that as
 
 If the plan has no `Derivations` section but the work involves specific-example fixtures (concrete Hamiltonians, concrete protocol messages, named worked cases, etc.), treat that as a research gap on the derivational axis and stop the same way. The absence of a `Derivations` section means no specific example has been derivationally cleared — implementing fixtures in that state is exactly the failure mode the gate exists to prevent.
 
-## Step 3 — Run execution-loop
+## Step 3 — Run quaere-execution
 
-Invoke the `execution-loop` skill with the plan as the source of truth. Honor its workflow exactly: Read → Plan → Execute → Review → Fix → Verify. The wrapper layers the following additional rules on top.
+Invoke the `quaere-execution` skill with the plan as the source of truth. Honor its workflow exactly: Plan → Do → Study → Act with scoped units, fresh verification evidence, diff review, fix loops, and commit/push discipline. The wrapper layers the following additional rules on top.
 
 ### 3.0 Preflight via todo-check
 
-Before any code change, invoke `todo-check` against the plan to extract the active `quality-list` items and their setup actions for this work. Hand the resulting △ rows to execution-loop's Plan step so the unit checks already include them. Re-invoke `todo-check` between units when the next unit changes the active item set (e.g., it introduces a new public API → `impact-verification` and `paired-artifact-drift` become active).
+Before any code change, invoke `todo-check` against the plan to extract the active `quality-list` items and their setup actions for this work. Hand the resulting △ rows to `quaere-execution`'s Plan step so the unit checks already include them. Re-invoke `todo-check` between units when the next unit changes the active item set (e.g., it introduces a new public API → `impact-verification` and `paired-artifact-drift` become active).
 
 ### 3.0.1 Pre-commit hook recall
 
@@ -74,7 +74,7 @@ Once per session, read any contributor / agent guidance docs present at the repo
 
 Before any code change, build and run existing tests to record pre-existing failures, and run the project's linter (e.g., `cargo clippy`, `clang-tidy`, `ruff check`, `eslint`) to record pre-existing warnings. Compare against both baselines at every verification step. Pre-commit-gated linters (Step 3.0.1) are especially important — the gate rejects on any new violation. Formatters are excluded; they reformat in place at commit time.
 
-### 3.2 Discovery handling during Execute
+### 3.2 Discovery handling during Do
 
 If, while executing a unit, an unexpected fact is observed (a behavior, type, caller, or invariant the plan did not anticipate):
 
@@ -114,7 +114,7 @@ Procedure when substituting:
 1. **Enumerate the original strategy's properties explicitly.** Not just the named motivation — every property the original mechanism happens to achieve. E.g. `MaybeUninit` + transmute provides {no zero-init, no per-element heap alloc, caller-controlled placement, deterministic layout}; `Vec::with_capacity` + push provides {no zero-init} only.
 2. **Verify the substitute preserves each property.** Any dropped property must be named in the plan-vs-actual diff and surfaced to the user — "substituting M with M' to avoid unsafe; M' loses Q. OK to ship?" — not silently discarded.
 
-### 3.3 Quality items during Execute / Review
+### 3.3 Quality items during Do / Study
 
 Substantive rules for guards, fixtures, docstring consistency, textual drift, naming-as-claim, and plan-vs-actual reconciliation live in `quality-list`. Honor whichever items Step 3.0's `todo-check` marked active for the current unit. The wrapper-specific gates (3.2 / 3.2.1 / 3.2.2 above) layer on top.
 
@@ -128,4 +128,4 @@ After done-check passes:
 
 1. **Plan-vs-actual diff** (from Step 3.6)
 2. **Conventional commit message(s)**, generated under the rules of `generate-conventional-commit-messages` if the skill is available. No HPC paths, no cluster context, no local environment details, no line numbers in body.
-3. Hand off — do **not** commit unless the user explicitly authorized commits. The execution-loop skill enforces this and so does this wrapper.
+3. Hand off — do **not** commit unless the user explicitly authorized commits. The `quaere-execution` skill enforces this and so does this wrapper.
