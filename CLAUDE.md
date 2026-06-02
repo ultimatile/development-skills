@@ -72,7 +72,11 @@ For every commit:
 
 4. Stage and commit with a conventional-commit message per the rules above.
 
+   **Formatter-hook abort.** A pre-commit hook that reformats files (`partfmt`, `mdformat`, etc.) and reports `Failed` because it *modified* files has **aborted the commit** — no commit was created and `HEAD` did not move. Re-stage the hook's output (`git add` the reformatted paths) and re-run the commit until the hook reports `Passed`. Do not proceed to tagging until a commit actually lands.
+
 5. **On `feat` / `fix` commits only**: `git tag <new-version>` on the commit just created. `docs`, `chore`, and `style` commits are not tagged.
+
+   **Verify before tagging.** Confirm the commit landed and `HEAD` is the new commit (`git log --oneline -1`) *before* `git tag`. Tagging blind after a formatter-aborted commit (step 4) applies the version to the previous, unrelated `HEAD` — a broken state. If a tag was misapplied, `git tag -d <version>` and re-tag once the real commit exists.
 
 6. Push:
 
