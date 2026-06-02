@@ -43,6 +43,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | Skill | Description |
 | -- | -- |
 | `reimre` | Full end-to-end wrapper — runs `research-and-implement` then `review-pipeline` back to back, with an automatic seam rule that skips the duplicate `done-check` at the boundary. Stops at the user-controlled merge gate inherited from `review-pipeline`. |
+| `land-via-integration-branch` | Cadence for landing a single large change that doesn't fit one PR and whose intermediate states intentionally break the build. The change is split across a sequence of PRs that merge into a long-lived integration branch instead of main, under a four-gate cadence (per-commit done-check, per-unit codex review against a moving last-approved baseline, per-PR-open codex review, per-PR-review Copilot); a final PR merges the integration branch into main via `review-pipeline`. Use when a single PR would exceed a reviewer's diff-size limit or when multiple component APIs must change together. Instances: cross-component migration, large refactor, multi-PR feature |
 
 ### Quality Gates
 
