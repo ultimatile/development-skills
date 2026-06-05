@@ -1,11 +1,12 @@
-# partfmt has no .pre-commit-hooks.yaml, so it is wired as a local system hook
-# invoking the installed `partfmt` CLI. `files` restricts it to Markdown only.
+# mdformat with the gfm + frontmatter plugins handles Markdown formatting:
+# `--number` renumbers ordered lists, `--compact-tables` strips table-cell padding.
+# The frontmatter plugin splits YAML frontmatter from the body so both survive a pass.
 repos:
-  - repo: local
+  - repo: https://github.com/hukkin/mdformat
+    rev: 1.0.0
     hooks:
-      - id: partfmt
-        name: partfmt (frontmatter-aware Markdown formatting)
-        entry: partfmt write
-        language: system
-        files: \.md$
-        require_serial: true
+      - id: mdformat
+        args: [--number, --compact-tables]
+        additional_dependencies:
+          - mdformat-gfm
+          - mdformat-frontmatter
