@@ -64,6 +64,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | `codex-contract-test-review` | Narrow Codex pass to verify a newly added contract test actually expresses the claimed contract |
 | `driftreaper` | Audit docstrings for drift against actual code behavior |
 | `breachreaper` | Audit existing code for stock-detectable API-contract breaches |
+| `debtreaper` | Audit an existing test suite for structural debt — trivializing fixtures, tautological differentials, implementation-locked or assertion-less tests, name-claim mismatches |
 
 ### Language-specific
 

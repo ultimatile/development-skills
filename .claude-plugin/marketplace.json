@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "End-to-end development workflow skills for Claude Code — research, implement, review, PR",
-    "version": "2026.6.9"
+    "version": "2026.6.10"
   },
   "plugins": [
     {
@@ -26,6 +26,7 @@
         "./skills/bug-to-contract",
         "./skills/driftreaper",
         "./skills/breachreaper",
+        "./skills/debtreaper",
         "./skills/done-check",
         "./skills/todo-check",
         "./skills/quality-list",
