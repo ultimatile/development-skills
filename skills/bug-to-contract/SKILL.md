@@ -2,6 +2,7 @@
 name: bug-to-contract
 description: Promote a review finding or bug fix into a contract test that prevents the underlying invariant violation from recurring. Companion to finding-to-audit, which elevates to diff-time rules instead.
 ---
+
 # Bug-to-Contract
 
 Review findings and bug fixes address symptoms. This skill asks: **what implicit specification was violated, and is that specification now tested?**

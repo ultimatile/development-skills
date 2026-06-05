@@ -2,6 +2,7 @@
 name: research
 description: Investigate a GitHub issue or free-text task with empirical (subagent probes) and derivational (in-context deduction) hypotheses, producing a vetted implementation plan with Inconclusive / Deferred items. Accepts an issue number or task text.
 ---
+
 # research
 
 GitHub-integrated wrapper around `quaere-evidence`. Drives the Finding → Hypothesis → Defense → Probe → Decision workflow with parallel subagents and posts the resulting plan to GitHub. Do NOT write any production code in this skill.

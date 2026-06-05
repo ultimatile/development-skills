@@ -3,6 +3,7 @@ name: gh-body-check
 description: Audit a drafted or filed GitHub issue / PR body against gh-body-conventions via a fresh-context subagent. Any unresolved ⚠ blocks the caller.
 allowed-tools: Bash(*/gh-body-check/unicode-math-scan.sh:*)
 ---
+
 # GH Body Check
 
 Two checks: a mechanical Unicode-math scan (one rg invocation), and a cold-reader audit delegated to a fresh-context subagent. `gh-body-conventions` is SSOT for the rules; this file is the procedure.

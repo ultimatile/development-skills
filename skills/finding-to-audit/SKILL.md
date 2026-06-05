@@ -2,6 +2,7 @@
 name: finding-to-audit
 description: Promote a review finding into a pre-commit audit rule that catches the diff-inspectable issue class (import direction, pub widening, debug artifacts, dropped FFI output). Companion to bug-to-contract.
 ---
+
 # Finding-to-Audit
 
 A single fix prevents one bug. An audit rule prevents the entire class without waiting for the next bug to surface.

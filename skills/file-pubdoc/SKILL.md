@@ -2,6 +2,7 @@
 name: file-pubdoc
 description: Draft README.md or visitor-facing markdown (top-level *.md, docs/**/*.md) using the canonical skeleton, complementing the public-doc-durability audit.
 ---
+
 # File Public Document
 
 Draft visitor-facing markdown (README and `docs/`) using a fixed skeleton so the resulting page documents present-tense, audience-public capability — not the author's session log, rationale dump, or roadmap.

@@ -2,6 +2,7 @@
 name: file-adr
 description: Draft an Architecture Decision Record (a timeless decision, distinct from an implementation schedule) and write the file. Use file-issue instead when the artifact is a task list, bug report, or phase plan.
 ---
+
 # File ADR
 
 Draft a project Architecture Decision Record (ADR) body that matches the project's existing structure and follows a timeless-decision discipline. Show for approval, then write to the project's ADR directory.

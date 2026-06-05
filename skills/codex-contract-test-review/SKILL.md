@@ -2,6 +2,7 @@
 name: codex-contract-test-review
 description: Narrow Codex pass on a newly added contract test, verifying it is not tautological and would fail on the original buggy implementation. Lightweight alternative to the full codex-review / copilot-review loop.
 ---
+
 # Codex Contract-Test Review
 
 A focused Codex pass that asks one question: **does this test express the contract its name/comment claims?** Secondary: any critical bug in the test code itself.

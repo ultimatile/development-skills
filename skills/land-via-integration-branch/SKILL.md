@@ -1,12 +1,13 @@
 ---
 name: land-via-integration-branch
-description: >
+description: >-
   Land a large change too big for one PR as a sequence of PRs merging into a
   long-lived integration branch, then a final PR into main. Use when one PR
   would exceed a reviewer's diff-size limit, or when multiple components' APIs
   must migrate together (cross-component migration, large refactor, multi-PR
   feature).
 ---
+
 # Land via Integration Branch
 
 A four-gate review cadence for landing a large change that does not fit a single PR, through a long-lived integration branch.

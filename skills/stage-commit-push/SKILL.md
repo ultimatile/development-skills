@@ -2,6 +2,7 @@
 name: stage-commit-push
 description: Stage changed files, generate a conventional commit message, commit, and push in one step. Used inside automated review-fix loops.
 ---
+
 # Stage, Commit, Push
 
 One-shot skill for the review-fix loop: stage modified files, generate a commit message, commit, and push.

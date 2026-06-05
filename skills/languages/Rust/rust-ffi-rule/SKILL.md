@@ -2,6 +2,7 @@
 name: rust-ffi-rule
 description: Rules for implementing a Rust safe wrapper around an external (C / Fortran / FFI) call. Read before writing unsafe FFI blocks, extern "C" declarations, or bindgen-based wrappers.
 ---
+
 # Rust FFI Rule
 
 ## Procedure

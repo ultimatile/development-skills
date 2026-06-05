@@ -2,6 +2,7 @@
 name: driftreaper
 description: Audit docstrings for drift — claims that no longer match actual code behavior. Optional scope argument (file path, directory, or module name); without arguments, audits the entire workspace.
 ---
+
 # driftreaper
 
 Audit docstrings for SSOT violations (drift between documentation and code). Do NOT write production code — only fix docstrings or report findings.

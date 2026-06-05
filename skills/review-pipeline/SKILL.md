@@ -2,6 +2,7 @@
 name: review-pipeline
 description: Full review pipeline from local changes through PR, Copilot review, postmortem elevation, and umbrella drift join. Pauses at the user-controlled merge gate between Phase 4a and 4b.
 ---
+
 # Review Pipeline
 
 Orchestrate the full flow from local changes through PR review, user merge, postmortem elevation, and umbrella drift join. This skill ties together several sub-skills — invoke each by name.

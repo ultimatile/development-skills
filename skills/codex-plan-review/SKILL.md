@@ -2,6 +2,7 @@
 name: codex-plan-review
 description: Review an implementation plan with OpenAI Codex before coding, getting a second opinion on assumptions and approach.
 ---
+
 # Codex Plan Review
 
 Ask Codex to review an implementation plan against the actual codebase before implementation begins.
