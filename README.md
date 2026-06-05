@@ -34,6 +34,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | Skill | Description |
 | -- | -- |
 | `stage-commit-push` | Stage, generate conventional commit message, commit, and push |
+| `finding-triage` | Single source of truth for per-finding review-triage dispositions (actionable / false-positive / uncertain-validity / opens-a-question → research / invariant-premise-check / defer), referenced by the review and audit skills instead of each restating the taxonomy. Definition file, not a procedure |
 | `codex-review` | Run OpenAI Codex review with triage before PR creation |
 | `copilot-review` | Create PR with GitHub Copilot review, poll for results, triage |
 | `review-pipeline` | Orchestrator — runs the full flow from local changes to reviewed PR |
