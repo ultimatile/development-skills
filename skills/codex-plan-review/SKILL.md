@@ -101,11 +101,13 @@ codex exec "<prompt>" < /dev/null -o /tmp/codex-plan-review.md
 
 ### 3. Triage the feedback
 
-Codex evaluates the plan against the code it reads, but lacks project context (design decisions, scope constraints, YAGNI boundaries). Apply the same triage discipline as `/codex-review`:
+Codex evaluates the plan against the code it reads, but lacks project context (design decisions, scope constraints, YAGNI boundaries). Classify each finding under the `finding-triage` SSOT dispositions. The cases that recur in plan review:
 
-- **Actionable**: A real design flaw that would cause bugs or incorrect behavior
-- **False positive**: A concern that doesn't apply given project constraints (e.g., suggesting generalization when only one case exists)
-- **Defer**: Valid but out of scope for the current task
+- **`actionable`**: a real design flaw that would cause bugs or incorrect behavior
+- **`false-positive`**: a concern that doesn't apply given project constraints (e.g., suggesting generalization when only one case exists)
+- **`defer`**: valid but out of scope for the current task
+
+A finding whose resolution opens a design question the plan did not settle is `opens-a-question` → fold it back into the research that produced the plan rather than spot-patching the plan text.
 
 Present the triage to the user, not the raw output.
 

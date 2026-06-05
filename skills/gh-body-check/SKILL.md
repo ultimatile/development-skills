@@ -85,10 +85,10 @@ Common leak shapes the cold reader will surface (illustrative, not exhaustive �
 
 ### 4. Merge and gate
 
-Combine the rg hit (if any) and the cold-reader report into a single status. For each cold-reader ⚠, judge in main context:
+Combine the rg hit (if any) and the cold-reader report into a single status. For each cold-reader ⚠, judge in main context — the `finding-triage` SSOT's `actionable` / `false-positive` split applied to a cold-reader concern:
 
-- **True positive** — fix before proceeding.
-- **False positive due to missing context** — record explicitly why (e.g., the cold reader did not recognize a public external reference, or the term is a standard library identifier the reader was unfamiliar with). False-positive classification is itself a triage step the user can challenge; do not silently override.
+- **True positive** (`actionable`) — fix before proceeding.
+- **False positive due to missing context** — record explicitly why (e.g., the cold reader did not recognize a public external reference, or the term is a standard library identifier the reader was unfamiliar with). Per `finding-triage`, false-positive classification is itself a triage step the user can challenge; do not silently override.
 
 Any unresolved ⚠ blocks the caller's next step. Return the report; the caller revises the draft and re-runs `gh-body-check`. Iterate until clean, or each remaining ⚠ has an inline waiver with a one-line justification.
 

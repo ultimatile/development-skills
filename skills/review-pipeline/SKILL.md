@@ -25,7 +25,7 @@ Done-check runs **before** any commit. Resolving its concerns post-commit produc
 
 1. Run `/stage-commit-push` to stage, commit, and push local changes
 2. Run `/codex-review` to review the branch diff against main
-3. Triage the output — classify each finding as actionable, false positive, or uncertain
+3. Triage the output — classify each finding under the `finding-triage` SSOT dispositions
 4. If actionable findings exist, apply the **fix-loop substeps** (see Rules) and repeat until no actionable findings remain.
 
 ## Phase 2: Copilot review
@@ -141,12 +141,13 @@ Runs only after the user has merged.
 
 - **Reply to Copilot comments individually**, not as a single PR comment. Use `gh-post reply-inline <owner>/<repo> <PR> < /tmp/replies.jsonl` so every reply body passes the hardwrap validator and the batch halts before send on any body failure. JSONL shape: one `{"id": <comment-id>, "body": "<reply>"}` per line.
 
-- **Triage is mandatory.** Never present raw review output to the user. Classify findings and lead with actionable items.
+- **Triage is mandatory.** Never present raw review output to the user. Classify every finding under the `finding-triage` SSOT dispositions and lead with actionable items. This SSOT owns the per-finding (stateless) classification; the stateful loop criteria below — oscillation detection — stay here because they depend on cross-iteration history the SSOT deliberately excludes.
 
 - **Sub-classify actionable findings before fixing.** Not all actionable findings warrant the same response:
 
   - **Surface** (typo, stale comment, wrong API name): fix is self-evident. Commit immediately.
-  - **Invariant** (claims about mathematical properties, semantic validity, precondition necessity): the finding's *conclusion* may be correct, but its *premise* may be wrong. Before committing a fix, verify the premise — check whether the invariant the finding assumes actually holds, by reading code, tests, and running targeted experiments. If unsure, ask codex a single targeted question via `codex exec "<fix proposal + one specific question about the premise>" -o /tmp/fix-check.md` before committing.
+  - **Invariant** — the `invariant-premise-check` disposition from `finding-triage` (claims about mathematical properties, semantic validity, precondition necessity): the finding's *conclusion* may be correct, but its *premise* may be wrong. Before committing a fix, verify the premise — check whether the invariant the finding assumes actually holds, by reading code, tests, and running targeted experiments. If unsure, ask codex a single targeted question via `codex exec "<fix proposal + one specific question about the premise>" -o /tmp/fix-check.md` before committing.
+  - **Non-local** — the `opens-a-question` disposition from `finding-triage`: the finding is real but its resolution needs investigation, a design choice, or a scope judgment beyond a local edit. Re-enter `research` with the finding as the task, then escalate only the genuinely user-owned residue. Do not spot-patch and do not escalate a probe-able question straight to the user.
 
 - **Oscillation detection.** Run at the start of each fix-loop iteration (the first sub-bullet under "If actionable findings exist" in Phase 1 step 4 and Phase 2 step 5), BEFORE fix and done-check. If the same conceptual topic (not the same literal comment, but the same underlying question — e.g., "is this input valid?", "does this property hold?", "should this parameter accept both values?") appears across 2+ consecutive review iterations, stop fixing and escalate to the user. Repeated findings on one topic signal that the underlying invariant is not understood well enough for a confident fix.
 

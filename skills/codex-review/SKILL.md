@@ -80,10 +80,7 @@ When presenting review output, triage each finding:
 
 1. **Read the review output** and identify each distinct finding (usually formatted as `[P1/P2] summary — file:line`)
 2. **Cross-check against project context** you already have — test results, prior conversation, code you've read. You have far more context than the reviewer did.
-3. **Classify each finding**:
-   - **Actionable**: a real issue the reviewer correctly identified
-   - **False positive**: plausible but wrong given context you have — explain why to the user
-   - **Uncertain**: you can't tell without more investigation — flag it and investigate
+3. **Classify each finding** under the `finding-triage` SSOT dispositions (`actionable` / `false-positive` / `uncertain-validity` / `opens-a-question → research` / `invariant-premise-check` / `defer`). The common codex-review cases are `actionable`, `false-positive` (plausible but wrong given context you have — explain why to the user), and `uncertain-validity` (you can't tell without more investigation — flag it and investigate). When a finding is real but its fix is non-local, it is `opens-a-question` → re-enter `research` rather than patching in place.
 4. **Present the triage** to the user, not the raw output. Lead with actionable items, note dismissed items with reasoning.
 
 The user should never have to manually sift through false positives. That's your job.

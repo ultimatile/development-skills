@@ -55,7 +55,7 @@ Copilot reviews see the diff and file contents but lack project-specific knowled
 For each finding:
 
 1. **Cross-check** against what you already know from the current conversation — code you've read, tests you've run, decisions made with the user
-2. **Classify** as actionable, false positive (with reasoning), or uncertain
+2. **Classify** under the `finding-triage` SSOT dispositions — typically `actionable`, `false-positive` (with reasoning), or `uncertain-validity`; a real finding whose fix is non-local is `opens-a-question` → re-enter `research`
 3. **Present the triage** to the user — don't dump raw review output
 
 ## Respond to review

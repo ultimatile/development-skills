@@ -100,8 +100,10 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
 
 4. **Merge results.** When the subagent (step 2) returns, integrate its mechanical-lane rows with main-context's contextual-lane rows into a single table (one row per item, dual-lane items rendered once with both half-results merged). For each ⚠ from the subagent, decide:
 
-   - **True positive** — fix before proceeding (same as a main-context ⚠).
-   - **False positive due to missing context** — note explicitly why (e.g., "user explicitly approved the boundary deferral in conversation"); the subagent's literal interpretation is wrong because it lacked context, but this should be rare and worth paper-trailing. Do NOT silently override — false-positive classification is itself a triage step that the user can challenge.
+   This is the `finding-triage` SSOT's `actionable` / `false-positive` split applied to a fresh-context audit concern:
+
+   - **True positive** (`actionable`) — fix before proceeding (same as a main-context ⚠).
+   - **False positive due to missing context** — note explicitly why (e.g., "user explicitly approved the boundary deferral in conversation"); the subagent's literal interpretation is wrong because it lacked context, but this should be rare and worth paper-trailing. Per `finding-triage`, do NOT silently override — false-positive classification is itself a triage step that the user can challenge.
 
    Each result is ✅ / ⚠ / ⊘ N/A (definitions per Step 2's prompt). Evidence cell records the basis (command run, manual check, `file:line`, or `not run: <reason>`).
 

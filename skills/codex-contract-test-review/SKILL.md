@@ -141,11 +141,11 @@ codex exec "<prompt>" < /dev/null -o /tmp/codex-contract-test-review.md
 
 ### 4. Triage the feedback
 
-Apply the same triage discipline as `codex-review` and `codex-plan-review`:
+Classify each finding under the `finding-triage` SSOT dispositions, same as `codex-review` and `codex-plan-review`. The cases that recur here:
 
-- **Actionable**: a real contract-expression flaw or critical bug that would let the original bug class through
-- **False positive**: a concern that doesn't apply given project context the reviewer can't see
-- **Defer**: out of scope for the current contract test (e.g., expanding to a different contract)
+- **`actionable`**: a real contract-expression flaw or critical bug that would let the original bug class through
+- **`false-positive`**: a concern that doesn't apply given project context the reviewer can't see
+- **`defer`**: out of scope for the current contract test (e.g., expanding to a different contract)
 
 Present the triage to the user, not the raw output.
 
