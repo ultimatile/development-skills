@@ -1,15 +1,11 @@
 ---
 name: land-via-integration-branch
 description: >
-  Workflow for landing a single large change that does not fit one PR and whose
-  intermediate states intentionally break the build. Decomposes the change into
-  a sequence of PRs that merge into a long-lived integration branch instead of
-  main, with per-unit codex review against a moving last-approved baseline; a
-  final PR merges the integration branch into main under the full review
-  pipeline. Use when a single PR would exceed a reviewer's diff-size limit, OR
-  when the change spans multiple components whose APIs must change together and
-  cannot all migrate in one PR. Instances: cross-component API migration, large
-  refactor, multi-PR feature.
+  Land a large change too big for one PR as a sequence of PRs merging into a
+  long-lived integration branch, then a final PR into main. Use when one PR
+  would exceed a reviewer's diff-size limit, or when multiple components' APIs
+  must migrate together (cross-component migration, large refactor, multi-PR
+  feature).
 ---
 # Land via Integration Branch
 
