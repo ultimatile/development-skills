@@ -7,10 +7,13 @@
 # step, so every mode below resolves to "wait for a CodeRabbit review
 # of the PR's current head commit".
 #
-# Matching is by commit: a review counts only if its commit_id equals
-# the PR's current head SHA. This makes the wait race-free — a review
-# that arrived between the push and this script's start still matches,
-# and stale reviews of earlier commits never satisfy the wait.
+# Completion is detected via the `CodeRabbit` commit status on the PR's
+# current head SHA (Review queued / in progress -> Review completed). A
+# clean review posts NO review object, so review presence cannot be the
+# completion signal. When a review object does exist it is matched to
+# the head commit by commit_id, so a review that arrived between the
+# push and this script's start still counts, and stale reviews of
+# earlier commits are never reported.
 #
 # Modes:
 #   Normal:     all arguments forwarded to `gh-post pr create`
@@ -67,54 +70,100 @@ parse_pr_url() {
     fi
 }
 
-# Poll until a CodeRabbit review of the PR's current head commit exists,
-# then print its summary body and that review's inline comments.
+# Print the review object for the head commit (if any). Returns 0 when a
+# review object was found and printed, 1 when none exists.
+print_review_if_any() {
+    local head_sha="$1"
+    review_id=$(
+        gh api "repos/$repo/pulls/$pr_number/reviews?per_page=100" \
+            --jq "[.[] | select(.user.login == \"$BOT_LOGIN\" and .commit_id == \"$head_sha\")] | last | .id // empty" \
+            2>/dev/null
+    ) || true
+    [[ -n "$review_id" ]] || return 1
+
+    echo "CodeRabbit review received (review id ${review_id})" >&2
+
+    echo "=== Review Summary ==="
+    gh api "repos/$repo/pulls/$pr_number/reviews/$review_id" --jq '.body'
+
+    # Inline comments belonging to this review only — earlier
+    # iterations' comments are excluded by the review id.
+    comments=$(
+        gh api "repos/$repo/pulls/$pr_number/comments?per_page=100" \
+            --jq "[.[] | select(.user.login == \"$BOT_LOGIN\" and .pull_request_review_id == ${review_id})] | .[] | \"\\(.path):\\(.line)\\t\\(.body)\"" \
+            2>/dev/null
+    ) || true
+
+    if [[ -n "$comments" ]]; then
+        echo ""
+        echo "=== Inline Comments ==="
+        echo "$comments"
+    fi
+    return 0
+}
+
+# Poll the `CodeRabbit` commit status on the PR's head commit until it
+# reaches a terminal state, then print the review (if one was posted).
+#
+# The status — not review presence — is the completion signal: CodeRabbit
+# reports Review queued / Review in progress (pending) -> Review completed
+# (success) on the head SHA, and a clean review posts NO review object at
+# all (only the walkthrough comment plus this status). Waiting on review
+# presence would therefore hang forever on every zero-finding PR.
 poll_for_review() {
     local head_sha
     head_sha=$(gh api "repos/$repo/pulls/$pr_number" --jq '.head.sha')
-    echo "Waiting for CodeRabbit review of head ${head_sha:0:8} (polling every ${POLL_INITIAL}s)..." >&2
+    echo "Waiting for CodeRabbit on head ${head_sha:0:8} (polling every ${POLL_INITIAL}s)..." >&2
     local interval=$POLL_INITIAL
 
     for ((i = 1; i <= POLL_ATTEMPTS; i++)); do
         sleep "$interval"
 
-        review_id=$(
-            gh api "repos/$repo/pulls/$pr_number/reviews?per_page=100" \
-                --jq "[.[] | select(.user.login == \"$BOT_LOGIN\" and .commit_id == \"$head_sha\")] | last | .id // empty" \
+        # Combined status endpoint: latest status per context.
+        status_state=$(
+            gh api "repos/$repo/commits/$head_sha/status" \
+                --jq '[.statuses[] | select(.context == "CodeRabbit")] | first | .state // empty' \
+                2>/dev/null
+        ) || true
+        status_desc=$(
+            gh api "repos/$repo/commits/$head_sha/status" \
+                --jq '[.statuses[] | select(.context == "CodeRabbit")] | first | .description // empty' \
                 2>/dev/null
         ) || true
 
-        if [[ -n "$review_id" ]]; then
-            echo "CodeRabbit review received (review id ${review_id})" >&2
+        if [[ "$status_state" == "success" || "$status_state" == "failure" || "$status_state" == "error" ]]; then
+            echo "CodeRabbit status: ${status_desc} (${status_state})" >&2
 
-            echo "=== Review Summary ==="
-            gh api "repos/$repo/pulls/$pr_number/reviews/$review_id" --jq '.body'
-
-            # Inline comments belonging to this review only — earlier
-            # iterations' comments are excluded by the review id.
-            comments=$(
-                gh api "repos/$repo/pulls/$pr_number/comments?per_page=100" \
-                    --jq "[.[] | select(.user.login == \"$BOT_LOGIN\" and .pull_request_review_id == ${review_id})] | .[] | \"\\(.path):\\(.line)\\t\\(.body)\"" \
-                    2>/dev/null
-            ) || true
-
-            if [[ -n "$comments" ]]; then
-                echo ""
-                echo "=== Inline Comments ==="
-                echo "$comments"
+            if print_review_if_any "$head_sha"; then
+                return 0
             fi
 
-            return 0
+            if [[ "$status_state" == "success" ]]; then
+                # Small grace window: the review object can land moments
+                # after the status flips to success.
+                sleep 10
+                if print_review_if_any "$head_sha"; then
+                    return 0
+                fi
+                echo "=== Review Result ==="
+                echo "Review completed with zero findings — CodeRabbit posts no review object on a clean pass (status: ${status_desc})."
+                return 0
+            fi
+
+            echo "Review ended without completing: ${status_desc} (${status_state})" >&2
+            return 1
         fi
 
-        echo "  attempt $i/$POLL_ATTEMPTS — no review for current head yet, next check in ${interval}s" >&2
+        echo "  attempt $i/$POLL_ATTEMPTS — status: ${status_desc:-not reported yet}, next check in ${interval}s" >&2
         interval=$(( interval * 2 ))
         (( interval > POLL_MAX )) && interval=$POLL_MAX
     done
 
-    echo "Timeout: CodeRabbit review of head ${head_sha:0:8} did not arrive after $POLL_ATTEMPTS attempts" >&2
-    echo "If automatic reviews are disabled (or the app missed the event), trigger one manually:" >&2
-    echo "  gh pr comment $pr_number --repo $repo --body \"@coderabbitai review\"" >&2
+    echo "Timeout: no terminal CodeRabbit status on head ${head_sha:0:8} after $POLL_ATTEMPTS attempts" >&2
+    echo "No status at all means the review never started — check the app installation, plan," >&2
+    echo "and automatic-review settings in the CodeRabbit dashboard. (A repo .coderabbit.yaml" >&2
+    echo "with reviews.commit_status: false also hides the signal.) To trigger manually:" >&2
+    echo "  gh pr comment $pr_number --repo $repo --body \"@coderabbitai full review\"" >&2
     echo "then re-run this script with --poll." >&2
     return 1
 }

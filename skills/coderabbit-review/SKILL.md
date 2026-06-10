@@ -10,11 +10,17 @@ Create a GitHub PR, wait for CodeRabbit's automatic review, and triage the resul
 
 ## How it works
 
-CodeRabbit is app-driven: once the GitHub app is installed on the repository, it reviews every PR on open and re-reviews incrementally on every push. There is no reviewer-request step. A review counts only when its `commit_id` equals the PR's current head SHA, so a review that lands before polling starts still satisfies the wait, and stale reviews of earlier commits never do.
+CodeRabbit is app-driven: once the GitHub app is installed on the repository, it reviews every PR on open and re-reviews incrementally on every push. There is no reviewer-request step.
 
-**No review is not a clean review.** The walkthrough / summary issue comment (collapsed `📝 Walkthrough`, pre-merge checks, poem) is NOT a review — on private repositories below the Pro plan, or with automatic reviews disabled in the CodeRabbit dashboard, that comment is the only thing CodeRabbit posts. Declare zero findings only when a `coderabbitai[bot]` review object for the head commit exists (`gh api repos/{owner}/{repo}/pulls/{N}/reviews`) and reports zero actionable comments. A poll timeout means the review never ran: halt and surface it to the user — have them check the CodeRabbit dashboard plan and automatic-review settings, or post `@coderabbitai full review` on the PR and read CodeRabbit's response, which states the reason when reviews are unavailable. Never let the gate pass on review absence.
+**The completion signal is the `CodeRabbit` commit status, not the review object.** CodeRabbit reports the review lifecycle as a commit status on the PR's head SHA (`Review queued` → `Review in progress` → `Review completed`), and **a clean review posts no review object at all** — a zero-finding run leaves only the walkthrough comment plus the `Review completed` success status. Read the outcomes as:
 
-**Use `pr-with-coderabbit-review.sh` for the entire flow.** Do NOT create the PR separately with `gh pr create` and then try to poll — the script handles PR creation and head-SHA-matched polling in one shot.
+- Status `Review completed` + review object for the head commit → findings exist; triage them.
+- Status `Review completed` + no review object → genuine zero findings; the gate passes.
+- No `CodeRabbit` status at all (poll timeout) → the review never started; halt and surface to the user — check the app installation, plan, and automatic-review settings in the CodeRabbit dashboard, or post `@coderabbitai full review` and read the response.
+
+The walkthrough / summary issue comment (collapsed `📝 Walkthrough`, pre-merge checks, poem) proves nothing either way — it is posted before the review completes. A repo `.coderabbit.yaml` setting `reviews.commit_status: false` hides the status signal; keep it enabled. When a review object does exist, it is attributed to the head commit by `commit_id`, so stale reviews of earlier commits are never reported.
+
+**Use `pr-with-coderabbit-review.sh` for the entire flow.** Do NOT create the PR separately with `gh pr create` and then try to poll — the script handles PR creation and status-based polling in one shot.
 
 ### Normal mode: create PR + poll
 
@@ -22,7 +28,7 @@ CodeRabbit is app-driven: once the GitHub app is installed on the repository, it
 ${CLAUDE_SKILL_DIR}/scripts/pr-with-coderabbit-review.sh --title "fix: foo" --body-file /tmp/body.md --base main
 ```
 
-All arguments are forwarded to `gh-post pr create`. The script then polls until a CodeRabbit review of the head commit exists, outputting the review body and that review's inline comments to stdout.
+All arguments are forwarded to `gh-post pr create`. The script then polls the `CodeRabbit` commit status until it reaches a terminal state, outputting either the review body plus that review's inline comments, or an explicit zero-finding result, to stdout.
 
 Inline `--body <string>` and `-b <string>` are rejected by `gh-post` — the wrapper exists to keep every body through its hardwrap validator. Use `--body-file <path>` (preferred) or `--body-stdin`.
 
@@ -34,7 +40,7 @@ After pushing fix commits to an existing PR, wait for the incremental review the
 ${CLAUDE_SKILL_DIR}/scripts/pr-with-coderabbit-review.sh --re-review https://github.com/owner/repo/pull/123
 ```
 
-No trigger step is needed — CodeRabbit starts the incremental review on the push itself. Head-SHA matching makes the wait race-free even when the review arrives before the script starts.
+No trigger step is needed — CodeRabbit starts the incremental review on the push itself. The status lives on the new head SHA, so the wait is race-free even when the review finishes before the script starts.
 
 ### Poll-only mode: recovery for existing PRs
 
@@ -42,7 +48,7 @@ No trigger step is needed — CodeRabbit starts the incremental review on the pu
 ${CLAUDE_SKILL_DIR}/scripts/pr-with-coderabbit-review.sh --poll https://github.com/owner/repo/pull/123
 ```
 
-Same wait as `--re-review`; use it after triggering a review manually. On timeout the script prints the manual trigger command (`gh pr comment <N> --body "@coderabbitai review"`) for the case where automatic reviews are disabled or the app missed the event.
+Same wait as `--re-review`; use it after triggering a review manually. On timeout the script prints the manual trigger command (`gh pr comment <N> --body "@coderabbitai full review"`) for the case where automatic reviews are disabled or the app missed the event.
 
 ### Environment variables
 
