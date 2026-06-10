@@ -6,6 +6,32 @@ This file does **not** introduce new audit items. Items live in `items/<slug>.md
 
 ______________________________________________________________________
 
+## `behavior-coverage`
+
+### Triggers (Rust)
+
+Delegation / equivalence tests that destructure a multi-component result with `_` / `_name` placeholders:
+
+```rust
+let (u, _s, vt, _err) = wrapper(...);
+```
+
+The `_`-bound components travel through the wrapper but are dropped without any assertion — the Rust realization of the "received but never read" concern condition.
+
+### Mechanical detection
+
+```sh
+rg -n 'let \([^)]*\b_\w*\s*[,)]' -g '*.rs'
+```
+
+Restrict to test surfaces (`tests/`, `#[cfg(test)]` modules) and triage each hit.
+
+### False-positive review
+
+A `_` binding is legitimate when the component genuinely carries nothing checkable for the test's claim (e.g., a backend-less scalar in a pointer-identity authority test) — but an *equivalence* test should still compare its value. Placeholder-only destructuring outside delegation / equivalence tests is out of this item's scope.
+
+______________________________________________________________________
+
 ## `paired-artifact-drift`
 
 ### Triggers (Rust)

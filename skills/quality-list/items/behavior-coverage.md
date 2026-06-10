@@ -16,6 +16,12 @@ When the implementation has error / failure paths (I/O, network, concurrency, fa
 
 Contract-style tests (asserting the invariant the implementation must satisfy, not just its output on one example) automatically satisfy this. Trivial output-comparison tests on identity inputs do not.
 
+**Delegation / equivalence tests** — a wrapper asserted equivalent to the path it delegates to — carry three extra strength requirements (each surfaced as a real review finding before being captured here):
+
+- Assert **every component** of the result, not just the first. A component the test receives but no assertion ever reads is unverified even though it travels through the wrapper; for multi-component results (tuples, result structs), each member needs an assertion or an explicit reason it carries nothing checkable.
+- A verification predicate must not be **vacuously satisfiable**. A residual identity like `A v = λ v` is satisfied by `v = 0`; a predicate with a degenerate witness needs a guard excluding it (nonzero-norm check, non-empty check) before it counts as verification.
+- When the delegate has **siblings that mathematically coincide** on special fixtures (general vs Hermitian matrix exponential on a Hermitian input), at least one fixture must lie where the siblings disagree — otherwise a cross-wired delegation (wrapper calling the sibling instead of its own twin) passes the equivalence test undetected.
+
 When multiple types share semantics — and the language / test framework supports it — generalize via a single type-parametric helper, not per-type duplication.
 
 **Concern conditions:**
@@ -26,5 +32,8 @@ When multiple types share semantics — and the language / test framework suppor
 - Implementation has error / cleanup paths but only the happy path is tested
 - Multiple near-identical per-type tests instead of a generic helper
 - New code populates state (a field, slot, storage, output buffer) but no test reads that state directly. Transitive consistency — a test that happens to pass through an unrelated helper while the new state is never observed — does not satisfy this. For each newly written-to location, point to at least one assertion that reads it.
+- An equivalence / delegation test receives result components that no assertion reads (discarded or ignored bindings)
+- A test predicate is satisfiable by a degenerate witness (zero vector, empty collection, identity element) and no guard excludes that witness
+- Sibling delegation targets are exercised only on fixtures where the siblings mathematically coincide, leaving cross-wiring undetectable
 
 **N/A:** the diff is purely mechanical (rename, formatting, file move) or documentation-only.
