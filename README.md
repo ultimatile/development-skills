@@ -37,7 +37,9 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | `finding-triage` | Single source of truth for per-finding review-triage dispositions (actionable / false-positive / uncertain-validity / opens-a-question → research / invariant-premise-check / defer), referenced by the review and audit skills instead of each restating the taxonomy. Definition file, not a procedure |
 | `codex-review` | Run OpenAI Codex review with triage before PR creation |
 | `copilot-review` | Create PR with GitHub Copilot review, poll for results, triage |
+| `coderabbit-review` | Create PR and wait for the auto-triggered CodeRabbit review, triage. Use when CodeRabbit is the repo's PR reviewer instead of Copilot |
 | `review-pipeline` | Orchestrator — runs the full flow from local changes to reviewed PR |
+| `review-pipeline-coderabbit` | `review-pipeline` variant with Phase 2 swapped from Copilot to CodeRabbit. Use when Copilot review is unavailable or the repo runs CodeRabbit |
 
 ### End-to-end composite
 
