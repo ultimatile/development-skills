@@ -21,6 +21,17 @@ The pipeline crosses a **user-controlled merge gate** (Phase 4a → 4b): the use
 
 Done-check runs **before** any commit. Resolving its concerns post-commit produces noisy fix-up commits in the codex review history; resolving them pre-commit keeps each commit a meaningful unit.
 
+## Phase 0.5: Claude code-review gate
+
+Runs after the done-check loop and **before anything is committed** — fixes land inside the original commits instead of as fix-up noise in the codex review history. The reviewer subagents `/code-review` spawns are fresh-context, decorrelating this gate from the author context that runs Phase 0.
+
+1. Run `/code-review medium` against the current diff (raise to `high` for large or risky diffs; keep the chosen effort fixed across this PR's iterations).
+2. Triage the output — classify each finding under the `finding-triage` SSOT dispositions.
+3. If actionable findings exist: fix, run `/done-check` in delta mode, then re-run `/code-review` at the same effort (fresh, full review — no bias from the previous iteration). If the same conceptual topic recurs across 2+ iterations, stop and follow the escalation order in Rules.
+4. Repeat until no actionable findings remain.
+
+From Phase 1 onward, every reviewer finding is by construction a penetration of this gate — note that provenance in each triage presentation; it is the standing observation for evaluating the reviewer mix and feeds Phase 3's `gate-miss-to-issue` judgment.
+
 ## Phase 1: Codex review loop
 
 1. Run `/stage-commit-push` to stage, commit, and push local changes
