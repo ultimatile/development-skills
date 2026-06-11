@@ -65,6 +65,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | `bug-to-contract` | Promote review findings and bug fixes into runtime contract tests |
 | `finding-to-audit` | Promote review findings into pre-commit audit rules that catch issues at diff-inspection time |
 | `gate-miss-to-issue` | Promote a late-caught defect — one an earlier gate should have caught — into a development-skills issue proposing a fix to that gate's procedure |
+| `review-telemetry` | Append a normalized per-run record of reviewer-gate performance to `~/.claude/review-telemetry/runs.jsonl` after a pipeline run — accumulates the data for evaluating the reviewer mix |
 | `codex-contract-test-review` | Narrow Codex pass to verify a newly added contract test actually expresses the claimed contract |
 | `driftreaper` | Audit docstrings for drift against actual code behavior |
 | `breachreaper` | Audit existing code for stock-detectable API-contract breaches |
