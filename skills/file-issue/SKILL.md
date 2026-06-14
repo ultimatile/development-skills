@@ -48,6 +48,9 @@ Before drafting, identify:
 - Target repo (`gh repo view` if unclear).
 - Whether this is a bug, feature, design discussion, or umbrella sub-issue. The default body shape covers the first three; umbrella sub-issues use the shape defined in `Variants > Umbrella sub-issue` above.
 - Any related issues/PRs to link.
+- **Premise type (rot exposure).** Is the premise an **absence** (a capability / perf / test not built yet) or **coupled to current code state** (a specific construct is wrong / missing a test / a stopgap with a known expiry)?
+  - Absence → no tag; it stays valid until built, so it is exempt from rot-sweeps.
+  - Code-coupled → apply the `perishable` label so a rot-sweep filters to this set instead of re-reading the whole backlog. If a known issue/refactor would obviate or reshape it, additionally link that trigger in the body (or fold it in there as a checklist item) so the re-check is event-driven (when the trigger lands) rather than waiting for a periodic sweep.
 
 ### 2. Draft
 
