@@ -12,6 +12,8 @@ Create a GitHub PR, wait for CodeRabbit's automatic review, and triage the resul
 
 CodeRabbit is app-driven: once the GitHub app is installed on the repository, it reviews every PR on open and re-reviews incrementally on every push. There is no reviewer-request step.
 
+**Non-default base → no auto-review.** A PR whose base isn't the default branch (e.g. an integration branch) gets a `Review skipped` comment and no `CodeRabbit` status. Trigger with `@coderabbitai review`, then `--poll` (normal mode would poll-timeout waiting for an auto-review that never starts).
+
 **The completion signal is the `CodeRabbit` commit status, not the review object.** CodeRabbit reports the review lifecycle as a commit status on the PR's head SHA (`Review queued` → `Review in progress` → `Review completed`), and **a clean review posts no review object at all** — a zero-finding run leaves only the walkthrough comment plus the `Review completed` success status. Read the outcomes as:
 
 - Status `Review completed` + review object for the head commit → findings exist; triage them.
