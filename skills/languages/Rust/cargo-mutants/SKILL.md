@@ -13,8 +13,9 @@ description: Configure and run cargo-mutants for Rust mutation testing — invok
 | -- | -- |
 | `cargo mutants --file <path>` | Run mutations on one file (fast iteration) |
 | `cargo mutants --regex '<pattern>'` | Restrict to mutants whose name matches |
-| `cargo mutants --list` | Print every mutant name **after** `exclude_re` filtering — your single source of truth for valid regex targets |
-| `cargo mutants --list-skipped` | Print mutants that `exclude_re` / `#[mutants::skip]` removed |
+| `cargo mutants --list` | Print every mutant name **after** `exclude_re` filtering — your single source of truth for valid regex targets when authoring a new exclude |
+| `cargo mutants --list --config <stripped-toml>` | Print mutants using `<stripped-toml>` (a copy of `mutants.toml` with `exclude_re` emptied, every other key kept) — the **validation universe** for checking that existing `exclude_re` anchors still match; diff against `--list` to see exactly what `exclude_re` removed |
+| `cargo mutants --list --config <stripped-toml> --exclude-re='<pattern>'` | Add the pattern back on top of the stripped universe — a live pattern shrinks that universe by at least one line; the per-pattern liveness cross-check (must run against the stripped config, not the normal one; use the `=` form so a `-`-leading pattern is not read as a flag) |
 | `cargo mutants --jobs N` | Parallelize across N rebuilds (CPU-bound) |
 | `cargo mutants --no-shuffle` | Stable order; required when comparing two runs |
 | `cargo mutants --baseline=skip` | Skip the unmutated baseline (only safe if you ran it manually) |
@@ -84,6 +85,42 @@ diff /tmp/before.txt /tmp/after.txt   # only the lines you intended to remove sh
 
 If a regex looks plausible but matches **nothing** in `--list`, it's dead config — usually a format-mismatch trap.
 
+## Pre-run anchor validation
+
+`exclude_re` anchors rot between runs: a renamed or deleted function kills a function-name anchor, and any line shift kills a `file:line:col` anchor. Mutation runs are infrequent (heavy, costly triage), so nothing visits the config between them — the invariant that matters is **the excludes are valid at the moment a run starts**. Validate them just before a run. This is a consumption-time activity, not a per-diff obligation: a refactor that shifts lines does not have to fix the anchors immediately, only the next run does.
+
+This is a different check from the Verification protocol above: that one confirms a *newly authored* exclude takes effect (its target disappears from `--list`); this one confirms *already-authored* excludes have not since gone stale. The two use different commands because `--list` cannot answer the second question, as below.
+
+Validate each `exclude_re` against the mutants that **would exist without `exclude_re`** — not against `cargo mutants --list`:
+
+- `cargo mutants --list` is **post-`exclude_re`**. A live entry removes its own targets, so grepping `--list` for a live pattern returns zero hits — indistinguishable from a stale pattern that matches nothing. Validating against `--list` flags every working entry as stale.
+- `--no-config` is also wrong: it drops config-generated mutants. A `-> Result` fn with `error_values` set yields `replace <fn> -> <Ret> with Err(<value>)` mutants that vanish under `--no-config`, so an exclude targeting one is falsely flagged stale.
+
+Build the universe by stripping only `exclude_re`, keeping every other key:
+
+```bash
+# 1. Copy the config and empty its exclude_re (keep error_values / examine_re / etc.).
+cp .cargo/mutants.toml /tmp/mutants-noexclude.toml
+# edit /tmp/mutants-noexclude.toml so that: exclude_re = []
+# 2. The validation universe: every mutant in scope of the config, minus the exclude filter.
+#    Add --workspace so a member crate's mutants are listed (an unscoped --list shows only
+#    the root package when the root is itself a package). Drop --workspace if not a workspace.
+#    Do NOT suppress stderr — a config-parse or build failure must surface, not silently
+#    leave an empty universe that makes every pattern look stale.
+cargo mutants --list --workspace --config /tmp/mutants-noexclude.toml > /tmp/universe.txt
+test -s /tmp/universe.txt || { echo "empty universe (the run failed?) — fix before validating"; exit 1; }
+# 3. Each exclude_re pattern must match at least one line. rg uses the same Rust regex
+#    crate as cargo-mutants, so the match semantics agree (BRE grep does not).
+#    Use `rg --` so a pattern beginning with `-` (e.g. `-> bool with true`) is not read as a flag.
+rg -- '<pattern>' /tmp/universe.txt
+```
+
+The universe must cover **every package any `exclude_re` targets** — staleness is a global property, so the universe has to be at least as broad as the set of excludes you are validating. In a multi-crate workspace, pass `--workspace` (and enumerate `--package` if some members are excluded from the default set): an unscoped `cargo mutants --list` lists only the root package when the root is itself a package, so a valid exclude for a member crate would read as stale. Do not *narrow* the universe with `--file` or a single `--package` — that drops the out-of-scope excludes and falsely flags them stale. An anchor is stale only if it matches nothing in this complete set, regardless of which scoped run later consumes it.
+
+Zero hits means a stale anchor — fix it before running. The remedy depends on the cause: if a line shift moved a `file:line:col` anchor, refresh the coordinate (the equivalence rationale already lives in the comment next to the regex). If the function was renamed or deleted, or cargo-mutants changed its name format, the named mutant is gone — re-point the pattern to the current mutant name or remove it, and re-assess whether the equivalence claim still holds.
+
+A nonzero match is necessary but not sufficient. For a `file:line:col` anchor, confirm the matched mutant is the one the adjacent equivalence comment describes: a moved coordinate can match a **different** identically named mutant and silently exclude the wrong target — the same "intended mutant(s) and only those" requirement as the Verification protocol. The cargo-mutants-native cross-check is to add the pattern back on top of the stripped universe: `cargo mutants --list --config <stripped-toml> --exclude-re='<pattern>'` should drop exactly the mutants the pattern is meant to exclude — at least one line, and more when the anchor intentionally covers several (a function-name anchor over a multi-mutant function). Compare the removed lines against the intended target set, not against a fixed count. Run it against the stripped config, not the normal one — under the normal config the pattern's own targets are already filtered out, so it would never shrink. Use the `--exclude-re=<pattern>` (equals) form: cargo-mutants rejects a space-separated value beginning with `-` (e.g. `-> bool with true`) as an unknown flag.
+
 ## Pattern style: line:col vs function-name
 
 Two anchoring strategies, with different trade-offs:
@@ -99,6 +136,8 @@ Two anchoring strategies, with different trade-offs:
 - Fragile: silently breaks on line/column shifts. Always pair with a comment explaining what's at that location and why it's equivalent, so a future editor can re-anchor after a refactor.
 
 Rule of thumb: prefer function-name when the mutant name is unique within its function. Fall back to line:col when multiple equivalent positions share a name. Group line:col patterns under a clearly labeled "fragile / line-anchored" section in `mutants.toml` to signpost the maintenance burden.
+
+When a line:col anchor is forced this way, consider extracting the equivalent-mutant expression into a small named helper function instead. cargo-mutants then names that mutant after the helper (`replace <helper> -> <Ret> with <const>` or `replace X with Y in <helper>`), so a stable function-name anchor replaces the fragile coordinate and survives line shifts. The cost is a one-line refactor; the payoff is an anchor that does not need re-validating after every nearby edit. Worth it when the equivalent position is otherwise indistinguishable from a live one by name alone.
 
 ## `exclude_re` vs `#[mutants::skip]`
 
@@ -175,8 +214,8 @@ Beyond `exclude_re`:
 
 When inheriting an existing `mutants.toml`, audit it:
 
-1. `cargo mutants --list-skipped` — every line is a mutant currently being suppressed.
-2. For each `exclude_re` entry, verify it appears as a reason in `--list-skipped`. Entries that don't appear are dead config (the regex doesn't match any current mutant).
+1. Build the validation universe — a copy of `mutants.toml` with `exclude_re` emptied, every other key kept — and capture it: `cargo mutants --list --config <stripped-toml> > /tmp/universe.txt` (see **Pre-run anchor validation** for why `--list` and `--no-config` are both the wrong universe).
+2. For each `exclude_re` entry, `rg -- '<pattern>' /tmp/universe.txt` (the `--` keeps a `-`-leading pattern from being read as a flag). Entries matching nothing are dead config (the regex matches no current mutant). For each match, confirm it is the intended target, not a same-named mutant a shifted coordinate now points at.
 3. For each entry that does match, re-evaluate the equivalence claim against the current code.
 4. Remove dead entries; rewrite or re-anchor entries whose claims no longer hold.
 
