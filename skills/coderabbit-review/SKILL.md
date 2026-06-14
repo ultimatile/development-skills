@@ -96,6 +96,8 @@ CodeRabbit converses on its own threads: it may reply to your reply, and its inc
 
 Direct `gh api .../comments/{id}/replies -F body=...` is still possible but defeats both the body-validation guarantee and the thread-state filter — use it only for one-off cases where the JSONL ceremony is overhead, and verify thread state via `list-pr-threads.sh` first.
 
+**Outside-diff findings** sit in the review body, not on an inline thread (CR couldn't anchor them to the diff), so `reply-inline` can't reach them. Respond only when one needs visible closure (e.g. a Critical-flagged false positive), with a single top-level PR comment — the only channel; otherwise leave it.
+
 ## Prerequisites
 
 - CodeRabbit GitHub app installed on the repository — PR reviews on private repositories require a Pro plan or active trial; public repositories get them free
