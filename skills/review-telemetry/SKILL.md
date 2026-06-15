@@ -20,13 +20,13 @@ One line per pipeline run. Create the directory on first use (`mkdir -p ~/.claud
 Reconstruct from the current conversation's triage records, and from `git` / `gh` for repo facts:
 
 - repo, PR number, pipeline skill name, diff stats (`gh pr view <N> --json additions,deletions,changedFiles`)
-- per gate, in execution order: iterations run, config that varied (e.g. `/code-review` effort), wall-clock if it was reported, and every triaged finding with its disposition
+- per gate, in execution order: iterations run, config that varied (e.g. `/code-review` effort), and every triaged finding with its disposition. `iterations` (re-run count) and per-gate false-positive count are the cost proxies; both are reconstructable post-hoc. Do not record wall-clock — gate elapsed time is reconstructed after the run, so a duration nobody clocked at execution time is unrecoverable, and it conflates compute with external-service poll-wait (CodeRabbit / Copilot arrive async) and human approval-wait, which say nothing about the gate's own cost.
 - per finding, two distinct relations to earlier gates:
   - `duplicate_of_gate` — strictly an **instance re-report**: the same defect (same location, same fix) an earlier gate already surfaced. `null` means the defect itself is new — the instance-level penetration signal.
   - `topic_opened_by` — the gate that **first surfaced this topic** in the run (the gate's own slug when it opened the topic). A new instance of an earlier gate's topic is `duplicate_of_gate: null` + `topic_opened_by: <earlier gate>` — value added, but no topic novelty.
   - `injected_at_gate` — the in-run gate whose **fix loop introduced** this defect (its slug), or `null` for the default: the defect was present in the original diff, i.e. injected upstream of gate 0. Most findings are `null`. A non-null value marks a **fix-induced regression** — sharpest case: a `review-hotfix` that re-diverges the actual from the plan (a `plan-actual-drift` topic). The point of recording it: gates at or before the injection point could not have seen the defect and must be **exonerated** in penetration/escape stats — only gates strictly between injection and surfacer missed it.
 
-**Do not fabricate.** Any value the conversation does not evidence (a wall-clock nobody measured, an iteration count lost to compaction) is `null`, and the gap is named in the `gaps` array. A wrong number is worse than a hole — the log exists to be aggregated.
+**Do not fabricate.** Any value the conversation does not evidence (an iteration count lost to compaction, a config value you cannot reconstruct) is `null`, and the gap is named in the `gaps` array. A wrong number is worse than a hole — the log exists to be aggregated.
 
 ## Record shape
 
@@ -43,7 +43,6 @@ Reconstruct from the current conversation's triage records, and from `git` / `gh
       "gate": "code-review",
       "config": {"effort": "medium"},
       "iterations": 1,
-      "wall_clock_s": null,
       "findings": [
         {
           "topic": "stale-docstring",
@@ -57,7 +56,7 @@ Reconstruct from the current conversation's triage records, and from `git` / `gh
       ]
     }
   ],
-  "gaps": ["codex wall-clock not recorded"]
+  "gaps": ["copilot-pr gate skipped per user request"]
 }
 ```
 
