@@ -69,3 +69,39 @@ Advisory only — do **not** hard-fail at commit time. The legitimate macro-synt
 ### N/A elaboration
 
 N/A when the diff adds no `///` / `//!` lines, or when every doc-comment `$name` hit is a deliberate description of macro syntax (the dismiss case above).
+
+______________________________________________________________________
+
+## `escape-hatch-necessity`
+
+### Triggers (Rust)
+
+A non-FFI `unsafe` whose only job is to bridge a generic / type-erased `T` to a concrete type, paired with a runtime type check:
+
+```rust
+TypeId::of::<T>() == TypeId::of::<f64>()
+unsafe { reinterpret_desc::<T, f64>(desc) }
+```
+
+A `// SAFETY:` comment verifying `T == f64` makes the cast *sound* but does not establish it is *necessary*. When the enclosing method is bounded by a trait the concrete type already implements (`T: Trait`), the per-type behavior belongs in that trait's impl, where `Self` is concrete and no reinterpretation arises — a placement problem misframed as a conversion problem. Descriptor / kernel / backend vocabulary can make the site look like an FFI or layout boundary even when the per-type targets are ordinary safe-API calls, which is what makes the misframing easy to miss.
+
+### Mechanical detection
+
+```sh
+rg -n 'TypeId::of::<' -g '*.rs'
+rg -n 'unsafe\s*\{[^}]*\b(transmute|from_raw_parts|ptr::read)\b' -g '*.rs'
+```
+
+A `TypeId::of` chain sitting next to an `unsafe` reinterpret in the same function is the smell. Confirm the cast bridges generic → concrete (not an external / layout boundary), then check whether a trait the bound already names can hold the per-type branch instead.
+
+### Mitigation idiom
+
+Move the per-type branch into the trait. Either add the operation to the bounding trait directly (one method, implemented per concrete type), or — when the trait's method list must stay free of backend / descriptor / error types — route through a sealed dispatch supertrait whose method forwards a generic argument to a concrete per-type target. Either way the generic entry point collapses to a single `T::method(...)` call and the `TypeId`, `unsafe`, and `'static` bounds disappear.
+
+### False-positive review
+
+`unsafe` at an irreducible boundary is necessity-satisfied and out of scope: FFI / `extern` calls (use `rust-ffi-rule` for those), raw allocation, MMIO, a `repr(C)` layout-compat pointer cast guarded by `assert_eq_size!` / `assert_eq_align!`. The item targets only the *non-FFI generic → concrete reinterpret*; a `transmute` / `from_raw_parts` performing a genuine layout operation no safe construct expresses is ⊘ dismiss.
+
+### N/A elaboration
+
+N/A when the diff adds no `unsafe` block, or when every `unsafe` it adds sits at an irreducible boundary (above).

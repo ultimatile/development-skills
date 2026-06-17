@@ -89,10 +89,11 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
 3. **Audit the contextual items in main context.** These need information the subagent does not have:
 
    - `invariant-derivation`, `purpose-verification`, `scope-discipline`, `discovery-surfacing` — need plan / intent / review history
+   - `escape-hatch-necessity` — needs design intent and codebase type-architecture context to judge whether a safe construct could replace the hatch (an escape hatch's *presence* is grep-visible, but its *necessity* is not literal-text-decidable)
    - `test-execution`, `completion-hygiene` — need actual command execution against the working tree
    - `pattern-audit` — needs awareness of which patterns were consciously copied vs independently reinvented
 
-   For each, `Read` only the corresponding `quality-list/items/<slug>.md` file — do not load the full index or the mechanical-lane items. The seven contextual-lane reads together are far smaller than the legacy single-file load.
+   For each, `Read` only the corresponding `quality-list/items/<slug>.md` file — do not load the full index or the mechanical-lane items. The eight contextual-lane reads together are far smaller than the legacy single-file load.
 
    `ported-code-attribution` is dual-lane: the subagent handles the *declared* case (literal grep for "ported from" / "derived from" / external project names → verify attribution); main context handles the *undeclared* case where the conversation history shows research surfaced an external implementation that the diff structurally mirrors but no comment names. If research identified an upstream reference and the diff looks like it followed it, demand attribution even if no comment marks the port. Read `items/ported-code-attribution.md` for both halves.
 
