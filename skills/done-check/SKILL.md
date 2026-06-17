@@ -131,6 +131,7 @@ self-audit: <commit-range or "uncommitted">
 | test-execution                | ✅     | cargo test: 84 passed, 0 failed         |                                                |
 | completion-hygiene            | ✅     | cargo clippy clean, cargo fmt --check   |                                                |
 | architectural-boundary        | ⊘ N/A  |                                         | no new imports / dep edges / pub widening      |
+| escape-hatch-necessity        | ⊘ N/A  |                                         | no escape hatch added (no unsafe / cast)       |
 | paired-artifact-drift         | ✅     | rg <old-name>; parent //! re-read       |                                                |
 | discovery-surfacing           | ⊘ N/A  |                                         | no plan exists                                 |
 | ported-code-attribution       | ⊘ N/A  |                                         | no external code ported                        |
