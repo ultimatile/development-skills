@@ -89,7 +89,8 @@ A `// SAFETY:` comment verifying `T == f64` makes the cast *sound* but does not 
 
 ```sh
 rg -n 'TypeId::of::<' -g '*.rs'
-rg -n 'unsafe\s*\{[^}]*\b(transmute|from_raw_parts|ptr::read)\b' -g '*.rs'
+# -U (multiline): `unsafe {` and the reinterpret op are usually on separate lines
+rg -nU 'unsafe\s*\{[^}]*\b(transmute|from_raw_parts|ptr::read)' -g '*.rs'
 ```
 
 A `TypeId::of` chain sitting next to an `unsafe` reinterpret in the same function is the smell. Confirm the cast bridges generic → concrete (not an external / layout boundary), then check whether a trait the bound already names can hold the per-type branch instead.
