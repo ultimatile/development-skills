@@ -22,7 +22,7 @@ Apply the rules in `gh-body-conventions` to both the title and body. The two PR-
 
 ### Length
 
-A typical PR body is 10–40 lines pre-merge, plus the Phase 4a plan-vs-actual delta when added. Trivial fixes can be much shorter; major features or multi-file refactors can be longer. Every section in the skeleton below should earn its place — a one-line fix needs neither Impact nor Discovery contract sections.
+A typical PR body is 10–40 lines pre-merge, plus the Phase 4a plan-vs-actual delta when added. Trivial fixes can be much shorter; major features or multi-file refactors can be longer. Every section in the skeleton below should earn its place — a one-line fix needs neither an Impact nor a Notes section.
 
 ### Title
 
@@ -35,8 +35,8 @@ A single descriptive line under ~70 characters. Use a conventional commit prefix
 Before drafting, identify:
 
 - **Target repo and base branch.** `gh repo view` and `git symbolic-ref --short refs/remotes/origin/HEAD` if unclear.
-- **Linked issue.** Read the issue body and comments — especially the `research` plan (in the sub-issue body for umbrella-spawned leaves, or in a comment for single-scope issues), if the work passed through `/research-and-implement`. The plan is the source of truth for Changes / Impact / Test plan / Discovery contract status.
-- **Whether the work went through `research`.** If yes, fold the plan's sections into the body skeleton. If no, derive the same content from the local diff and commits, and omit the Discovery contract status section (there is no contract to report against).
+- **Linked issue.** Read the issue body and comments — especially the `research` plan (in the sub-issue body for umbrella-spawned leaves, or in a comment for single-scope issues), if the work passed through `/research-and-implement`. The plan is the source of truth for Changes / Impact / Test plan.
+- **Whether the work went through `research`.** If yes, fold the plan's reader-facing content (Changes / Impact / Test plan) into the body skeleton. If no, derive the same content from the local diff and commits. Either way, do not transcribe the plan's process bookkeeping — see the reader-facing note below the skeleton.
 
 ### 2. Draft
 
@@ -66,19 +66,14 @@ Produce a title and body following the conventions above and the skeleton below.
 <contract tests added in review-pipeline Phase 3, if any>
 <verification results: cargo test / pytest / etc. — pass/fail summary>
 
-## Discovery contract status
-
-<for each plan Inconclusive item: how it resolved during implementation>
-<for each plan Deferred item: current state / follow-up issue link>
-<all-clean → "All Inconclusive / Deferred items resolved per plan."
- (one line)>
-<omit the section entirely if the work did not go through
- research-and-implement>
-
 ## Notes  (optional)
 
-<derivations pointer (link to plan comment), risks, follow-ups>
+<known caveats, risks, follow-ups — including any behavior the plan
+ deferred, framed as the limitation itself (what the PR does not do, and
+ why), NOT as a "plan said X / actual Y" delta or a plan-comment link>
 ```
+
+The PR body is **reader-facing**: it documents the merged artifact for a future bisect reader / maintainer, not the research process that produced it. Do **not** add a `Plan reference`, `Discovery contract status`, or `Open questions from the research plan` section even when the work went through `research-and-implement` — those transcribe plan-internal bookkeeping (opaque plan-comment IDs, inconclusive-item enumerations) that rots fast and means nothing to a reader without the plan in front of them. A deferred behavior a reader genuinely needs goes in `Notes`, framed as the code's own limitation rather than a plan delta. (Phase 4a's `## Plan-vs-actual delta` is the one sanctioned exception — it is the audit surface for umbrella-tracked work and lives at the bottom of the body.)
 
 The Phase 4a `## Plan-vs-actual delta` section is appended later by `review-pipeline`; do not pre-create an empty delta section here.
 
