@@ -115,11 +115,16 @@ print_review_if_any() {
 # Returns: 0 = pause marker found, 1 = fetched but no marker, 2 = fetch failed.
 review_is_paused() {
     local bodies
+    # `--paginate` walks every page: on a long-lived PR the summary comment
+    # carrying the marker can fall outside the first 100 issue comments, and
+    # missing it would misreport an auto-paused run as a clean pass. With
+    # `--paginate` the `--jq` filter runs per page and the matching bodies are
+    # concatenated, so one body per line is the right shape for the grep below.
     # `|| return 2` distinguishes a fetch/jq failure from an empty-but-OK
     # result (no bot comments still exits 0 with empty stdout -> "no marker").
     bodies=$(
-        gh api "repos/$repo/issues/$pr_number/comments?per_page=100" \
-            --jq "[.[] | select(.user.login == \"$BOT_LOGIN\") | .body] | join(\"\n\")" \
+        gh api --paginate "repos/$repo/issues/$pr_number/comments?per_page=100" \
+            --jq ".[] | select(.user.login == \"$BOT_LOGIN\") | .body" \
             2>/dev/null
     ) || return 2
     # Broad, case-insensitive: match the machine HTML marker and the visible
@@ -187,8 +192,13 @@ poll_for_review() {
                     return 2
                 fi
                 if [[ "$pause_rc" -eq 2 ]]; then
-                    echo "Warning: could not fetch PR comments to verify pause state; reporting as a clean" >&2
-                    echo "pass on the success status alone. If a review was expected, check the PR manually." >&2
+                    # Fail closed: the whole point of this gate is to never call
+                    # an unreviewed push clean, so an unverifiable pause state
+                    # must not fall through to a zero-finding report. Halt and
+                    # let the caller re-poll or inspect the PR.
+                    echo "Could not verify pause state from PR comments — refusing to report a clean pass." >&2
+                    echo "Re-poll, or inspect the PR manually before proceeding." >&2
+                    return 1
                 fi
                 echo "=== Review Result ==="
                 echo "Review completed with zero findings — CodeRabbit posts no review object on a clean pass (status: ${status_desc})."
