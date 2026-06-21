@@ -127,9 +127,15 @@ review_is_paused() {
             --jq ".[] | select(.user.login == \"$BOT_LOGIN\") | .body" \
             2>/dev/null
     ) || return 2
-    # Broad, case-insensitive: match the machine HTML marker and the visible
-    # "Reviews paused" notice. `if`-guarded so a grep miss does not trip set -e.
-    if grep -qiE 'review paused by coderabbit\.ai|reviews paused' <<<"$bodies"; then
+    # Match CodeRabbit's machine-emitted HTML pause marker, NOT visible prose.
+    # CodeRabbit's own PR walkthrough describes this very feature with the words
+    # "reviews paused" / "pause marker", so matching bare prose self-triggers a
+    # false pause on any PR that touches or mentions this code. The genuine
+    # auto-pause emits an HTML-comment marker in the `<!-- ... by coderabbit.ai
+    # -->` family (observed siblings: `skip review by coderabbit.ai`,
+    # `summarize by coderabbit.ai`); requiring the `<!--` wrapper excludes prose
+    # and quoted code. `if`-guarded so a grep miss does not trip set -e.
+    if grep -qiE '<!--[^>]*review paused by coderabbit\.ai' <<<"$bodies"; then
         return 0
     fi
     return 1
