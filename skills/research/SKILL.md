@@ -103,6 +103,7 @@ Merge subagent reports into a single plan with the following sections.
   - Invariants the new/changed code must satisfy
   - Tests to add/modify with expected behavior
   - For new constructors / input paths: tests passing those inputs through every existing public API that could receive them. A new input path without cross-API tests is incomplete.
+  - **Surrogate-probe re-instantiation**: every hypothesis confirmed in Step 2 by a *surrogate* probe (proof-of-concept build, reference implementation, toy fixture standing in for the committed artifact) must emit either an artifact-level Test plan entry that re-runs the check against the committed artifact, or an explicit `surrogate evidence suffices because <reason>` line. Confirming on the surrogate and carrying nothing forward (silent retirement) is the failure mode.
 - **Implementation guards** (from confirmed hypotheses):
   - New invariants enforced with assertions, not comments
   - Paired APIs that must stay consistent (sibling methods)
