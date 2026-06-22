@@ -86,8 +86,12 @@ comment_array() {
         "$@"
 }
 
-# Capture a function's exit code without tripping our own pipefail/errexit.
-rc_of() { local fn="$1" rc=0; "$fn" || rc=$?; echo "$rc"; }
+# Run the function under the SAME shell options the script runs under on direct
+# execution (`set -euo pipefail`) and capture its exit code. The subshell is
+# required for errexit to actually take effect inside the function: a bare
+# `fn || rc=$?` would disable errexit within fn (bash treats it as part of a `||`
+# list), so the test would not exercise the production strict-mode behavior.
+rc_of() { local fn="$1" rc=0; ( set -euo pipefail; "$fn" ) || rc=$?; echo "$rc"; }
 
 assert_rc() {
     local label="$1" fn="$2" want="$3" got
