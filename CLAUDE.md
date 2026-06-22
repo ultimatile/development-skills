@@ -59,6 +59,13 @@ Language-specific skills go under `skills/languages/<Language>/<skill-name>/` (c
 
 ## Commit workflow
 
+A change reaches `main` one of two ways; determine which before you bump or tag, because the timing differs:
+
+- **Direct commit to `main`** — the commit you create is itself the published change. Bump and tag on it, following "Direct commit to `main`" below.
+- **PR + squash merge** — any reviewed-implementation flow (`reimre`, `reimrecr`, `review-pipeline`, and the like) puts several commits on a feature branch that collapse into one squash-merge commit on `main`. The published unit is that merge commit, not the branch commits. Follow "PR + squash merge" below.
+
+### Direct commit to `main`
+
 For every commit:
 
 1. Make the code / skill / doc changes.
@@ -84,3 +91,10 @@ For every commit:
    - `docs` / `chore` / `style`: `git push`.
 
    Tags in this repo are **lightweight** (`git tag <name>`, no `-a`). `git push --follow-tags` only pushes annotated tags, so it will silently skip lightweight tags — always push lightweight tags by name. If a `feat` / `fix` commit lands on the remote without its corresponding tag, that is a broken state — push the tag immediately.
+
+### PR + squash merge
+
+The branch commits are drafts; only the squash-merge commit lands on `main`. Two consequences:
+
+- **Bump at most once.** Bump `metadata.version` a single time on the branch — on the first `feat` / `fix` change — and leave it untouched on the fix-up commits that answer review feedback. All branch commits squash into one, which must carry exactly one bump; re-bumping per fix-up commit is wrong.
+- **Tag after the merge, never on the branch.** The squash merge creates a new commit on `main` whose SHA exists nowhere on the branch, so a tag placed on a branch commit would not point at the published change. Once the PR merges, check out `main`, pull, then `git tag <version>` on the squash-merge commit and `git push origin <version>`.
