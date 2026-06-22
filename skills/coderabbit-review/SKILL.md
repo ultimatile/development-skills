@@ -17,7 +17,8 @@ CodeRabbit is app-driven: once the GitHub app is installed on the repository, it
 **The completion signal is the `CodeRabbit` commit status, not the review object.** CodeRabbit reports the review lifecycle as a commit status on the PR's head SHA (`Review queued` → `Review in progress` → `Review completed`), and **a clean review posts no review object at all** — a zero-finding run leaves only the walkthrough comment plus the `Review completed` success status. Read the outcomes as:
 
 - Status `Review completed` + review object for the head commit → findings exist; triage them.
-- Status `Review completed` + no review object → genuine zero findings; the gate passes.
+- Status `Review completed` + no review object + no pause marker → genuine zero findings; the gate passes.
+- Status `Review completed` + no review object + a pause marker in the PR summary comment → reviews are **auto-paused**, not clean. `auto_pause_after_reviewed_commits` stops the review after a number of commits yet still emits a terminal `success` ("Review completed") on an unreviewed push, so the status alone cannot tell this apart from a clean pass. The discriminator is CodeRabbit's machine-emitted HTML pause marker (`review paused by coderabbit.ai`, inside an HTML comment) — matching the visible "Reviews paused" prose instead would self-trigger, because CodeRabbit's own walkthrough of a PR that touches this code echoes those words. The script detects the HTML marker before reporting and exits `2`; resume with `@coderabbitai review`, then `--poll`. Do not record it as a zero-finding pass.
 - No `CodeRabbit` status at all (poll timeout) → the review never started; halt and surface to the user — check the app installation, plan, and automatic-review settings in the CodeRabbit dashboard, or post `@coderabbitai full review` and read the response.
 
 The walkthrough / summary issue comment (collapsed `📝 Walkthrough`, pre-merge checks, poem) proves nothing either way — it is posted before the review completes. A repo `.coderabbit.yaml` setting `reviews.commit_status: false` hides the status signal; keep it enabled. When a review object does exist, it is attributed to the head commit by `commit_id`, so stale reviews of earlier commits are never reported.
@@ -30,7 +31,7 @@ The walkthrough / summary issue comment (collapsed `📝 Walkthrough`, pre-merge
 ${CLAUDE_SKILL_DIR}/scripts/pr-with-coderabbit-review.sh --title "fix: foo" --body-file /tmp/body.md --base main
 ```
 
-All arguments are forwarded to `gh-post pr create`. The script then polls the `CodeRabbit` commit status until it reaches a terminal state, outputting either the review body plus that review's inline comments, or an explicit zero-finding result, to stdout.
+All arguments are forwarded to `gh-post pr create`. The script then polls the `CodeRabbit` commit status until it reaches a terminal state, outputting one of: the review body plus that review's inline comments; an explicit zero-finding result; or an auto-paused notice (exit `2`) when the terminal `success` reflects a skipped, unreviewed push.
 
 Inline `--body <string>` and `-b <string>` are rejected by `gh-post` — the wrapper exists to keep every body through its hardwrap validator. Use `--body-file <path>` (preferred) or `--body-stdin`.
 

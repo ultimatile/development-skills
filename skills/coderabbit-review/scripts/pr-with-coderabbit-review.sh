@@ -102,6 +102,45 @@ print_review_if_any() {
     return 0
 }
 
+# Detect whether CodeRabbit has auto-paused reviews on this PR.
+#
+# `auto_pause_after_reviewed_commits` makes CodeRabbit stop reviewing after
+# a number of commits, yet it still emits a terminal `success` commit status
+# with description "Review completed" — indistinguishable from a genuine
+# clean pass on the status alone. The authoritative pause signal is instead
+# the marker CodeRabbit writes into its PR summary issue comment. This gate
+# runs only before declaring a zero-finding pass, so a paused (unreviewed)
+# push is never reported as clean.
+#
+# Returns: 0 = pause marker found, 1 = fetched but no marker, 2 = fetch failed.
+review_is_paused() {
+    local bodies
+    # `--paginate` walks every page: on a long-lived PR the summary comment
+    # carrying the marker can fall outside the first 100 issue comments, and
+    # missing it would misreport an auto-paused run as a clean pass. With
+    # `--paginate` the `--jq` filter runs per page and the matching bodies are
+    # concatenated, so one body per line is the right shape for the grep below.
+    # `|| return 2` distinguishes a fetch/jq failure from an empty-but-OK
+    # result (no bot comments still exits 0 with empty stdout -> "no marker").
+    bodies=$(
+        gh api --paginate "repos/$repo/issues/$pr_number/comments?per_page=100" \
+            --jq ".[] | select(.user.login == \"$BOT_LOGIN\") | .body" \
+            2>/dev/null
+    ) || return 2
+    # Match CodeRabbit's machine-emitted HTML pause marker, NOT visible prose.
+    # CodeRabbit's own PR walkthrough describes this very feature with the words
+    # "reviews paused" / "pause marker", so matching bare prose self-triggers a
+    # false pause on any PR that touches or mentions this code. The genuine
+    # auto-pause emits an HTML-comment marker in the `<!-- ... by coderabbit.ai
+    # -->` family (observed siblings: `skip review by coderabbit.ai`,
+    # `summarize by coderabbit.ai`); requiring the `<!--` wrapper excludes prose
+    # and quoted code. `if`-guarded so a grep miss does not trip set -e.
+    if grep -qiE '<!--[^>]*review paused by coderabbit\.ai' <<<"$bodies"; then
+        return 0
+    fi
+    return 1
+}
+
 # Poll the `CodeRabbit` commit status on the PR's head commit until it
 # reaches a terminal state, then print the review (if one was posted).
 #
@@ -145,6 +184,28 @@ poll_for_review() {
                 if print_review_if_any "$head_sha"; then
                     return 0
                 fi
+                # `success` + no review object is ambiguous: it is either a
+                # genuine clean pass or an auto-paused (unreviewed) push.
+                # Disambiguate via the PR summary comment before reporting.
+                local pause_rc=0
+                review_is_paused || pause_rc=$?
+                if [[ "$pause_rc" -eq 0 ]]; then
+                    echo "=== Review Auto-Paused ==="
+                    echo "CodeRabbit auto-paused reviews on this PR — the terminal 'success' status reflects a"
+                    echo "skipped (unreviewed) push, not a clean pass. Resume the review, then re-poll:"
+                    echo "  gh pr comment $pr_number --repo $repo --body \"@coderabbitai review\""
+                    echo "  $0 --poll https://github.com/$repo/pull/$pr_number"
+                    return 2
+                fi
+                if [[ "$pause_rc" -eq 2 ]]; then
+                    # Fail closed: the whole point of this gate is to never call
+                    # an unreviewed push clean, so an unverifiable pause state
+                    # must not fall through to a zero-finding report. Halt and
+                    # let the caller re-poll or inspect the PR.
+                    echo "Could not verify pause state from PR comments — refusing to report a clean pass." >&2
+                    echo "Re-poll, or inspect the PR manually before proceeding." >&2
+                    return 1
+                fi
                 echo "=== Review Result ==="
                 echo "Review completed with zero findings — CodeRabbit posts no review object on a clean pass (status: ${status_desc})."
                 return 0
@@ -168,14 +229,30 @@ poll_for_review() {
     return 1
 }
 
+# Translate poll_for_review's return code into a process exit, preserving the
+# auto-pause signal as a distinct code so callers (e.g. review-pipeline-
+# coderabbit) can resume rather than treat a paused push as a clean pass:
+#   0 -> clean / findings printed;  2 -> auto-paused (resume needed);
+#   anything else -> failure.
+# `rc=0; poll_for_review || rc=$?` captures the code without tripping set -e.
+poll_and_exit() {
+    local pr_url="$1"
+    local rc=0
+    poll_for_review || rc=$?
+    case "$rc" in
+        0) exit 0 ;;
+        2) exit 2 ;;
+        *) echo "Check manually: $pr_url" >&2; exit 1 ;;
+    esac
+}
+
 # --- Mode selection -------------------------------------------------------
 if [[ "${1:-}" == "--poll" ]]; then
     shift
     pr_url="${1:?Usage: $0 --poll <PR_URL>}"
     parse_pr_url "$pr_url"
     echo "Polling existing PR: $pr_url" >&2
-    poll_for_review || { echo "Check manually: $pr_url" >&2; exit 1; }
-    exit 0
+    poll_and_exit "$pr_url"
 fi
 
 if [[ "${1:-}" == "--re-review" ]]; then
@@ -186,8 +263,7 @@ if [[ "${1:-}" == "--re-review" ]]; then
     # CodeRabbit's incremental review. Head-SHA matching ignores all
     # reviews of earlier commits, so waiting is the whole job.
     echo "Waiting for incremental review on PR #$pr_number (auto-triggered by the push)..." >&2
-    poll_for_review || { echo "Check manually: $pr_url" >&2; exit 1; }
-    exit 0
+    poll_and_exit "$pr_url"
 fi
 
 # --- Normal mode: create PR + poll -----------------------------------------
@@ -202,5 +278,4 @@ pr_url=$(gh-post pr create "$@") || {
 echo "PR created: $pr_url" >&2
 
 parse_pr_url "$pr_url"
-poll_for_review || { echo "Check manually: $pr_url" >&2; exit 1; }
-exit 0
+poll_and_exit "$pr_url"
