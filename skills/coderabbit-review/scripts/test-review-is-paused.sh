@@ -28,7 +28,9 @@ source "$SCRIPT_DIR/pr-with-coderabbit-review.sh"
 repo="owner/repo"
 pr_number=1
 
-BOT='coderabbitai[bot]'
+# Reuse the sourced production constant so the fixture bot identity cannot drift
+# from the login review_is_paused actually filters on.
+BOT="$BOT_LOGIN"
 
 # Fixture state read by the gh stub. FIXTURE_JSON is a JSON array of issue
 # comments; FIXTURE_FAIL=1 makes the stub fail like a network/jq error.
