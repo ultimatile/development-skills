@@ -35,7 +35,10 @@
 #   CODERABBIT_POLL_INITIAL   Initial poll interval in seconds (default: 60)
 #   CODERABBIT_POLL_MAX       Max poll interval in seconds     (default: 300)
 #   CODERABBIT_POLL_ATTEMPTS  Max number of poll attempts      (default: 10)
-set -euo pipefail
+#
+# `set -euo pipefail` is deferred to the direct-execution guard at the bottom so
+# this file can be sourced (by the contract test) for its function definitions
+# without imposing strict mode on the caller's shell.
 
 # REST endpoints report the app's login with the `[bot]` suffix.
 BOT_LOGIN="coderabbitai[bot]"
@@ -245,6 +248,16 @@ poll_and_exit() {
         *) echo "Check manually: $pr_url" >&2; exit 1 ;;
     esac
 }
+
+# Stop here when sourced (e.g. by the contract test): only the constant and
+# function definitions above are wanted, not the PR-creation side effects below.
+# `set -euo pipefail` is enabled here, in the direct-execution path only, so the
+# run-as-script behavior is unchanged while sourcing leaves the caller's shell
+# options untouched.
+if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
+    return 0 2>/dev/null || exit 0
+fi
+set -euo pipefail
 
 # --- Mode selection -------------------------------------------------------
 if [[ "${1:-}" == "--poll" ]]; then
