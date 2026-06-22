@@ -39,7 +39,7 @@ Determine: artifact kind (`issue` / `pr`), target repo (e.g., `owner/repo` — t
 ${CLAUDE_SKILL_DIR}/unicode-math-scan.sh "$BODY_FILE"
 ```
 
-Exit 0 = clean, 1 = hits found (printed as `line:match`), 2 = usage / environment error. The script wraps the rg regex for the Greek block, the two Mathematical Operators blocks, and dagger / double-dagger — `gh-body-conventions` § Math forbids these in prose. Any hit in prose → ⚠ (rule: Unicode math in prose is the user's strongest formatting dislike; use `` $`\alpha`$ `` instead of `α`). Hits inside fenced code blocks (rare — Greek-named identifiers etc.) → ⊘ N/A, judged by main-context inspection of each hit.
+Exit 0 = clean, 1 = hits found (printed as `line:match`), 2 = usage / environment error. The script wraps the rg regex for the Greek block, the two Mathematical Operators blocks, the Superscripts-and-Subscripts block, the Latin-1 math signs (`±`, `×`, `÷`) and superscripts (`¹`, `²`, `³`), and dagger / double-dagger — `gh-body-conventions` § Math forbids these in prose. Any hit in prose → ⚠ (rule: Unicode math in prose is the user's strongest formatting dislike; use `` $`\alpha`$ `` instead of `α`). Hits inside fenced code blocks (rare — Greek-named identifiers etc.) → ⊘ N/A, judged by main-context inspection of each hit.
 
 ### 3. Cold-reader audit (fresh-context subagent)
 
