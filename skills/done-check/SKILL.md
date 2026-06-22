@@ -62,8 +62,11 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
 
    Pay particular attention to `paired-artifact-drift`'s "new-comment
    claim sweep" and "cold-read pass" sub-rules: extract every numeric
-   literal, identifier, and property claim from new / modified
-   comments, and verify each against the code. Do not assume an
+   literal, identifier, property claim, and behavioral guarantee
+   (never-raises / always-returns / totality) from new / modified
+   comments, and verify each against the code — for a guarantee, trace
+   every exception or non-conforming-return source in the function
+   body, not just one representative case. Do not assume an
    inconsistency was "intended" — if the literal text says one thing
    and the code does another, that is a ⚠.
 
