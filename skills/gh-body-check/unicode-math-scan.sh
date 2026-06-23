@@ -34,7 +34,8 @@ Scans <body-file> for two classes of math that gh-body-conventions forbids:
   - The GitHub-unsupported macro \operatorname (broken on GitHub regardless
     of delimiter form; use \mathrm instead).
 
-Prints rg output (path:line:matched) and exits 1 if any hit is found.
+Prints rg output (line:match — rg emits no path prefix for a single file)
+and exits 1 if any hit is found.
 EOF
 }
 
