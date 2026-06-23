@@ -6,7 +6,7 @@ allowed-tools: Bash(*/gh-body-check/unicode-math-scan.sh:*)
 
 # GH Body Check
 
-Two checks: a mechanical Unicode-math scan (one rg invocation), and a cold-reader audit delegated to a fresh-context subagent. `gh-body-conventions` is SSOT for the rules; this file is the procedure.
+Two checks: a mechanical math scan (Unicode-math glyphs plus the GitHub-unsupported macro `\operatorname`), and a cold-reader audit delegated to a fresh-context subagent. `gh-body-conventions` is SSOT for the rules; this file is the procedure.
 
 ## When to use
 
@@ -33,13 +33,18 @@ EOF
 
 Determine: artifact kind (`issue` / `pr`), target repo (e.g., `owner/repo` — the cold reader needs this to reason about what counts as "public" for that repo), target language (`English` / `Japanese` / `matches-repo`).
 
-### 2. Unicode math scan
+### 2. Math scan
 
 ```bash
 ${CLAUDE_SKILL_DIR}/unicode-math-scan.sh "$BODY_FILE"
 ```
 
-Exit 0 = clean, 1 = hits found (printed as `line:match`), 2 = usage / environment error. The script wraps the rg regex for the Greek block, the two Mathematical Operators blocks, the Superscripts-and-Subscripts block, the Latin-1 math signs (`±`, `×`, `÷`) and superscripts (`¹`, `²`, `³`), and dagger / double-dagger — `gh-body-conventions` § Math forbids these in prose. Any hit in prose → ⚠ (rule: Unicode math in prose is the user's strongest formatting dislike; use `` $`\alpha`$ `` instead of `α`). Hits inside fenced code blocks (rare — Greek-named identifiers etc.) → ⊘ N/A, judged by main-context inspection of each hit.
+Exit 0 = clean, 1 = hits found (printed as `line:match`), 2 = usage / environment error. The script flags two classes, both forbidden by `gh-body-conventions` § Math:
+
+- **Unicode glyphs** — the Greek block, the two Mathematical Operators blocks, the Superscripts-and-Subscripts block, the Latin-1 math signs (`±`, `×`, `÷`) and superscripts (`¹`, `²`, `³`), and dagger / double-dagger. Any hit in prose → ⚠ (rule: Unicode math in prose is the user's strongest formatting dislike; use `` $`\alpha`$ `` instead of `α`).
+- **GitHub-unsupported macro** — the literal `\operatorname` (with optional trailing `*`). GitHub's math renderer does not render it regardless of delimiter form (github/markup#1688). Any hit in math → ⚠ (use `\mathrm{...}` instead).
+
+Hits inside fenced code blocks, inline code spans, or prose that merely names the construct to document it (Greek-named identifiers, a body discussing `\operatorname` itself) → ⊘ N/A, judged by main-context inspection of each hit.
 
 ### 3. Cold-reader audit (fresh-context subagent)
 
