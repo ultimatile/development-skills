@@ -1,7 +1,7 @@
 ---
 name: gh-body-check
 description: Audit a drafted or filed GitHub issue / PR body against gh-body-conventions via a fresh-context subagent. Any unresolved ⚠ blocks the caller.
-allowed-tools: Bash(*/gh-body-check/unicode-math-scan.sh:*)
+allowed-tools: Bash(*/gh-body-check/body-math-scan.sh:*)
 ---
 
 # GH Body Check
@@ -36,7 +36,7 @@ Determine: artifact kind (`issue` / `pr`), target repo (e.g., `owner/repo` — t
 ### 2. Math scan
 
 ```bash
-${CLAUDE_SKILL_DIR}/unicode-math-scan.sh "$BODY_FILE"
+${CLAUDE_SKILL_DIR}/body-math-scan.sh "$BODY_FILE"
 ```
 
 Exit 0 = clean, 1 = hits found (printed as `line:match`), 2 = usage / environment error. The script flags two classes, both forbidden by `gh-body-conventions` § Math:

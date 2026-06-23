@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Contract test for unicode-math-scan.sh's exit-code + detection contract.
+# Contract test for body-math-scan.sh's exit-code + detection contract.
 #
 # Zero-dependency harness: bash + rg only (the repo has no bash test framework,
 # and this adds only enough to drive this one script). It runs the scan against
@@ -12,7 +12,7 @@
 # current behavior (see "non-tautology guard").
 #
 # Run:
-#   bash test-unicode-math-scan.sh
+#   bash test-body-math-scan.sh
 #
 # shellcheck disable=SC2016  # single-quoted fixture bodies hold literal LaTeX
 #                            # (e.g. \operatorname); non-expansion is intentional.
@@ -20,7 +20,7 @@
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SCAN="$SCRIPT_DIR/unicode-math-scan.sh"
+SCAN="$SCRIPT_DIR/body-math-scan.sh"
 
 # Frozen reconstruction of the scanner's regex BEFORE \operatorname detection was
 # added: the Unicode-codepoint class only, with no \operatorname alternative.

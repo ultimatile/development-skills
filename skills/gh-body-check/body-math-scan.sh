@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# unicode-math-scan.sh — flag Unicode math glyphs and GitHub-unsupported math
+# body-math-scan.sh — flag Unicode math glyphs and GitHub-unsupported math
 # macros in a GitHub body draft.
 #
 # Mechanical half of gh-body-check. A single rg pass flags two classes that
@@ -25,7 +25,7 @@ set -uo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: unicode-math-scan.sh <body-file>
+Usage: body-math-scan.sh <body-file>
 
 Scans <body-file> for two classes of math that gh-body-conventions forbids:
   - Unicode math characters (Greek, Math Operators, Supplemental Math
