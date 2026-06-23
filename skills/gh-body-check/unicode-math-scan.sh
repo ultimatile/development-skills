@@ -31,8 +31,8 @@ Scans <body-file> for two classes of math that gh-body-conventions forbids:
   - Unicode math characters (Greek, Math Operators, Supplemental Math
     Operators, Superscripts/Subscripts, the Latin-1 signs ± × ÷ and
     superscripts ¹ ² ³, †, ‡).
-  - The GitHub-unsupported macro \operatorname (broken on GitHub regardless
-    of delimiter form; use \mathrm instead).
+  - The GitHub-unsupported macro \operatorname / \operatorname* (broken on
+    GitHub regardless of delimiter form; use \mathrm{...} instead).
 
 Prints rg output (line:match — rg emits no path prefix for a single file)
 and exits 1 if any hit is found.
