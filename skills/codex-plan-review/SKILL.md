@@ -64,6 +64,7 @@ Beyond the first obvious concern, check for:
 - missing validation at API or module boundaries
 - inconsistency between the plan and existing patterns in this codebase
 - **dead-on-arrival public surface**: for each new parameter / field / method the plan adds, identify whether any current code path BRANCHES on its value (matches / reorders / validates / dispatches). Tautological consumers — `Clone`, accessors that just expose the field, constructors that just store it — do not count. If no branching consumer exists, the symbol's contract depends on consumer code that is not yet aligned, and the plan should either bring that consumer into scope or defer the symbol. This is the "contract closure" axis: a plan can be locally closed (mechanism fits) yet contract-empty (semantic meaning depends on outside).
+- **shared-scope config reach**: for any lint / setting / config the plan enables at a shared scope (Cargo `[workspace.lints]` / `[lints]`, a workspace / package / global config, a compiler-wide flag), enumerate every unit that scope binds (for Cargo: lib, bins, integration tests, benches, examples, and the build script — each a separate compilation unit inheriting the package lints) and flag when the intended target (e.g. the library) is narrower than the actual reach. A narrower per-unit attribute, or bringing every bound unit into scope and verifying it, is the resolution.
 </dig_deeper_nudge>
 
 <missing_context_gating>
@@ -122,6 +123,7 @@ If actionable findings exist, revise the plan in the conversation and re-present
 - Missing validation at API boundaries
 - Inconsistency between the plan and existing code patterns
 - (with the `dig_deeper_nudge` extension above) dead-on-arrival public surface — symbols whose contracts have no current branching consumer
+- (with the `dig_deeper_nudge` extension above) shared-scope config reach — a lint / config enabled at a workspace / package / global scope that binds more compilation units (tests, benches, examples, build scripts) than the intended one
 
 ## What Codex is bad at in plan review
 
@@ -130,4 +132,4 @@ If actionable findings exist, revise the plan in the conversation and re-present
 - Trade-off decisions (will flag every simplification as a risk)
 - Whether a "documented limitation" or "deferred mitigation" in the plan is acceptable or is a self-admission that the plan is mis-scoped — Codex grounds in code, not in scope-vs-contract distinctions
 
-The user makes these calls, not Codex. The `research` Step 3.4 (Contract reachability check) is the upstream check that catches contract-closure failures via mechanical grep on the plan body itself; `codex-plan-review`'s extension above provides a redundant code-side check, but it is not a substitute for Step 3.4.
+The user makes these calls, not Codex. The `research` Step 3.4 (Reachability check) is the upstream gate for these outward-reach failures; `codex-plan-review`'s extensions above provide redundant code-side checks, but they are not a substitute for Step 3.4.

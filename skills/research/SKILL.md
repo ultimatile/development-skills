@@ -144,9 +144,9 @@ A sub-decision is genuinely unresolved only when the above are silent or contrad
 
 Report the plan back to the main context.
 
-## Step 3.4 — Contract reachability check (mandatory)
+## Step 3.4 — Reachability check (mandatory)
 
-A plan can be locally closed yet **contract-empty** when a new public surface's semantics depend on consumer code outside scope. `codex-plan-review` and author confidence both miss this — it requires looking outward. Any check firing means the plan's contract is not closed; rescope or defer.
+A plan can be locally closed yet reach further than the author reasoned about — a new public surface whose semantics depend on consumer code outside scope (Checks 1–3), or an enablement that binds compilation units the plan never named (Check 4). `codex-plan-review` and author confidence both miss these — they require looking outward. Any check firing means the plan's reach is not closed; rescope or defer.
 
 ### Check 1 — Dead-on-arrival state
 
@@ -175,6 +175,15 @@ Restate the plan's claim in one sentence. Would it still be true if every line o
 - **Contract closure**: "constructor produces a tensor that downstream operations interpret correctly under the declared order" — only true if consumers honor the tag.
 
 If the user-visible value rests on contract closure and contract closure is out of scope, the plan is mis-scoped. Bring contract closure in or step back to the upstream design decision.
+
+### Check 4 — Shared-scope config reach
+
+When the plan enables a lint / setting / config entry at a **shared scope** (Cargo `[workspace.lints]` or package `[lints]`, a workspace / package / global config file, a compiler-wide flag, any setting inherited by more than the one unit being changed), enumerate **every unit the scope mechanically binds** and confirm the intended target matches the actual reach.
+
+For Cargo, a package `[lints]` table — including `[workspace.lints]` inherited via `[lints] workspace = true` — binds every target kind of that package: lib, bins, integration tests, benches, examples, and the build script (`build.rs`). Each is a separate compilation unit, not just the library. (`[workspace.lints]` binds only member packages that opt in with `[lints] workspace = true`.)
+
+- Reach matches intent → proceed.
+- Reach exceeds intent (the setting is meant for the library but the scope also binds test / bench / example / build-script units) → resolve one of two ways, never by silent acceptance: (a) narrow the scope to a per-unit attribute (e.g. per-lib `#![deny(...)]`); or (b) bring every bound unit into the Step 3 impact / test plan and verify each satisfies the setting. A bound unit that is neither narrowed out nor verified is an unresolved item, not an accepted one.
 
 Output: **clean** (proceed to Step 3.5) or **flagged** (list firings + proposed resolution + surface to user).
 
