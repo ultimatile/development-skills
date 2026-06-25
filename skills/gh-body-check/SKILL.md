@@ -6,7 +6,7 @@ allowed-tools: Bash(*/gh-body-check/body-math-scan.sh:*)
 
 # GH Body Check
 
-Two checks: a mechanical math scan (Unicode-math glyphs plus the GitHub-unsupported macro `\operatorname`), and a cold-reader audit delegated to a fresh-context subagent. `gh-body-conventions` is SSOT for the rules; this file is the procedure.
+Two checks: a mechanical math scan (Unicode-math glyphs, the GitHub-unsupported macro `\operatorname`, and inline math neutralized by an enclosing code span), and a cold-reader audit delegated to a fresh-context subagent. `gh-body-conventions` is SSOT for the rules; this file is the procedure.
 
 ## When to use
 
@@ -39,7 +39,7 @@ Determine: artifact kind (`issue` / `pr`), target repo (e.g., `owner/repo` — t
 ${CLAUDE_SKILL_DIR}/body-math-scan.sh "$BODY_FILE"
 ```
 
-Exit 0 = clean, 1 = hits found (printed as `line:match`), 2 = usage / environment error. It flags the raw Unicode math glyphs and the `\operatorname` macro that `gh-body-conventions` § Math forbids. Any hit → ⚠; a hit inside a fenced code block, an inline code span, or prose that merely names the construct → ⊘ N/A, judged by main-context inspection.
+Exit 0 = clean, 1 = hits found (printed as `line:match`), 2 = usage / environment error. It flags the raw Unicode math glyphs, the `\operatorname` macro, and inline math `` $`...`$ `` neutralized by an enclosing code span — all forbidden by `gh-body-conventions` § Math. For a Unicode-glyph or `\operatorname` hit: any hit → ⚠; a hit inside a fenced code block, an inline code span, or prose that merely names the construct → ⊘ N/A, judged by main-context inspection. A code-span-neutralized inline-math hit is NOT auto-dismissed by that inline-code-span exemption — the enclosing code span IS the defect — so judge intent in main context: math a copied display form silently neutralized → ⚠ (fix); a legitimate literal `` $`...`$ `` shown as code or data → ⊘ N/A with a one-line justification.
 
 ### 3. Cold-reader audit (fresh-context subagent)
 

@@ -34,6 +34,7 @@ Write the body to a file (typically under `/tmp/`) and pass it to the `gh-post` 
 
 - Use LaTeX notation rendered with GitHub's `` $`...`$ `` syntax for inline math and `$$...$$` for display math.
 - Prefer `` $`...`$ `` over `$...$` for inline math.
+- Do NOT wrap the inline-math construct `` $`...`$ `` in an enclosing code span. GitHub then renders the literal math syntax as inline code, not math — the failure mode when the *display* form of the construct (the literal syntax this section shows) is copied straight into a body.
 - Plain text inside backticks is fine when the symbol must match a code identifier verbatim (e.g., `` `alpha_t` ``).
 - Do NOT write raw Unicode math characters (α, β, ⊗, ∑, ∇, †, etc.) in prose. Use `` $`\alpha`$ ``, `` $`\otimes`$ ``, `` $`\sum`$ ``, `` $`\nabla`$ ``, `` $`\dagger`$ `` instead.
 - Do NOT use `\operatorname` (or `\operatorname*`). GitHub's math renderer does not render it, regardless of inline/display or `` $`...`$ `` vs `$...$` delimiter form — a GitHub-specific limitation, not a MathJax one (github/markup#1688). Use `\mathrm{...}` instead, or `\mathop{\mathrm{...}}` when operator spacing matters.
