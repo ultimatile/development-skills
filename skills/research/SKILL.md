@@ -146,7 +146,7 @@ Report the plan back to the main context.
 
 ## Step 3.4 — Reachability check (mandatory)
 
-A plan can be locally closed yet reach further than the author reasoned about — a new public surface whose semantics depend on consumer code outside scope (Checks 1–3), or an enablement that binds compilation units the plan never named (Check 4). `codex-plan-review` and author confidence both miss these — they require looking outward. Any check firing means the plan's reach is not closed; rescope or defer.
+A plan can be locally closed yet reach further than the author reasoned about — a new public surface whose semantics depend on consumer code outside scope (Checks 1–3), an enablement that binds compilation units the plan never named (Check 4), or a verification probe that covers fewer build configurations than the obligation spans (Check 5). `codex-plan-review` and author confidence both miss these — they require looking outward. Any check firing means the plan's reach is not closed; rescope or defer.
 
 ### Check 1 — Dead-on-arrival state
 
@@ -184,6 +184,15 @@ For Cargo, a package `[lints]` table — including `[workspace.lints]` inherited
 
 - Reach matches intent → proceed.
 - Reach exceeds intent (the setting is meant for the library but the scope also binds test / bench / example / build-script units) → resolve one of two ways, never by silent acceptance: (a) narrow the scope to a per-unit attribute (e.g. per-lib `#![deny(...)]`); or (b) bring every bound unit into the Step 3 impact / test plan and verify each satisfies the setting. A bound unit that is neither narrowed out nor verified is an unresolved item, not an accepted one.
+
+### Check 5 — Verification-config representativeness
+
+When the plan's safety rests on a probe — "it builds", "the tests pass", "the cycle compiles" — and the same source is compiled under more than one **non-interchangeable configuration** (Rust `--cfg test` vs the non-test build, a feature-gated vs ungated build, C / C++ translation units compiled with macros that change a type's layout or ODR identity, a distinct `target` / `arch`), a passing probe under one configuration does not certify a sibling. The configurations look interchangeable but can produce distinct type instances / ABIs, so an obligation that binds in configuration B is untouched by a probe that ran configuration A.
+
+Identify the configuration where the **new** obligation binds and confirm the probe exercises THAT configuration:
+
+- Probe runs the binding configuration → proceed.
+- Probe runs only a sibling ("does it build", an integration target linking the non-test build, the ungated build) while the obligation binds elsewhere (the crate's own `--cfg test` unit tests, the gated build) → not certified. Name the binding-configuration probe and add it to the Step 3 test plan, or step back to a structure that keeps the obligation inside one configuration.
 
 Output: **clean** (proceed to Step 3.5) or **flagged** (list firings + proposed resolution + surface to user).
 
