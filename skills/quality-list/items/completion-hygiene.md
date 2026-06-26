@@ -1,4 +1,4 @@
-# Completion hygiene [contextual]
+# Completion hygiene
 
 Project-standard format / lint / type-check / build commands ran clean against the diff. Use the project's actual commands; examples:
 

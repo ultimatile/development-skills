@@ -1,4 +1,4 @@
-# Implementation guards [mechanical]
+# Implementation guards
 
 Invariants that must hold at runtime are encoded as **assertions** (`assert!` / `debug_assert!` / equivalent), not docstring claims or comments. When a guard is added to one API method, its paired / sibling methods get the same guard for consistency. Constructors validate every parameter they accept at construction time — never defer validation to a setter or to the caller. Properties that cannot be reliably inferred from existing fields get an explicit field, not a heuristic.
 

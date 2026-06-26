@@ -5,7 +5,7 @@ description: Single source of truth for universal code-quality items. Definition
 
 # Quality List (SSOT)
 
-This skill is **a definition file, not a runnable procedure**. Skills that audit or preflight against universal code-quality apply these items by reference. When an item changes, referencing skills pick up the change automatically — do not copy item text into them.
+This skill is **a definition file, not a runnable procedure**. Skills that audit or preflight against universal code-quality apply these items by reference. When an item changes, referencing skills pick up the change automatically — do not copy item text into them. The Items index below is likewise the single source of truth for **which items exist and which lane each belongs to**: runners derive their active item set by reading this index, never by hardcoding a parallel slug list. Adding an item here propagates to every runner automatically.
 
 ## Audit lanes
 
@@ -16,7 +16,7 @@ Each item is tagged for which audit lane it belongs to in `done-check`'s split b
 
 A small number of items are **dual-lane**: their detection has both mechanical (literal-grep) and contextual (history-aware) signals. Such items appear in both audit lanes; consumers (`done-check`) route the relevant signal to the appropriate context. The current dual-lane item is `ported-code-attribution` (declared port = mechanical, undeclared port = contextual).
 
-The lane tag appears at the end of each item file's H1 heading (e.g., `[mechanical]` / `[contextual]`).
+Each item's lane is declared once, in the Items index below (the `— mechanical` / `— contextual` suffix on each entry). Item files do not carry a lane tag in their H1 heading.
 
 ## Items
 

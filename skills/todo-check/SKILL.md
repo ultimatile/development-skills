@@ -42,7 +42,7 @@ It is acceptable to invoke `todo-check` more than once during a task. `done-chec
    - What invariants the change introduces or modifies
    - Whether a research plan with `Inconclusive / Deferred items` exists (relevant to `discovery-surfacing`)
 
-2. **Process every item in preflight mode.** Use the per-item Preflight framing quick reference below as the primary lens — it is the cached compressed view of every item. Do **not** Read the full `quality-list/SKILL.md` or all `items/<slug>.md` files into main context up front. Only Read a specific `quality-list/items/<slug>.md` file when (a) the quick reference is insufficient to decide active vs N/A, or (b) the item is △ active and the setup action needs the full concern conditions / N/A criteria.
+2. **Process every item in preflight mode.** Read `quality-list/SKILL.md`'s Items index to get the authoritative item set, and process every item in it. Use the per-item Preflight framing quick reference below as the compressed lens — an accelerator over that index spine, not the authoritative set. When an index item has no quick-reference entry, Read its `quality-list/items/<slug>.md` as a safe fallback, so a missing entry never silently drops the item. Read the index for the item set (the slugs); do **not** read the item bodies into main context up front. Only Read a specific `quality-list/items/<slug>.md` file when (a) the item is absent from the quick reference, (b) the quick reference is insufficient to decide active vs N/A, or (c) the item is △ active and the setup action needs the full concern conditions / N/A criteria.
 
    For each item, determine one of:
 
@@ -56,7 +56,7 @@ It is acceptable to invoke `todo-check` more than once during a task. `done-chec
 
 ## Preflight framing per item (quick reference)
 
-These are how each `quality-list` item reads in preflight mode. The authoritative rule is in `quality-list/items/<slug>.md`; this is just the lens shift.
+These are how each `quality-list` item reads in preflight mode — a compressed accelerator over the index spine (Step 2), not the authoritative set. The authoritative rule for each item is in `quality-list/items/<slug>.md`, and the authoritative item set is the `quality-list/SKILL.md` index; this is just the lens shift.
 
 - **`invariant-derivation`** — Before patching, derive the full necessary-and-sufficient condition from first principles. List it in the plan.
 - **`purpose-verification`** — Identify the input that exposes the purpose end-to-end. Plan to exercise it before declaring done.
@@ -70,6 +70,7 @@ These are how each `quality-list` item reads in preflight mode. The authoritativ
 - **`architectural-boundary`** — Identify any new imports / dep edges / `pub` widenings the change will introduce; plan to check them against the project's boundary rules.
 - **`escape-hatch-necessity`** — If a unit will introduce a static-guarantee escape hatch (Rust `unsafe`, C++ `reinterpret_cast` / `const_cast` / C-style cast, TS `any` / `as` / non-null `!` / `@ts-ignore`), plan to derive its necessity first: confirm no safe construct (trait / interface dispatch, generics, enum) keeps the type concrete at the use site. Treat the hatch as a last resort behind that derivation, not a default for bridging a generic to a concrete type.
 - **`paired-artifact-drift`** — List every textual surface that will need updating: same-crate `rg` targets, parent module docstrings, `examples/`, `bench/`, doctests, `README.md`, `CLAUDE.md`, migrations / schemas, declared cross-repo paired artifacts. Plan the sweep before editing primary identifiers.
+- **`docstring-drift`** — If a unit will change behavior without renaming the identifier (delegating to a library, shifting return shape, adding / removing side effects, restructuring control flow), list now the docstring / comment / README claim surfaces that describe the changed code; plan a cold-read re-verification of each against the new behavior, with an execution probe where the behavior becomes library-owned.
 - **`discovery-surfacing`** — If a plan exists, extract its `Inconclusive` items into a watch list. During implementation, any unexpected fact must match a watch-list branch or trigger halt.
 - **`ported-code-attribution`** — If any unit's research surfaced an external implementation as a reference, plan the attribution surface (in-source comment block citing project / file / URL / copyright / license, or a top-level `THIRD_PARTY.md`) before the port lands.
 - **`signature-change-regression`** — If a unit changes the signature of a function whose call sites live outside its own translation unit (parameter removal / reorder / type substitution), plan one of: (a) a `= delete;` sentinel overload for the old signature shape, (b) a strong typedef over the affected parameter(s) so the implicit-conversion edge is structurally absent, or (c) an exhaustive call-site sweep across the project (including every preprocessor / build-config branch) verifying no old-form call compiles under the new signature. The lang addendum (`lang-<lang>.md`) lists the language's actual conversion semantics; plan against those.

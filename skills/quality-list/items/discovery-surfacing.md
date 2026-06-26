@@ -1,4 +1,4 @@
-# Discovery surfacing (plan-vs-actual) [contextual]
+# Discovery surfacing (plan-vs-actual)
 
 If a research plan exists for this work, every divergence between the plan and the implementation must trace to one of:
 

@@ -1,4 +1,4 @@
-# Claim-vs-behavior drift on untouched documentation [contextual]
+# Claim-vs-behavior drift on untouched documentation
 
 When the diff changes behavior — a function delegating to a third-party library where it previously did the work in-house, a return-value shape shift, an added or removed side effect, control-flow restructuring — existing claims in docstrings, comments, and prose can silently invalidate even when the diff does not touch them. Re-verify each affected claim against the new behavior.
 

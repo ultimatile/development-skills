@@ -1,4 +1,4 @@
-# Silent semantic regression on signature change [mechanical]
+# Silent semantic regression on signature change
 
 Signature changes — parameter removal, reorder, or type substitution — can produce a silently miscompiled caller path when the old call form still satisfies the new signature's type rules under the language's conversion semantics. The audit lane is responsible for detecting whether such a path exists *before* the call sites silently take on a different meaning.
 
