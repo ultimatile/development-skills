@@ -48,10 +48,11 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
    ported-code-attribution). Read each selected item's
    <REPO>/skills/quality-list/items/<slug>.md in full and audit it.
 
-   Also load the language addendum at
-   <REPO>/skills/quality-list/lang-<lang>.md if it exists for the
-   detected project language (see Step 0 of done-check for the
-   detection rule).
+   Also load every language addendum at
+   <REPO>/skills/quality-list/lang-<lang>.md that exists for a
+   detected project language — a multi-language diff has one per
+   present language, and you must load them all (see Step 0 of
+   done-check for the detection rule).
 
    For each of these items return one of:
 
@@ -98,7 +99,7 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
    - `pattern-audit` — needs awareness of which patterns were consciously copied vs independently reinvented
    - `docstring-drift` — needs the diff's behavior-change context plus an execution probe when the changed behavior is library-owned
 
-   For each selected contextual item, `Read` the corresponding `quality-list/items/<slug>.md` file; if the detected language has an addendum section for that item (per Step 0 — e.g. `escape-hatch-necessity`'s Rust realization in `lang-<lang>.md` carries the concrete trigger / detection / mitigation guidance), read that section too; this contextual pass self-loads its addendum (Step 0 only detects the language). Read only the contextual-lane item files, not the mechanical-lane bodies. The per-item contextual-lane reads together are far smaller than the legacy single-file load.
+   For each selected contextual item, `Read` the corresponding `quality-list/items/<slug>.md` file; if a detected language has an addendum section for that item (per Step 0 — e.g. `escape-hatch-necessity`'s Rust realization in `lang-<lang>.md` carries the concrete trigger / detection / mitigation guidance), read every such section too; this contextual pass self-loads every matching addendum itself, one per detected language (Step 0 only detects the languages). Read only the contextual-lane item files, not the mechanical-lane bodies. The per-item contextual-lane reads together are far smaller than the legacy single-file load.
 
    `ported-code-attribution` is dual-lane: the subagent handles the *declared* case (literal grep for "ported from" / "derived from" / external project names → verify attribution); main context handles the *undeclared* case where the conversation history shows research surfaced an external implementation that the diff structurally mirrors but no comment names. If research identified an upstream reference and the diff looks like it followed it, demand attribution even if no comment marks the port. Read `items/ported-code-attribution.md` for both halves.
 
