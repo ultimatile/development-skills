@@ -27,7 +27,7 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
 
 2. **Spawn a fresh-context auditor for the mechanical / literal items.** Authors read intent; a fresh-context subagent reads literal text — removes the doc-vs-code drift blindspot.
 
-   **Main context MUST NOT load the item bodies.** The subagent reads them in its own fresh context; main only composes the prompt (slug list + diff + repo path) and dispatches.
+   **Main context MUST NOT load the mechanical item bodies.** The subagent reads the index and those bodies in its own fresh context — it derives the mechanical-lane item set from the index itself; main only composes the prompt (diff + repo path) and dispatches.
 
    Use the `Agent` tool with `subagent_type: "general-purpose"` and a prompt of the following shape:
 
@@ -41,11 +41,12 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
      them yourself from the paths below)
    - the literal text of the codebase you can read with your tools
 
-   Read each item file in full under <REPO>/skills/quality-list/items/:
-   behavior-coverage.md, implementation-guards.md, impact-verification.md,
-   architectural-boundary.md, paired-artifact-drift.md,
-   ported-code-attribution.md, signature-change-regression.md,
-   public-doc-durability.md, public-api-surface.md.
+   First read <REPO>/skills/quality-list/SKILL.md and consult its
+   Items index. Select every item whose lane is `mechanical`,
+   including the mechanical half of any dual-lane item (an entry
+   tagged `mechanical (+ contextual half)`, e.g.
+   ported-code-attribution). Read each selected item's
+   <REPO>/skills/quality-list/items/<slug>.md in full and audit it.
 
    Also load the language addendum at
    <REPO>/skills/quality-list/lang-<lang>.md if it exists for the
@@ -89,14 +90,15 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
 
    The subagent runs in parallel with main-context steps 3 below; do not block waiting for it unless step 4 requires the result.
 
-3. **Audit the contextual items in main context.** These need information the subagent does not have:
+3. **Audit the contextual items in main context.** Read `quality-list/SKILL.md`'s Items index and select every item whose lane is `contextual`, including the contextual half of dual-lane items (an index entry tagged `mechanical (+ contextual half)`, e.g. ported-code-attribution). These need information the subagent does not have — plan / intent / review history, or actual command execution against the working tree. The groupings below are non-exhaustive illustration; the index is the authoritative set:
 
    - `invariant-derivation`, `purpose-verification`, `scope-discipline`, `discovery-surfacing` — need plan / intent / review history
    - `escape-hatch-necessity` — needs design intent and codebase type-architecture context to judge whether a safe construct could replace the hatch (an escape hatch's *presence* is grep-visible, but its *necessity* is not literal-text-decidable)
    - `test-execution`, `completion-hygiene` — need actual command execution against the working tree
    - `pattern-audit` — needs awareness of which patterns were consciously copied vs independently reinvented
+   - `docstring-drift` — needs the diff's behavior-change context plus an execution probe when the changed behavior is library-owned
 
-   For each, `Read` the corresponding `quality-list/items/<slug>.md` file; if the detected language has an addendum section for that item (per Step 0 — e.g. `escape-hatch-necessity`'s Rust realization in `lang-<lang>.md` carries the concrete trigger / detection / mitigation guidance), read that section too, since Step 0 routes the addendum only to the Step 2 mechanical subagent. Do not load the full index or the mechanical-lane items. The eight contextual-lane reads together are far smaller than the legacy single-file load.
+   For each selected contextual item, `Read` the corresponding `quality-list/items/<slug>.md` file; if the detected language has an addendum section for that item (per Step 0 — e.g. `escape-hatch-necessity`'s Rust realization in `lang-<lang>.md` carries the concrete trigger / detection / mitigation guidance), read that section too, since Step 0 routes the addendum only to the Step 2 mechanical subagent. Read only the contextual-lane item files, not the mechanical-lane bodies. The per-item contextual-lane reads together are far smaller than the legacy single-file load.
 
    `ported-code-attribution` is dual-lane: the subagent handles the *declared* case (literal grep for "ported from" / "derived from" / external project names → verify attribution); main context handles the *undeclared* case where the conversation history shows research surfaced an external implementation that the diff structurally mirrors but no comment names. If research identified an upstream reference and the diff looks like it followed it, demand attribution even if no comment marks the port. Read `items/ported-code-attribution.md` for both halves.
 
@@ -125,22 +127,10 @@ self-audit: <commit-range or "uncommitted">
 | Item                          | Result | Evidence                                | Note                                           |
 |-------------------------------|--------|-----------------------------------------|------------------------------------------------|
 | invariant-derivation          | ⚠      | read: src/foo.rs:42                     | <what's wrong / what to fix>                   |
-| purpose-verification          | ✅     | manual: ran example with input X        |                                                |
-| pattern-audit                 | ✅     | re-derived f32 path; sibling f64 ok     |                                                |
-| scope-discipline              | ⊘ N/A  |                                         | no findings dismissed                          |
 | behavior-coverage             | ✅     | cargo test (incl. error_path tests)     |                                                |
-| implementation-guards         | ⚠      | read: src/foo.rs:120                    | new invariant only commented, no assert        |
-| impact-verification           | ⊘ N/A  |                                         | no public symbol changed                       |
 | test-execution                | ✅     | cargo test: 84 passed, 0 failed         |                                                |
-| completion-hygiene            | ✅     | cargo clippy clean, cargo fmt --check   |                                                |
-| architectural-boundary        | ⊘ N/A  |                                         | no new imports / dep edges / pub widening      |
-| escape-hatch-necessity        | ⊘ N/A  |                                         | no escape hatch added (no unsafe / cast)       |
-| paired-artifact-drift         | ✅     | rg <old-name>; parent //! re-read       |                                                |
-| discovery-surfacing           | ⊘ N/A  |                                         | no plan exists                                 |
+| docstring-drift               | ⊘ N/A  |                                         | diff is text-only; no behavior change          |
 | ported-code-attribution       | ⊘ N/A  |                                         | no external code ported                        |
-| signature-change-regression   | ⊘ N/A  |                                         | no signature change to public APIs             |
-| public-doc-durability         | ✅     | rg local-paths / version literals in MD | README / docs/ scrub against authoritative srcs|
-| public-api-surface            | ⊘ N/A  |                                         | no public API change, no parallel siblings     |
 ```
 
-Item slugs and order must follow the index in `quality-list/SKILL.md` exactly. The table is generated from the list, not maintained independently.
+Emit one row per item in the `quality-list/SKILL.md` Items index, in index order — the rows above illustrate the format and the result vocabulary (✅ pass / ⚠ concern / ⊘ N/A), not the full set. Dual-lane items render once with both half-results merged. The table is generated from the index, never maintained as an independent list.

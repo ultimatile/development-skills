@@ -1,4 +1,4 @@
-# Escape-hatch necessity [contextual]
+# Escape-hatch necessity
 
 A construct that bypasses the language's static guarantees — Rust `unsafe`, C++ `reinterpret_cast` / `const_cast` / C-style cast, TypeScript `any` / `as` / non-null `!` / `@ts-ignore` — is not self-justifying. Its **necessity** must be derived before it is accepted: show that no safe construct expresses the same thing. A justification comment (Rust `// SAFETY:`, a cast rationale) argues the bypass is *sound*; it does not argue it is *necessary*. Soundness and necessity are separate obligations, and the comment discharges only the first.
 

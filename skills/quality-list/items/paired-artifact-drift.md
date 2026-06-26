@@ -1,4 +1,4 @@
-# Textual / paired-artifact drift sweep [mechanical]
+# Textual / paired-artifact drift sweep
 
 Renames, removals, and module-structure changes have to be threaded through every textual surface that names them. Going through only the primary identifier (the function definition, the type, the moved file) is not enough — secondary surfaces keep referring to the old shape and silently rot.
 

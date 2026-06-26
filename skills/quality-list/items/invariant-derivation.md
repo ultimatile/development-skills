@@ -1,4 +1,4 @@
-# Invariant derivation (when fixing) [contextual]
+# Invariant derivation (when fixing)
 
 For any fix in response to a bug, review finding, or failing test classified as **invariant-bearing**, derive complete necessary-and-sufficient conditions from first principles before committing. Incremental "patch the symptom" fixes are concerns.
 

@@ -1,4 +1,4 @@
-# Architectural boundary integrity [mechanical]
+# Architectural boundary integrity
 
 If the project has an architectural rule about dependency direction or module boundaries — layered ordering, hexagonal / clean inward-pointing, a documented module DAG, a public / internal split — verify the diff respects it:
 

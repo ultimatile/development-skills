@@ -1,4 +1,4 @@
-# Public API surface discipline [mechanical]
+# Public API surface discipline
 
 Layered / hexagonal architectures depend on the public API surface being **structurally visible** at the boundary, **symmetric** across parallel implementations, and **tight** enough that defensive transformations do not proliferate at call sites. When the surface slips on any of these, layer violations surface as call-site symptoms rather than at the boundary. Two structural smells indicate the slip; the lane catches both because review-iteration counting alone cannot — by the time three reviewers have flagged three callsites individually, the underlying API leak has already escaped.
 

@@ -1,4 +1,4 @@
-# Public-facing documentation durability [mechanical]
+# Public-facing documentation durability
 
 Public docs (`README.md`, `docs/**/*.md`, top-level `*.md` other than `CONTRIBUTING.md` / `LICENSE` / `NOTICE` / `CHANGELOG.md`) are a **visitor-facing surface**: the audience is a stranger who landed on the repo, not the author who built it. The audience determines what belongs:
 

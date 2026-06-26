@@ -1,4 +1,4 @@
-# License compliance and attribution for ported code [mechanical]
+# License compliance and attribution for ported code
 
 Code reused from an external project — whether copied verbatim, ported line-for-line into a different language, or transcribed with cosmetic changes (renames, rephrased structure, dropped scaffolding) — carries the source project's license obligations into the derivative. The audit asks two distinct questions:
 

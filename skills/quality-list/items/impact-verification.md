@@ -1,4 +1,4 @@
-# Impact / caller verification [mechanical]
+# Impact / caller verification
 
 If the change has a planned impact list (from research or design notes), verify it against the actual diff:
 

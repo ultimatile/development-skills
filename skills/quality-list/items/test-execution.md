@@ -1,4 +1,4 @@
-# Test execution [contextual]
+# Test execution
 
 The relevant test suite was actually run, the results were observed, and any failures were investigated. "Compiles clean" or "existing tests pass without re-running them" is not pass.
 
