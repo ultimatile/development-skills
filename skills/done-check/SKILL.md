@@ -11,7 +11,7 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
 
 0. **Resolve the active rule set.** Base items live in `quality-list/SKILL.md`; language-specific addenda at `quality-list/lang-<language>.md` realize them concretely.
 
-   Detect language from the project's `CLAUDE.md` `Language:` declaration; otherwise auto-detect from diff file extensions (`.rs` → rust, `.cpp`/`.cc`/`.cxx`/`.h`/`.hpp` → cpp, `.py` → python, `.ts`/`.tsx` → typescript, `.go` → go, etc.). Multi-language projects load every matching addendum. Missing addendum → base rules only for that language (not a concern). Pass both base + addendum into the Step 2 subagent prompt.
+   Detect language from the project's `CLAUDE.md` `Language:` declaration; otherwise auto-detect from diff file extensions (`.rs` → rust, `.cpp`/`.cc`/`.cxx`/`.h`/`.hpp` → cpp, `.py` → python, `.ts`/`.tsx` → typescript, `.go` → go, etc.). Multi-language projects detect every present language; each matching addendum applies. Missing addendum → base rules only for that language (not a concern). Step 0 only **detects** the language(s); it routes nothing. Each consumer — the Step 2 mechanical subagent and the Step 3 contextual pass — loads every matching addendum file itself.
 
 1. **Identify the diff under audit.** Cover all four sources so recently-added implementation files are not missed:
 
@@ -98,7 +98,7 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
    - `pattern-audit` — needs awareness of which patterns were consciously copied vs independently reinvented
    - `docstring-drift` — needs the diff's behavior-change context plus an execution probe when the changed behavior is library-owned
 
-   For each selected contextual item, `Read` the corresponding `quality-list/items/<slug>.md` file; if the detected language has an addendum section for that item (per Step 0 — e.g. `escape-hatch-necessity`'s Rust realization in `lang-<lang>.md` carries the concrete trigger / detection / mitigation guidance), read that section too, since Step 0 routes the addendum only to the Step 2 mechanical subagent. Read only the contextual-lane item files, not the mechanical-lane bodies. The per-item contextual-lane reads together are far smaller than the legacy single-file load.
+   For each selected contextual item, `Read` the corresponding `quality-list/items/<slug>.md` file; if the detected language has an addendum section for that item (per Step 0 — e.g. `escape-hatch-necessity`'s Rust realization in `lang-<lang>.md` carries the concrete trigger / detection / mitigation guidance), read that section too; this contextual pass self-loads its addendum (Step 0 only detects the language). Read only the contextual-lane item files, not the mechanical-lane bodies. The per-item contextual-lane reads together are far smaller than the legacy single-file load.
 
    `ported-code-attribution` is dual-lane: the subagent handles the *declared* case (literal grep for "ported from" / "derived from" / external project names → verify attribution); main context handles the *undeclared* case where the conversation history shows research surfaced an external implementation that the diff structurally mirrors but no comment names. If research identified an upstream reference and the diff looks like it followed it, demand attribution even if no comment marks the port. Read `items/ported-code-attribution.md` for both halves.
 
