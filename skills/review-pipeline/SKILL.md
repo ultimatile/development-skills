@@ -15,22 +15,22 @@ The pipeline crosses a **user-controlled merge gate** (Phase 4a → 4b): the use
 2. Triage the audit table — every `⚠` concern is actionable.
 3. If concerns exist:
    - Fix the code
-   - Run `/done-check` again (fresh, full audit — same rule as the codex review loop: do not bias the next pass with the previous concerns list)
+   - Run `/done-check` again (fresh, full audit — do not bias the next pass with the previous concerns list)
    - Re-triage
 4. Repeat until all rows are `✅` or `⊘ N/A`.
 
-Done-check runs **before** any commit. Resolving its concerns post-commit produces noisy fix-up commits in the codex review history; resolving them pre-commit keeps each commit a meaningful unit.
+Done-check runs **before** any commit.
 
 ## Phase 0.5: Claude code-review gate
 
-Runs after the done-check loop and **before anything is committed** — fixes land inside the original commits instead of as fix-up noise in the codex review history. The reviewer subagents `/code-review` spawns are fresh-context, decorrelating this gate from the author context that runs Phase 0.
+Runs after the done-check loop and **before anything is committed**.
 
 1. Run `/code-review medium` against the current diff (raise to `high` for large or risky diffs; keep the chosen effort fixed across this PR's iterations).
 2. Triage the output — classify each finding under the `finding-triage` SSOT dispositions.
 3. If actionable findings exist: fix, run `/done-check` in delta mode, then re-run `/code-review` at the same effort (fresh, full review — no bias from the previous iteration). If the same conceptual topic recurs across 2+ iterations, stop and follow the escalation order in Rules.
 4. Repeat until no actionable findings remain.
 
-From Phase 1 onward, every reviewer finding is by construction a penetration of this gate — note that provenance in each triage presentation; it is the standing observation for evaluating the reviewer mix and feeds Phase 3's `gate-miss-to-issue` judgment.
+From Phase 1 onward, every reviewer finding is by construction a penetration of this gate — note that provenance in each triage presentation.
 
 ## Phase 1: Codex review loop
 
@@ -64,7 +64,7 @@ After Phase 1 + 2 are clean, before the user merges, fold review findings into d
 
 A finding can map to either `bug-to-contract`, `finding-to-audit`, both, or neither. Use both when both apply.
 
-**`/gate-miss-to-issue`** (process-postmortem) — when a defect surfaced only at Phase 1/2 review or by user pushback that an earlier gate should have caught, file the gate gap against `development-skills` (independent of the project merge gate, like `/finding-to-audit`). Skip when every defect was caught at its earliest gate — nothing underperformed.
+**`/gate-miss-to-issue`** (process-postmortem) — when a defect surfaced only at Phase 1/2 review or by user pushback that an earlier gate should have caught, file the gate gap against `development-skills` (independent of the project merge gate, like `/finding-to-audit`). Skip when every defect was caught at its earliest gate.
 
 ## Phase 4a: PR description delta (pre-merge)
 
@@ -85,11 +85,11 @@ Skip when the work is not tied to an umbrella tracking issue. Trigger only when 
    - Out-of-scope churn (deferrals that became in-scope, or new deferrals discovered during implementation)
    - Acceptance criteria that were tightened, loosened, or reworded during review
 
-   A "no delta" outcome (everything matched) is a valid answer — record it explicitly so the join step is auditable.
+   A "no delta" outcome (everything matched) is a valid answer — record it explicitly.
 
-3. **Edit the PR description.** Append a `## Plan-vs-actual delta` section to the existing body — full delta with file/line evidence and links to the relevant review iterations. This is the most detailed surface; it stays attached to the merged PR for future bisect readers. Done pre-merge so the merge commit's link to the PR has the complete context.
+3. **Edit the PR description.** Append a `## Plan-vs-actual delta` section to the existing body — full delta with file/line evidence and links to the relevant review iterations.
 
-   Apply `gh-body-conventions` to the appended section (same semantic line breaks, same exclusions). Line refs into this PR's diff are permitted (the PR is anchored to specific commits and will not rot).
+   Apply `gh-body-conventions` to the appended section (same semantic line breaks, same exclusions). Line refs into this PR's diff are permitted.
 
    Before invoking `gh-post pr edit`, run `/gh-body-check` against the **final body** (existing PR body concatenated with the appended delta section). Paragraph boundaries and reference patterns can cross the section seam, so auditing only the appended section would miss them. Pass artifact kind `pr` and the target language. Any unresolved ⚠ blocks `gh-post pr edit` — revise the appended section and re-run until clean.
 
@@ -109,12 +109,12 @@ Runs only after the user has merged.
 
 2. **Umbrella body update.** Two independent axes:
 
-   - **Progress reflection (default action).** If the umbrella tracks sub-items by status annotation (`- [x] foo` checkbox, `_[Promoted to #N.]_` / `_[Done in #M.]_` inline tag, `Phases | Status` table column, etc.), update the item the leaf was promoted from so the umbrella reader sees completion without traversing every sub-issue. The skill that filed the leaf already wrote the "promoted" annotation; the merge step closes the loop by switching it to "done". Skip only if the umbrella truly has no per-item status convention.
+   - **Progress reflection (default action).** If the umbrella tracks sub-items by status annotation (`- [x] foo` checkbox, `_[Promoted to #N.]_` / `_[Done in #M.]_` inline tag, `Phases | Status` table column, etc.), update the item the leaf was promoted from. The skill that filed the leaf already wrote the "promoted" annotation; the merge step closes the loop by switching it to "done". Skip only if the umbrella truly has no per-item status convention.
    - **Design-assumption change.** Edit additionally when the delta changes a parent-level design assumption — a new deferral that affects another phase, a scope shift that invalidates the Phases table, a decision that contradicts the umbrella's "Decisions captured" section.
 
-   A clean implementation with no parent-level implications still gets the progress-reflection edit; the design-assumption axis can be skipped, but progress tracking on its own merits an umbrella update.
+   A clean implementation with no parent-level implications still gets the progress-reflection edit; the design-assumption axis can be skipped.
 
-3. **Do not edit the sub-issue body.** It was the frozen plan-confirmed contract; the closing comment is the journal entry. Editing the body rewrites history that other surfaces (PR title, commit messages) already point to.
+3. **Do not edit the sub-issue body.**
 
 ## Rules
 
@@ -136,11 +136,11 @@ Runs only after the user has merged.
   - `completion-hygiene`: pre-commit hooks catch lint / fmt / line count, but the fix may have added stray `dbg!` / `println!` / scratch test code.
   - The PR description: if a fix invalidates a claim in the description (e.g., "previously-missed mutant is now caught" became "now excluded"), update the description in the same iteration.
 
-- **Never skip codex review.** Even for small fixes, run the full loop. Codex review catches things that are invisible in the diff alone.
+- **Never skip codex review.** Even for small fixes, run the full loop.
 
-- **Never inject previous review comments into the next review prompt.** Each review iteration must be fresh and unbiased, so it can catch both regressions from the fix and new problems.
+- **Never inject previous review comments into the next review prompt.**
 
-- **Every commit goes through `/stage-commit-push`.** Do not manually run git add/commit/push during the pipeline. The skill ensures consistent commit message generation.
+- **Every commit goes through `/stage-commit-push`.** Do not manually run git add/commit/push during the pipeline.
 
 - **Pre-commit branch gate.** Before each `/stage-commit-push`, verify the current branch is not the repo's default branch:
 
@@ -148,11 +148,11 @@ Runs only after the user has merged.
   test "$(git symbolic-ref --short HEAD)" != "$(git symbolic-ref --short refs/remotes/origin/HEAD | sed 's@^origin/@@')"
   ```
 
-  Halt and surface to user if equal. The session-start branch baseline is one-shot and does not catch silent mid-session branch switches.
+  Halt and surface to user if equal.
 
-- **Reply to Copilot comments individually**, not as a single PR comment. Use `gh-post reply-inline <owner>/<repo> <PR> < /tmp/replies.jsonl` so every reply body passes the hardwrap validator and the batch halts before send on any body failure. JSONL shape: one `{"id": <comment-id>, "body": "<reply>"}` per line.
+- **Reply to Copilot comments individually**, not as a single PR comment. Use `gh-post reply-inline <owner>/<repo> <PR> < /tmp/replies.jsonl`. JSONL shape: one `{"id": <comment-id>, "body": "<reply>"}` per line.
 
-- **Triage is mandatory.** Never present raw review output to the user. Classify every finding under the `finding-triage` SSOT dispositions and lead with actionable items. This SSOT owns the per-finding (stateless) classification; the stateful loop criteria below — oscillation detection — stay here because they depend on cross-iteration history the SSOT deliberately excludes.
+- **Triage is mandatory.** Never present raw review output to the user. Classify every finding under the `finding-triage` SSOT dispositions and lead with actionable items.
 
 - **Sub-classify actionable findings before fixing.** Not all actionable findings warrant the same response:
 
@@ -160,16 +160,16 @@ Runs only after the user has merged.
   - **Invariant** — the `invariant-premise-check` disposition from `finding-triage` (claims about mathematical properties, semantic validity, precondition necessity): the finding's *conclusion* may be correct, but its *premise* may be wrong. Before committing a fix, verify the premise — check whether the invariant the finding assumes actually holds, by reading code, tests, and running targeted experiments. If unsure, ask codex a single targeted question via `codex exec "<fix proposal + one specific question about the premise>" -o /tmp/fix-check.md` before committing.
   - **Non-local** — the `opens-a-question` disposition from `finding-triage`: the finding is real but its resolution needs investigation, a design choice, or a scope judgment beyond a local edit. Re-enter `research` with the finding as the task, then escalate only the genuinely user-owned residue. Do not spot-patch and do not escalate a probe-able question straight to the user.
 
-- **Oscillation detection.** Run at the start of each fix-loop iteration (the first sub-bullet under "If actionable findings exist" in Phase 1 step 4 and Phase 2 step 5), BEFORE fix and done-check. If the same conceptual topic (not the same literal comment, but the same underlying question — e.g., "is this input valid?", "does this property hold?", "should this parameter accept both values?") appears across 2+ consecutive review iterations, stop fixing and escalate to the user. Repeated findings on one topic signal that the underlying invariant is not understood well enough for a confident fix.
+- **Oscillation detection.** Run at the start of each fix-loop iteration (the first sub-bullet under "If actionable findings exist" in Phase 1 step 4 and Phase 2 step 5), BEFORE fix and done-check. If the same conceptual topic (not the same literal comment, but the same underlying question — e.g., "is this input valid?", "does this property hold?", "should this parameter accept both values?") appears across 2+ consecutive review iterations, stop fixing and escalate to the user.
 
-  **Escalation order.** Before presenting the fix-direction question (panic vs allow vs convert vs ...), FIRST ask whether the original plan scope is correct. Oscillation in the fix-direction space is the symptom that the contract is empty or depends on something outside the plan's scope — refining the fix without rescoping just re-anchors the same empty contract from a different angle. Ask in this order:
+  **Escalation order.** Before presenting the fix-direction question (panic vs allow vs convert vs ...), FIRST ask whether the original plan scope is correct. Ask in this order:
 
   1. **Is this question even single-actionable inside the current plan?** Does the disagreement among reviewers concern an upstream undecided design question (consumer semantics, system invariant, layout authority, etc.) that the plan implicitly assumed?
   2. **If yes upstream**: rescope. Close the current PR, refile the upstream design question as a separate issue, and let the current API decision fall out of that resolution. This is the right move even when the current fix is technically correct in isolation.
   3. **If no upstream issue**: present what is known, what is uncertain, and ask the user to choose among the surviving fix options.
 
-  The "no-clarifying-questions" mode does NOT override this rule — the escalation IS what the user delegated. Convergence of three independent reviewers on the same API-contract concern is the signal regardless of mode.
+  The "no-clarifying-questions" mode does NOT override this rule. Convergence of three independent reviewers on the same API-contract concern is the signal regardless of mode.
 
 - **Pause at the merge gate.** Phase 4b runs only after the user merges. Do not run `gh pr merge` from Claude unless explicitly asked.
 
-- **Contract-test review is bounded.** `/codex-contract-test-review` allows at most one revise-and-re-review cycle. If it doesn't converge, the contract itself is unclear — escalate, don't loop.
+- **Contract-test review is bounded.** `/codex-contract-test-review` allows at most one revise-and-re-review cycle. If it doesn't converge, escalate, don't loop.
