@@ -34,6 +34,10 @@ Each finding receives exactly one disposition. A finding may be *re-triaged* to 
 
 - **defer** — the finding is valid and its fix is understood, but it is **out of scope** for the current task. Record it (follow-up issue, note) and do not fix now. Distinct from `opens-a-question`: here the resolution is known and local, only the *timing* is deferred; in `opens-a-question` the resolution itself is unknown.
 
+## Pre-existing instances do not license dismissal
+
+A finding is not downgraded to `false-positive` (or `defer`) merely because the surrounding code already exhibits the same flaw. Pre-existing instances of a problem are unextracted debt, not a convention that licenses adding another — "matches the surrounding code" describes the debt, it does not dismiss the finding. Dismissal still requires the disposition's own bar: for `false-positive`, context that makes *this* finding wrong; for `defer`, an explicit out-of-scope decision. The mere presence of prior offenders meets neither.
+
 ## opens-a-question vs uncertain-validity
 
 The two name **different unknowns**:
