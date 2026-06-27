@@ -28,8 +28,6 @@ Execute `/research $ARGUMENTS`.
 
 The plan posted to the issue MUST include the `Inconclusive / Deferred items` section (or `Inconclusive / Deferred items: none identified`). This section is the discovery contract Phase 2 will enforce.
 
-`/research` runs the mandatory `codex-plan-review` gate at its Step 3.5 — before user approval and before the plan is posted to GitHub. No separate review phase is needed here; revisions resulting from review land in the plan that Step 5 posts, so the issue trail shows a single reviewed plan rather than a post-then-revise sequence.
-
 ## PHASE 2 — IMPLEMENT
 
 After Phase 1 settles and the user approves the (possibly review-revised) plan, execute `/implement $ARGUMENTS`.

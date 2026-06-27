@@ -7,8 +7,6 @@ description: Draft README.md or visitor-facing markdown (top-level *.md, docs/**
 
 Draft visitor-facing markdown (README and `docs/`) using a fixed skeleton so the resulting page documents present-tense, audience-public capability — not the author's session log, rationale dump, or roadmap.
 
-This skill is the **allowlist** counterpart to `quality-list` `public-doc-durability`. The `public-doc-durability` audit catches violations at edit / done-check time; this skill structures the initial draft so the violations do not enter in the first place.
-
 ## When to use
 
 - Initial README on a fresh repo.

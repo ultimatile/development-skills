@@ -7,10 +7,6 @@ description: Audit docstrings for drift — claims that no longer match actual c
 
 Audit docstrings for SSOT violations (drift between documentation and code). Do NOT write production code — only fix docstrings or report findings.
 
-## Why this matters
-
-Docstrings are the primary source of truth for both human callers and AI agents. When a docstring claims "returns Q with identity flux" but the code actually returns Q with the original flux, downstream consumers silently build on a false premise. Unlike broken tests, docstring drift produces no signal until someone reads the wrong claim and acts on it.
-
 ## Step 1 — Determine scope
 
 - **With argument**: audit only the specified file, directory, or module

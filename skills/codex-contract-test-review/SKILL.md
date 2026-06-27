@@ -154,13 +154,6 @@ Present the triage to the user, not the raw output.
 - If actionable findings exist: revise the test, then re-run this skill once. One re-review iteration is the cap — repeated iteration on a single contract test signals the contract itself is unclear; escalate to the user instead of looping.
 - If clean: proceed to `/stage-commit-push` (or whatever the caller's commit step is).
 
-## What this skill is good at catching
-
-- Tautological assertions (test would pass on the buggy code)
-- Degenerate-input-only coverage masquerading as a contract test
-- Test asserts a different invariant than the contract claims
-- Error / cleanup path missing from a contract that includes them
-
 ## What this skill is bad at
 
 - Project-specific scope decisions (will defer to open questions)

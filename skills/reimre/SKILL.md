@@ -7,8 +7,6 @@ description: End-to-end wrapper running research-and-implement then review-pipel
 
 End-to-end wrapper.
 Runs `research-and-implement` then `review-pipeline` back to back.
-The duplicate `done-check` between the two sub-skills is resolved by suppressing the Phase A side,
-leaving `review-pipeline`'s Phase 0 as the single audit gate.
 
 **Issue:** #$ARGUMENTS
 
@@ -18,7 +16,6 @@ leaving `review-pipeline`'s Phase 0 as the single audit gate.
    Branch baseline, research, and implementation are handled there.
    **Skip `/implement`'s terminal `/done-check`** — Phase B owns the audit.
 2. **Phase B** — invoke `review-pipeline`.
-   Its Phase 0 `/done-check` is the first and only audit of the final diff.
 
 Sub-skill internal phases are referenced by name only.
 Do not inline their steps, diagrams, or rule lists — they drift when the sub-skill is updated.

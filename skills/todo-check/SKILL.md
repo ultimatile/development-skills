@@ -9,15 +9,13 @@ Forward-looking preflight against the current scope. Item definitions live in `q
 
 `done-check` asks: "Did the diff satisfy item N?" `todo-check` asks: "What does item N require us to set up so the diff will satisfy it?"
 
-Both skills walk the same list. Both reference `quality-list`.
-
 ## When to use
 
 - Immediately before implementation begins, against the plan / spec.
 - Between implementation units, when the next unit changes the active item set (e.g., a unit introduces a new public API → `impact-verification`, `paired-artifact-drift` become active).
 - Before adding or designing tests, when `behavior-coverage` is the constraint to honor.
 
-It is acceptable to invoke `todo-check` more than once during a task. `done-check` runs once at the end as the audit.
+It is acceptable to invoke `todo-check` more than once during a task.
 
 ## Procedure
 
@@ -93,4 +91,4 @@ preflight: <task / unit description>
 | architectural-boundary        | ⊘ N/A    | no new imports / dep edges / pub widening              |
 ```
 
-Hand the △ rows forward as the implementation setup. The same items will be re-checked by `done-check` at the end of the task.
+Hand the △ rows forward as the implementation setup.
