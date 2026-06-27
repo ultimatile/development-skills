@@ -5,13 +5,7 @@ description: Audit a test suite for structural debt — fixtures that trivialize
 
 # debtreaper
 
-Audit a test suite for structural debt — patterns where the test exists but does not provide the coverage its presence implies. Do NOT change test semantics or remove regression coverage without user confirmation; suggest fixture refactors and report findings.
-
-## Why this matters
-
-A test that runs and passes occupies "covered" status in the reviewer's mental model. If the test's fixture trivializes the code under test, or if its differential assertion only traverses shared code, or if its name claims a class but exercises one instance, the test contributes nothing to regression protection while looking like it does. Boundary-value fixtures pass; latent bugs in interior-branch code survive. The bug surfaces later as a "we had a test for this, how did this slip" postmortem.
-
-This skill is **ad-hoc and non-pipeline**. It is not part of `done-check`, `todo-check`, or any review gate — those check the diff. debtreaper checks the existing test suite as standing inventory. Invoke manually when sweeping test debt is the goal.
+Audit a test suite for structural debt — patterns where the test exists but does not provide the coverage its presence implies. Do NOT change test semantics or remove regression coverage without user confirmation; suggest fixture refactors and report findings. Invoke manually when sweeping test debt is the goal.
 
 ## Step 1 — Determine scope
 
@@ -101,5 +95,4 @@ For large test suites, prioritize:
 
 - **Test debt is not bug.** A test with debt does not necessarily fail to catch the specific bug it was written for; it fails to catch the *class* of bug its name / placement suggests. Report accordingly — debt is a coverage-honesty issue, not a regression.
 - **Don't restructure tests without user confirmation.** Removing assertions or changing fixture shapes can hide real regressions the test was originally written to catch.
-- **Companion to driftreaper.** driftreaper covers docstring drift; debtreaper covers test-suite debt. Both are non-pipeline ad-hoc audits.
-- **Cross-reference SSOTs.** The substantive rules live in `quality-list` (the `behavior-coverage` item covers MNT, structural-split parameters, and behavior coverage). debtreaper applies those rules across an existing test suite as a sweep; it does not introduce new rules.
+- **Cross-reference SSOTs.** The substantive rules live in `quality-list` (the `behavior-coverage` item covers MNT, structural-split parameters, and behavior coverage).

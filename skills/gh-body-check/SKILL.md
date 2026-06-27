@@ -6,7 +6,7 @@ allowed-tools: Bash(*/gh-body-check/body-math-scan.sh:*)
 
 # GH Body Check
 
-Two checks: a mechanical math scan (Unicode-math glyphs, the GitHub-unsupported macro `\operatorname`, and inline math neutralized by an enclosing code span), and a cold-reader audit delegated to a fresh-context subagent. `gh-body-conventions` is SSOT for the rules; this file is the procedure.
+Two checks: a mechanical math scan (Unicode-math glyphs, the GitHub-unsupported macro `\operatorname`, and inline math neutralized by an enclosing code span), and a cold-reader audit delegated to a fresh-context subagent.
 
 ## When to use
 

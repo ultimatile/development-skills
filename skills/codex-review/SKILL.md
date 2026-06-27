@@ -111,15 +111,6 @@ Each iteration runs a full, unbiased review of the entire diff against base. Do 
 
 No actionable findings after triage. A review with only false positives or minor style suggestions counts as clean — use judgment.
 
-### Why fresh reviews matter
-
-The goal of each iteration is to answer two questions:
-
-- Did the fix correctly address the previous issue?
-- Did the fix introduce any new problems?
-
-A biased prompt ("check if X was fixed") answers only the first. A fresh review of the full diff answers both. The reviewer naturally focuses on whatever stands out in the current code, which is exactly what you want.
-
 ## Important constraints
 
 - **Stdin redirect**: every `codex exec` invocation needs `</dev/null`; hang signal is absence of the `OpenAI Codex v...` banner after `Reading additional input from stdin...`.
@@ -144,5 +135,3 @@ PR creation + Copilot review (remote, catches different issues)
         ↓ review received
 Address Copilot feedback if needed
 ```
-
-The two review stages are complementary: codex review catches implementation issues against the full diff, while Copilot review catches things visible only in the PR context (commit structure, description clarity, CI integration).

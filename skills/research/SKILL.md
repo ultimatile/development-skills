@@ -228,7 +228,7 @@ Present the plan (after any Step 3.5 revisions) and ask for approval before post
 
 ### 5.0 Laundering pass — run `gh-body-check` (MANDATORY)
 
-Run `gh-body-check` on the plan body before any `gh-post` invocation; resolve any ⚠ before posting. This step is the research-post replacement for `file-issue`'s Step 3 laundering pass, which is NOT reached via the pointers below.
+Run `gh-body-check` on the plan body before any `gh-post` invocation; resolve any ⚠ before posting.
 
 ### 5.1 Route to the correct surface
 
@@ -244,5 +244,3 @@ When ambiguous, ask the user. Umbrella sub-issue is the D1 default — the sub-i
 
 1. **Split issues by commit unit.** Each issue corresponds to one atomic, independently committable change. Multi-commit plans become multiple issues with `Depends on #N` links.
 2. **No "rejected alternatives" sections** unless explicitly requested.
-
-This skill is the orchestrator; `file-issue` (with `gh-body-conventions` as SSOT) owns body shape and (for the umbrella branch) the `Umbrella sub-issue` variant.

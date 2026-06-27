@@ -117,16 +117,6 @@ Present the triage to the user, not the raw output.
 
 If actionable findings exist, revise the plan in the conversation and re-present to the user for approval. Re-run Codex on the revised plan only when the revision meaningfully invalidates the prior verdict — e.g., switching to an alternative approach, invariant promotion (a symptom-level finding turned out to require an invariant-level rewrite), or scope shift. This is the triage author's call: Codex returns incremental judgments on the plan as presented, not fundamental-vs-incremental classifications of subsequent revisions, so its verdict label is not a proxy for this decision. Pure in-scope condition incorporation or a single P2 / P3 patch does not warrant re-running. See `research` Step 3.5 for a caller-imposed loop using this trigger.
 
-## What Codex is good at catching in plans
-
-- Format mismatches between producer and consumer functions
-- Filtering/branching logic that conflates distinct failure modes
-- Missing validation at API boundaries
-- Inconsistency between the plan and existing code patterns
-- (with the `dig_deeper_nudge` extension above) dead-on-arrival public surface — symbols whose contracts have no current branching consumer
-- (with the `dig_deeper_nudge` extension above) shared-scope config reach — a lint / config enabled at a workspace / package / global scope that binds more compilation units (tests, benches, examples, build scripts) than the intended one
-- (with the `dig_deeper_nudge` extension above) probe-configuration representativeness — a "builds / tests pass" probe that ran a different build configuration than the one where the new obligation binds (e.g. an integration target linking the non-test build, while the crate's own `--cfg test` unit tests are the obligation)
-
 ## What Codex is bad at in plan review
 
 - Scope judgment (will suggest over-engineering)
@@ -134,4 +124,4 @@ If actionable findings exist, revise the plan in the conversation and re-present
 - Trade-off decisions (will flag every simplification as a risk)
 - Whether a "documented limitation" or "deferred mitigation" in the plan is acceptable or is a self-admission that the plan is mis-scoped — Codex grounds in code, not in scope-vs-contract distinctions
 
-The user makes these calls, not Codex. The `research` Step 3.4 (Reachability check) is the upstream gate for these outward-reach failures; `codex-plan-review`'s extensions above provide redundant code-side checks, but they are not a substitute for Step 3.4.
+The user makes these calls, not Codex.
