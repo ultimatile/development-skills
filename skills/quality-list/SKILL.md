@@ -25,6 +25,7 @@ Listed in canonical reading order. Reference items by slug (e.g., `behavior-cove
 - [invariant-derivation](items/invariant-derivation.md) — contextual
 - [purpose-verification](items/purpose-verification.md) — contextual
 - [pattern-audit](items/pattern-audit.md) — contextual
+- [duplication-extraction](items/duplication-extraction.md) — mechanical
 - [scope-discipline](items/scope-discipline.md) — contextual
 - [behavior-coverage](items/behavior-coverage.md) — mechanical
 - [implementation-guards](items/implementation-guards.md) — mechanical
