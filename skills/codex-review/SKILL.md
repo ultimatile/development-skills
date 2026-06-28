@@ -62,13 +62,9 @@ If any of the above is yes, skip `codex exec review` and use `codex exec "<inlin
 4. List what the review should focus on (forwarding correctness, default / expert contract consistency, docstring drift, missed call sites, etc. — project-specific).
 5. List what to ignore — the enumerated intentional states from step 3.
 
-This collapses the two-round failure mode (codex flags intentional design → human explains in reply → codex retreats) into a single focused review.
-
 **For non-phased self-contained changes**, keep using vanilla `codex exec review --base main`. The inline-context workaround is only needed when judgement criteria live outside the diff.
 
 ## Triaging review output
-
-codex review operates on `git diff` output alone — it has no access to the broader project context, test results, runtime behavior, or design rationale. This means a significant fraction of its findings will be false positives: technically plausible concerns that don't apply given information the reviewer can't see.
 
 Typical false positive patterns:
 
@@ -82,8 +78,6 @@ When presenting review output, triage each finding:
 2. **Cross-check against project context** you already have — test results, prior conversation, code you've read. You have far more context than the reviewer did.
 3. **Classify each finding** under the `finding-triage` SSOT dispositions (`actionable` / `false-positive` / `uncertain-validity` / `opens-a-question → research` / `invariant-premise-check` / `defer`). The common codex-review cases are `actionable`, `false-positive` (plausible but wrong given context you have — explain why to the user), and `uncertain-validity` (you can't tell without more investigation — flag it and investigate). When a finding is real but its fix is non-local, it is `opens-a-question` → re-enter `research` rather than patching in place.
 4. **Present the triage** to the user, not the raw output. Lead with actionable items, note dismissed items with reasoning.
-
-The user should never have to manually sift through false positives. That's your job.
 
 ## Review-fix loop
 
@@ -114,7 +108,7 @@ No actionable findings after triage. A review with only false positives or minor
 ## Important constraints
 
 - **Stdin redirect**: every `codex exec` invocation needs `</dev/null`; hang signal is absence of the `OpenAI Codex v...` banner after `Reading additional input from stdin...`.
-- **No resume**: `codex review` does not support session resumption. Each invocation is independent. This is fine — fresh reviews are the correct approach for iteration.
+- **No resume**: `codex review` does not support session resumption. Each invocation is independent.
 - **Non-interactive only**: Always use `codex exec review`, not `codex review`, when running from scripts or automation. The `exec` variant runs non-interactively and exits when done.
 - **Timeout**: Set timeout to 600000ms (10 minutes) when calling from Bash. Reviews of large diffs can take several minutes.
 
