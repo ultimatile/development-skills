@@ -14,7 +14,7 @@ GitHub-integrated wrapper around `quaere-execution`. Drives the Plan → Do → 
 1. Read the GitHub issue and comments using `gh issue view $ARGUMENTS --comments`.
 2. Locate the implementation plan. It can live in two places depending on how the issue was created:
    - **Issue body** (D1 default for umbrella-spawned sub-issues): the body begins with `Parent: #<umbrella>` and contains the plan directly. When this line is present, treat the body itself as the plan and ignore comments for plan discovery.
-   - **Issue comments** (single-scope issues): the plan was posted via `gh-post issue comment` from `research` Step 5. Scan comments for the `research` output shape (`Hypotheses`, `Inconclusive / Deferred items` sections).
+   - **Issue comments** (single-scope issues): scan comments for the `research` output shape (`Hypotheses`, `Inconclusive / Deferred items` sections).
 3. The retrieved plan is expected to follow the `research` output shape, including the `Inconclusive / Deferred items` section, regardless of which surface it lived on.
 4. If no plan is found in either location, check the current conversation context. If neither is available, suggest running `/research $ARGUMENTS` first and stop.
 
@@ -31,9 +31,9 @@ From the plan, extract:
 
 These together form the **discovery contract**: the plan-side definition of what counts as "expected during implementation" vs "research gap".
 
-If the plan has no `Inconclusive / Deferred items` section at all, treat that as a research gap and stop. Do not synthesize the section yourself — silently filling it in defeats its purpose. Re-run `/research` or ask the user to update the plan.
+If the plan has no `Inconclusive / Deferred items` section at all, treat that as a research gap and stop. Do not synthesize the section yourself. Re-run `/research` or ask the user to update the plan.
 
-If the plan has no `Derivations` section but the work involves specific-example fixtures (concrete Hamiltonians, concrete protocol messages, named worked cases, etc.), treat that as a research gap on the derivational axis and stop the same way. The absence of a `Derivations` section means no specific example has been derivationally cleared — implementing fixtures in that state is exactly the failure mode the gate exists to prevent.
+If the plan has no `Derivations` section but the work involves specific-example fixtures (concrete Hamiltonians, concrete protocol messages, named worked cases, etc.), treat that as a research gap on the derivational axis and stop the same way. The absence of a `Derivations` section means no specific example has been derivationally cleared.
 
 ## Step 3 — Run quaere-execution
 
@@ -47,19 +47,19 @@ Before any code change, invoke `todo-check` against the plan to extract the acti
 
 Once per session (cache for the duration of the conversation), read the project's pre-commit configuration to identify the constraints each hook will enforce. Typical config locations: `.pre-commit-config.yaml`, `lefthook.yml`, `.husky/`, the `[hooks]` section of a project task runner (e.g. `Makefile.toml` / `Justfile`).
 
-For each hook, summarize what it enforces. Do not memorize hook internals — the goal is to anticipate which checks will run at commit time, not to reproduce them. Pay particular attention to:
+For each hook, summarize what it enforces. Do not memorize hook internals. Pay particular attention to:
 
-- **Line-count / file-size limits.** Knowing the limit ahead avoids landing a feature at the limit and then doing an emergency restructure. Correct response is file-split first, trim only genuinely redundant text (see `quality-list` `completion-hygiene`).
-- **Linter constraints** that gate commits (e.g., warnings-as-errors flags). These need to be visible during implementation, not surfaced only at commit time. They feed into Step 3.1 Baseline.
-- **Custom checks** specific to the project (banned imports, header enforcement, schema validation). Note their existence so the implementation does not trip them.
+- **Line-count / file-size limits.** Correct response is file-split first, trim only genuinely redundant text (see `quality-list` `completion-hygiene`).
+- **Linter constraints** that gate commits (e.g., warnings-as-errors flags). They feed into Step 3.1 Baseline.
+- **Custom checks** specific to the project (banned imports, header enforcement, schema validation). Note their existence.
 
-Formatter hooks (rustfmt, prettier, black, clang-format) do not need anticipation — they reformat in place at commit time, which is not a meaningful constraint on implementation choices.
+Formatter hooks (rustfmt, prettier, black, clang-format) do not need anticipation — they reformat in place at commit time.
 
 Output: a short summary of the binding constraints. Do not paste the configuration into context.
 
 ### 3.0.2 Memory recall
 
-Passive memory load is unreliable mid-implementation; make recall deliberate once per session.
+Make recall deliberate once per session.
 
 1. Read `MEMORY.md` (index only).
 2. For each entry whose one-line description plausibly intersects a unit in the Step 2 checklist, open and read it.
@@ -73,7 +73,7 @@ Once per session, read any contributor / agent guidance docs present at the repo
 
 ### 3.1 Baseline
 
-Before any code change, build and run existing tests to record pre-existing failures, and run the project's linter (e.g., `cargo clippy`, `clang-tidy`, `ruff check`, `eslint`) to record pre-existing warnings. Compare against both baselines at every verification step. Pre-commit-gated linters (Step 3.0.1) are especially important — the gate rejects on any new violation. Formatters are excluded; they reformat in place at commit time.
+Before any code change, build and run existing tests to record pre-existing failures, and run the project's linter (e.g., `cargo clippy`, `clang-tidy`, `ruff check`, `eslint`) to record pre-existing warnings. Compare against both baselines at every verification step. Pre-commit-gated linters (Step 3.0.1) are especially important — the gate rejects on any new violation. Formatters are excluded.
 
 ### 3.2 Discovery handling during Do
 
@@ -87,7 +87,7 @@ If, while executing a unit, an unexpected fact is observed (a behavior, type, ca
    - **No** → continue to step 3.
 3. **Unlisted discovery = research gap.** **Stop.** Do not patch the surprise ad-hoc. Surface to the user with: what was observed, why it contradicts the plan, what hypothesis class it falls under. Ask whether to re-research or to expand the discovery contract explicitly.
 
-This rule prevents silent drift between plan and implementation. The plan's Inconclusive section is the only sanctioned channel for mid-implementation surprises.
+The plan's Inconclusive section is the only sanctioned channel for mid-implementation surprises.
 
 ### 3.2.1 Specific-example derivation gate
 
@@ -101,14 +101,14 @@ The Step 3.2 rule above covers behavioral / structural surprises. A parallel gat
 For every such example, before adding the implementation:
 
 1. **Check the derivationally cleared example set** (extracted in Step 2 from the plan's `Derivations` section). If the example is on the list, it has already been derivationally verified during research; proceed.
-2. **If the example is not on the list, halt.** Do not add it on the strength of its properties feeling obvious. Properties that feel obvious are exactly the ones that bypass derivation and surface as fixture-construction bugs.
+2. **If the example is not on the list, halt.** Do not add it on the strength of its properties feeling obvious.
 3. **Required action when halted:** Surface to the user with: the proposed example, the deductive properties it is being relied on to satisfy (e.g., "this Hamiltonian must be U(1)-symmetric, must be Hermitian, must be non-diagonal in the chosen basis, must exercise the multi-sector path"), and the request to extend the plan's `Derivations` section before proceeding. The derivation itself is performed in `research` Step 2.B, not in implementation.
 
-A `rejected` derivational outcome is a plan bug — return to research and choose a different example. Patching the example mid-implementation is the failure mode this gate exists to prevent.
+A `rejected` derivational outcome is a plan bug — return to research and choose a different example.
 
 ### 3.2.2 Mechanism-substitution discipline
 
-When the plan sketches a specific strategy (algorithm, data structure, unsafe pattern) and the implementer chooses a different one at execution time — typically to avoid `unsafe`, simplify, or match a local idiom — the substitution must preserve **every** property of the original, not just the explicit motivation named in the sketch.
+When the plan sketches a specific strategy (algorithm, data structure, unsafe pattern) and the implementer chooses a different one at execution time, the substitution must preserve **every** property of the original, not just the explicit motivation named in the sketch.
 
 Procedure when substituting:
 
@@ -129,4 +129,4 @@ After done-check passes:
 
 1. **Plan-vs-actual diff** (from Step 3.6)
 2. **Conventional commit message(s)**, generated under the rules of `generate-conventional-commit-messages` if the skill is available. No HPC paths, no cluster context, no local environment details, no line numbers in body.
-3. Hand off — do **not** commit unless the user explicitly authorized commits. The `quaere-execution` skill enforces this and so does this wrapper.
+3. Hand off — do **not** commit unless the user explicitly authorized commits.
