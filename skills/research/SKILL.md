@@ -20,7 +20,7 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
 
 1. If existing issue, read it with `gh issue view`. Otherwise use the free text.
 
-2. Skim the project layout (directory tree, CLAUDE.md, key entry points). Do NOT deep-read files yet; that is the subagent's job.
+2. Skim the project layout (directory tree, CLAUDE.md, key entry points). Do NOT deep-read files yet.
 
 3. **Establish baselines.**
 
@@ -55,19 +55,19 @@ Hypotheses split by `kind`. Empirical hypotheses go through subagent probes (Ste
 
 ### Step 2.A — Empirical hypotheses (subagents under quaere-evidence)
 
-Spawn one subagent per `empirical` hypothesis (or per small related group). Each subagent operates under the `quaere-evidence` skill and follows its workflow exactly. The wrapper's job is to pre-fill the contract; the subagent's job is to honor it.
+Spawn one subagent per `empirical` hypothesis (or per small related group). Each subagent operates under the `quaere-evidence` skill and follows its workflow exactly.
 
 Subagent contract:
 
 1. **Run `quaere-evidence`** with the assigned hypothesis as the initial Review Claim or Hypothesis.
-2. **Probes (per `quaere-evidence` §5) are three-way: Supporting / Disconfirming / Scope.** The Disconfirming probe **must be actually executed**, not just listed — this is the most common silent-failure mode.
+2. **Probes (per `quaere-evidence` §5) are three-way: Supporting / Disconfirming / Scope.** The Disconfirming probe **must be actually executed**, not just listed.
 3. **For non-trivial existing code, read at `quaere-semantic` depth** (its `What / Why / Invariants / Failure / Connections` schema with the UNKNOWN-probe discipline). Shallow grep-only verification is permitted only for trivially mechanical hypotheses (existence checks, file locations).
 4. **Runtime probe (preferred for behavioral claims).** Behavioral claims (output ordering, return shape, error-path return, ABI / FFI layout, signal handling, performance) need a minimal reproducer — docs reading is corroboration, not verification. Boundary cases (minimal/maximal sizes, type variations, single-element containers) belong here.
-5. **Caller-contract verification for change-impact hypotheses.** Classify the change as compile-breaking (new required trait method, type change) or silently semantic (same signature, different behavior). Semantic changes need caller-by-caller verification — the compiler will not catch them. Flag any public API with unchecked internal assumptions (pointer arithmetic trusting an offset, a serializer trusting field order, an index trusting contiguity); boundary-contract violations propagate silently into these.
+5. **Caller-contract verification for change-impact hypotheses.** Classify the change as compile-breaking (new required trait method, type change) or silently semantic (same signature, different behavior). Semantic changes need caller-by-caller verification. Flag any public API with unchecked internal assumptions (pointer arithmetic trusting an offset, a serializer trusting field order, an index trusting contiguity).
 6. Return a **Decision** in the four-state shape from `quaere-evidence` §6 (`confirmed` / `rejected` / `inconclusive` / `deferred`). For `inconclusive`, attach the remaining `probe:`. For `deferred`, attach reason and resolution-point.
 7. Report back with concise file paths, line numbers, function signatures, and probe results.
 
-**Subagent granularity**: hypotheses requiring only existence checks or single-file grep can be resolved directly from the main context. Reserve subagents for hypotheses that touch multiple files or need deep reading. Spawn all empirical-hypothesis subagents in a single message so they run in parallel; each owns its own `quaere-evidence` ledger.
+**Subagent granularity**: hypotheses requiring only existence checks or single-file grep can be resolved directly from the main context. Reserve subagents for hypotheses that touch multiple files or need deep reading. Spawn all empirical-hypothesis subagents in a single message; each owns its own `quaere-evidence` ledger.
 
 ### Step 2.B — Derivational hypotheses (deductive verification in main context)
 
@@ -76,12 +76,12 @@ Each `derivational` hypothesis is resolved by working out the deduction explicit
 - **Symbolic** — pen-and-paper algebra / type-law rewriting / protocol-axiom application.
 - **Numerical** — when the closed form is too messy, reduce to a numerical identity against an oracle (published reference matrix, closed-form spec, ground-truth value); run a scratch script outside the project tree. This **is** the derivation, not a deferred implementation probe.
 
-Subagents cannot resolve derivational hypotheses (they'd re-grep code or repeat the deduction).
+Subagents cannot resolve derivational hypotheses.
 
 For each derivational hypothesis:
 
 1. **State the defining equations / axioms / specification clauses** the example or claim rests on. Quote the source if it is an external spec (RFC, protocol doc, mathematical definition); reproduce it if it is a project-internal definition.
-2. **Derive forward from the defining equations to the claimed property.** Show the deductive steps. A derivation that ends in "therefore P holds" without reproducible steps is unacceptable — it is the same as not deriving at all.
+2. **Derive forward from the defining equations to the claimed property.** Show the deductive steps. A derivation that ends in "therefore P holds" without reproducible steps is unacceptable.
 3. **Attempt a counterexample (the disconfirming step).** Try to construct an instance of the example where the claimed property fails, working from the defining equations. A property that resists counterexample construction is corroborated; one that admits a counterexample falsifies the hypothesis.
 4. **Report a Decision** in the four-state shape from Step 2.A, with these derivational-specific resolutions:
    - `confirmed` — derivation completed AND counterexample construction failed
@@ -103,13 +103,13 @@ Merge subagent reports into a single plan with the following sections.
   - Invariants the new/changed code must satisfy
   - Tests to add/modify with expected behavior
   - For new constructors / input paths: tests passing those inputs through every existing public API that could receive them. A new input path without cross-API tests is incomplete.
-  - **Surrogate-probe re-instantiation**: every hypothesis confirmed in Step 2 by a *surrogate* probe (proof-of-concept build, reference implementation, toy fixture standing in for the committed artifact) must emit either an artifact-level Test plan entry that re-runs the check against the committed artifact, or an explicit `surrogate evidence suffices because <reason>` line. Confirming on the surrogate and carrying nothing forward (silent retirement) is the failure mode.
+  - **Surrogate-probe re-instantiation**: every hypothesis confirmed in Step 2 by a *surrogate* probe (proof-of-concept build, reference implementation, toy fixture standing in for the committed artifact) must emit either an artifact-level Test plan entry that re-runs the check against the committed artifact, or an explicit `surrogate evidence suffices because <reason>` line.
 - **Implementation guards** (from confirmed hypotheses):
   - New invariants enforced with assertions, not comments
   - Paired APIs that must stay consistent (sibling methods)
   - Constructor validations required
   - State that needs an explicit field rather than heuristic inference
-- **Derivations** (from confirmed derivational hypotheses): for each specific example whose properties were claimed in the plan, reproduce the derivation in compressed form (defining equations → steps → conclusion). The plan reader should be able to retrace the deduction without re-running Step 2.B. This section also serves as the audit surface if a subsequent phase challenges the example choice.
+- **Derivations** (from confirmed derivational hypotheses): for each specific example whose properties were claimed in the plan, reproduce the derivation in compressed form (defining equations → steps → conclusion). The plan reader should be able to retrace the deduction without re-running Step 2.B.
 - **Conflicts or dependencies between hypotheses** (if any)
 
 ### Inconclusive / Deferred items (REQUIRED section)
@@ -130,7 +130,7 @@ This section is **mandatory**. It explicitly carries forward UNKNOWNs into the i
   resolution-point: <when this becomes actionable>
 ```
 
-If none, write `Inconclusive / Deferred items: none identified` explicitly — silent omission conflates "no UNKNOWNs" with "did not look".
+If none, write `Inconclusive / Deferred items: none identified` explicitly.
 
 ### Filter unresolved questions before listing them
 
@@ -198,16 +198,12 @@ Output: **clean** (proceed to Step 3.5) or **flagged** (list firings + proposed 
 
 ## Step 3.5 — Plan review gate (mandatory offer)
 
-Running plan review before Step 5 keeps the issue trail clean — only the reviewed plan is posted.
-
 After Step 3 produces a plan and before Step 4 collects user approval:
 
 1. **Always offer `codex-plan-review`** — never silently skip. Phrase it as a recommendation, not a question:
 
    > "Plan ready. Recommend running `/codex-plan-review` before
    > approval; type `skip` to bypass, or anything else to run it."
-
-   Bypassing is a deliberate user choice, not the default.
 
 2. **If review runs**: triage the findings.
 
@@ -235,10 +231,10 @@ Run `gh-body-check` on the plan body before any `gh-post` invocation; resolve an
 After 5.0 clears, route the plan based on what `$ARGUMENTS` resolves to:
 
 - **Existing single-scope issue** → `gh-post issue comment $ARGUMENTS` (per `file-issue` step 5) with the plan as body.
-- **Existing umbrella issue** (the body contains a Phases table or sub-tasks list) → spawn a new sub-issue whose body IS the plan, following `file-issue`'s `Variants > Umbrella sub-issue` shape: `Parent: #<umbrella>` on the first line, `Phase N: <topic>` title, Goal / Scope / Out of scope / Acceptance derived from the plan. After creation, append the new sub-issue's number to the umbrella's Phases table row. The sub-issue body is the canonical contract surface; do not also post the plan as an umbrella comment.
+- **Existing umbrella issue** (the body contains a Phases table or sub-tasks list) → spawn a new sub-issue whose body IS the plan, following `file-issue`'s `Variants > Umbrella sub-issue` shape: `Parent: #<umbrella>` on the first line, `Phase N: <topic>` title, Goal / Scope / Out of scope / Acceptance derived from the plan. After creation, append the new sub-issue's number to the umbrella's Phases table row. Do not also post the plan as an umbrella comment.
 - **New task** → `gh-post issue create` (per `file-issue` step 5) with the plan in the body; report the new issue number.
 
-When ambiguous, ask the user. Umbrella sub-issue is the D1 default — the sub-issue body becomes the single referenceable artifact (`Closes #<sub-issue>` points directly to the plan).
+When ambiguous, ask the user. Umbrella sub-issue is the D1 default.
 
 **Issue creation rules** (research-specific; body shape and the language / reference / line-number / exclusion rules come from `gh-body-conventions` via `file-issue`):
 
