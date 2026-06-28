@@ -66,6 +66,8 @@ If any of the above is yes, skip `codex exec review` and use `codex exec "<inlin
 
 ## Triaging review output
 
+codex review operates on `git diff` output alone — it has no access to the broader project context, test results, runtime behavior, or design rationale. This means a significant fraction of its findings will be false positives: technically plausible concerns that don't apply given information the reviewer can't see.
+
 Typical false positive patterns:
 
 - **Assumed standard behavior**: "this regex won't match standard X format" when the actual data uses a project-specific format (verified by tests)
