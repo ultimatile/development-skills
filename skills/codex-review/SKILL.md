@@ -62,8 +62,6 @@ If any of the above is yes, skip `codex exec review` and use `codex exec "<inlin
 4. List what the review should focus on (forwarding correctness, default / expert contract consistency, docstring drift, missed call sites, etc. — project-specific).
 5. List what to ignore — the enumerated intentional states from step 3.
 
-This collapses the two-round failure mode (codex flags intentional design → human explains in reply → codex retreats) into a single focused review.
-
 **For non-phased self-contained changes**, keep using vanilla `codex exec review --base main`. The inline-context workaround is only needed when judgement criteria live outside the diff.
 
 ## Triaging review output
@@ -82,8 +80,6 @@ When presenting review output, triage each finding:
 2. **Cross-check against project context** you already have — test results, prior conversation, code you've read. You have far more context than the reviewer did.
 3. **Classify each finding** under the `finding-triage` SSOT dispositions (`actionable` / `false-positive` / `uncertain-validity` / `opens-a-question → research` / `invariant-premise-check` / `defer`). The common codex-review cases are `actionable`, `false-positive` (plausible but wrong given context you have — explain why to the user), and `uncertain-validity` (you can't tell without more investigation — flag it and investigate). When a finding is real but its fix is non-local, it is `opens-a-question` → re-enter `research` rather than patching in place.
 4. **Present the triage** to the user, not the raw output. Lead with actionable items, note dismissed items with reasoning.
-
-The user should never have to manually sift through false positives. That's your job.
 
 ## Review-fix loop
 
