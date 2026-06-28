@@ -77,7 +77,7 @@ For PR `k` in the sequence (each PR is one or more units):
    gh-post pr create --base integration/<issue#>-<slug> --title "..." --body-file ...
    ```
 
-4. **Merge into the integration branch when reviews are clean.** It accumulates the PR sequence. Workspace builds may be temporarily broken on it between PRs — the per-component gate is what binds intermediate.
+4. **Merge into the integration branch when reviews are clean.** Workspace builds may be temporarily broken on it between PRs — the per-component gate is what binds intermediate.
 
 ## Final integration → main PR
 
@@ -93,7 +93,7 @@ After all per-PR PRs are merged into the integration branch:
 
 - **Review per-unit, not per-commit.** Many commits are mechanical intermediate steps (file moves, signature substitution, test updates) that draw local nits. A per-unit cumulative review sees the full design surface of the unit and catches findings that span multiple commits (API shape leaking an internal type, a trait with a bypass path).
 
-- **Advance and persist the per-unit baseline.** After each approved unit, the next per-unit review bases on that unit's SHA. Record the last-approved SHA in the tracking memory so the baseline is recoverable across sessions.
+- **Advance and persist the per-unit baseline.** After each approved unit, the next per-unit review bases on that unit's SHA. Record the last-approved SHA in the tracking memory.
 
 - **CI-green + done-check-green ≠ design accepted (phantom acceptance).** Those mean commit-local quality is OK, not that the design is reviewed. A design defect introduced in unit N stays invisible until unit M (M > N) is reviewed, at which point all of N through M must be reconsidered. Per-unit codex review at every unit boundary is the structural fix.
 
