@@ -110,7 +110,7 @@ No actionable findings after triage. A review with only false positives or minor
 ## Important constraints
 
 - **Stdin redirect**: every `codex exec` invocation needs `</dev/null`; hang signal is absence of the `OpenAI Codex v...` banner after `Reading additional input from stdin...`.
-- **Run fresh**: `codex exec resume --last` could continue a prior review session, but run each review with fresh context — fresh reviews are the correct approach for iteration.
+- **Run fresh**: run each review with fresh context — fresh reviews are the correct approach for iteration.
 - **Non-interactive only**: Always use `codex exec review`, not `codex review`, when running from scripts or automation. The `exec` variant runs non-interactively and exits when done.
 - **Timeout**: Set timeout to 600000ms (10 minutes) when calling from Bash. Reviews of large diffs can take several minutes.
 
