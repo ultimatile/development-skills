@@ -5,7 +5,7 @@ description: Pre-PR code review on the current branch using the OpenAI Codex CLI
 
 # Codex Review
 
-Orchestrate `codex exec review` to review branch changes, iterate on fixes, and optionally proceed to PR creation with Copilot review.
+Orchestrate `codex exec review` to review branch changes and iterate on fixes.
 
 ## Core commands
 
@@ -107,21 +107,3 @@ No actionable findings after triage. A review with only false positives or minor
 - **Run fresh**: run each review with fresh context — fresh reviews are the correct approach for iteration.
 - **Non-interactive only**: Always use `codex exec review`, not `codex review`, when running from scripts or automation. The `exec` variant runs non-interactively and exits when done.
 - **Timeout**: Set timeout to 600000ms (10 minutes) when calling from Bash. Reviews of large diffs can take several minutes.
-
-## Integration with PR creation
-
-After the codex review loop produces a clean result, proceed to PR creation. If the Copilot review script is available:
-
-```bash
-${CLAUDE_SKILL_DIR}/../copilot-review/scripts/pr-with-copilot-review.sh --title "..." --body "..." --base main
-```
-
-This creates the PR, requests Copilot review, and polls until the review arrives. The full pipeline becomes:
-
-```
-codex review loop (local, fast feedback)
-        ↓ clean
-PR creation + Copilot review (remote, catches different issues)
-        ↓ review received
-Address Copilot feedback if needed
-```

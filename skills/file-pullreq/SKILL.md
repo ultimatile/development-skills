@@ -5,7 +5,7 @@ description: Draft and file a GitHub PR using gh-body-conventions and the PR bod
 
 # File Pull Request
 
-Draft a GitHub PR title and body that follow the user's conventions, show the draft for approval, then file via `gh` (or hand off to the review pipeline).
+Draft a GitHub PR title and body that follow the user's conventions, show the draft for approval, then file via `gh` (or, in gate mode, hand off to a caller).
 
 ## Conventions
 
@@ -16,7 +16,7 @@ Apply the rules in `gh-body-conventions` to both the title and body. The two PR-
 
 ### Length
 
-A typical PR body is 10–40 lines pre-merge, plus the Phase 4a plan-vs-actual delta when added. Trivial fixes can be much shorter; major features or multi-file refactors can be longer. Every section in the skeleton below should earn its place — a one-line fix needs neither an Impact nor a Notes section.
+A typical PR body is 10–40 lines pre-merge, plus a plan-vs-actual delta if one is appended later. Trivial fixes can be much shorter; major features or multi-file refactors can be longer. Every section in the skeleton below should earn its place — a one-line fix needs neither an Impact nor a Notes section.
 
 ### Title
 
@@ -57,7 +57,7 @@ Produce a title and body following the conventions above and the skeleton below.
 ## Test plan
 
 <invariants verified, tests added/modified, cross-API coverage>
-<contract tests added in review-pipeline Phase 3, if any>
+<contract tests added during review, if any>
 <verification results: cargo test / pytest / etc. — pass/fail summary>
 
 ## Notes  (optional)
@@ -67,9 +67,9 @@ Produce a title and body following the conventions above and the skeleton below.
  why), NOT as a "plan said X / actual Y" delta or a plan-comment link>
 ```
 
-The PR body is **reader-facing**: it documents the merged artifact for a future bisect reader / maintainer, not the research process that produced it. Do **not** add a `Plan reference`, `Discovery contract status`, or `Open questions from the research plan` section even when the work went through `research-and-implement` — those transcribe plan-internal bookkeeping (opaque plan-comment IDs, inconclusive-item enumerations) that rots fast and means nothing to a reader without the plan in front of them. A deferred behavior a reader genuinely needs goes in `Notes`, framed as the code's own limitation rather than a plan delta. (Phase 4a's `## Plan-vs-actual delta` is the one sanctioned exception — it is the audit surface for umbrella-tracked work and lives at the bottom of the body.)
+The PR body is **reader-facing**: it documents the merged artifact for a future bisect reader / maintainer, not the research process that produced it. Do **not** add a `Plan reference`, `Discovery contract status`, or `Open questions from the research plan` section even when the work went through `research-and-implement` — those transcribe plan-internal bookkeeping (opaque plan-comment IDs, inconclusive-item enumerations) that rots fast and means nothing to a reader without the plan in front of them. A deferred behavior a reader genuinely needs goes in `Notes`, framed as the code's own limitation rather than a plan delta. (A `## Plan-vs-actual delta` appended later by the caller is the one sanctioned exception — it is the audit surface for umbrella-tracked work and lives at the bottom of the body.)
 
-The Phase 4a `## Plan-vs-actual delta` section is appended later by `review-pipeline`; do not pre-create an empty delta section here.
+The `## Plan-vs-actual delta` section is appended later by the caller; do not pre-create an empty delta section here.
 
 Section headings are optional for trivial PRs — a 5-line body covering Summary + Test plan often needs no headings.
 
@@ -93,7 +93,7 @@ Two modes, distinguished by the caller.
 
 #### 5a. Standalone mode (default)
 
-Used when invoked directly by the user, outside `review-pipeline`. Write the laundered body to a temp file, then invoke the wrapper:
+Used when invoked directly by the user, not in gate mode. Write the laundered body to a temp file, then invoke the wrapper:
 
 ```bash
 gh-post pr create \
@@ -107,9 +107,9 @@ gh-post pr create \
 
 Do not auto-add `@copilot` here — Copilot review is `copilot-review`'s responsibility (gate mode below).
 
-#### 5b. Gate mode (review-pipeline Phase 2)
+#### 5b. Gate mode
 
-Used when invoked as a gate before `copilot-review` creates the PR. Stop after approval; do NOT run `gh pr create`. Output the approved title and body for the caller to pass into the `pr-with-copilot-review.sh` invocation.
+Used when invoked as a gate by a caller that creates the PR itself. Stop after approval; do NOT run `gh pr create`. Output the approved title and body for the caller to pass into its PR-creation step.
 
 Output format:
 
@@ -121,7 +121,7 @@ APPROVED BODY (HEREDOC-ready):
 <body>
 ```
 
-The pipeline's Phase 2 step then writes the approved body to a temp file and runs:
+The caller then writes the approved body to a temp file and runs its PR-creation step, e.g.:
 
 ```bash
 cat > /tmp/<descriptive-name>.md <<'EOF'
@@ -143,4 +143,4 @@ After filing in standalone mode, show the user:
 - The PR number and URL.
 - Any follow-up actions (linking from a parent umbrella issue, triggering Copilot review separately via `copilot-review`, etc.).
 
-In gate mode, just confirm the approval and hand off to the pipeline.
+In gate mode, just confirm the approval and hand off to the caller.
