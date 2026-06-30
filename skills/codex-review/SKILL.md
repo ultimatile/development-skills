@@ -7,12 +7,6 @@ description: Pre-PR code review on the current branch using the OpenAI Codex CLI
 
 Orchestrate `codex exec review` to review branch changes, iterate on fixes, and optionally proceed to PR creation with Copilot review.
 
-## When to use
-
-- Before creating a PR, to catch issues early
-- When iterating on fixes and wanting to verify no regressions
-- As part of a full PR pipeline: codex review → fix → PR → Copilot review
-
 ## Core commands
 
 ### Review branch diff against base

@@ -9,11 +9,6 @@ A focused Codex pass that asks one question: **does this test express the contra
 
 This is *not* a full review — alternative test designs, additional test suggestions, and stylistic nits are explicitly out of scope.
 
-## When to use
-
-- After `bug-to-contract` adds a test, before merging in a context where the full codex-review / copilot-review loop is too heavy
-- When you want a second opinion on whether a contract test actually catches the bug class it claims to catch
-
 ## Procedure
 
 ### 1. Gather inputs

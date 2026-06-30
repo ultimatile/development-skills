@@ -7,15 +7,6 @@ description: Promote a review finding into a pre-commit audit rule that catches 
 
 A single fix prevents one bug. An audit rule prevents the entire class without waiting for the next bug to surface.
 
-## When to use vs `bug-to-contract`
-
-| Catch at | Tool |
-| -- | -- |
-| Runtime — output value, behavior under input, invariant on data, concurrency | `bug-to-contract` (contract test) |
-| Diff-inspection — structural property visible from `git diff`, imports, `pub` surface, presence of tests, debug artifacts, hardcoded values | `finding-to-audit` (this skill) |
-
-A single finding can map to either, both, or neither. Use both when both apply.
-
 ## Inputs
 
 | Input | What to collect |

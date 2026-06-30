@@ -7,11 +7,6 @@ description: Review an implementation plan with OpenAI Codex before coding, gett
 
 Ask Codex to review an implementation plan against the actual codebase before implementation begins.
 
-## When to use
-
-- When you want a second opinion on architectural decisions before writing code
-- To catch design-level issues that are cheaper to fix before implementation
-
 ## Procedure
 
 ### 1. Build the prompt

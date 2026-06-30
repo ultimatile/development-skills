@@ -7,21 +7,6 @@ description: Draft an Architecture Decision Record (a timeless decision, distinc
 
 Draft a project Architecture Decision Record (ADR) body that matches the project's existing structure and follows a timeless-decision discipline. Show for approval, then write to the project's ADR directory.
 
-## When to use
-
-When the user wants to memorialize an architectural decision that:
-
-- Has alternatives with non-trivial trade-offs.
-- Should outlive the implementation that ships it.
-- Will be referenced later by PRs, other ADRs, or design discussions.
-
-Trigger on explicit requests ("file an ADR", "ADR を書いて") and when a design discussion converges on a decision the user wants recorded.
-
-Skip this skill when the artifact is:
-
-- An implementation task list, bug report, or phase plan → use `file-issue`.
-- A throwaway design memo not worth formalizing → write directly, no skill needed.
-
 ## The classification step — MANDATORY before drafting
 
 Before any drafting, classify the topic against this distinction:
