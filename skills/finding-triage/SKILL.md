@@ -5,13 +5,13 @@ description: Single source of truth for per-finding review-triage dispositions �
 
 # Finding Triage (SSOT)
 
-This skill is **a definition file, not a runnable procedure**. Skills that triage review findings — `codex-review`, `copilot-review`, `codex-plan-review`, `codex-contract-test-review`, `review-pipeline`, and the audit-concern triage in `done-check` / `gh-body-check` — apply these dispositions by reference. Do not copy the class definitions into them; point at them by name.
+This skill is **a definition file, not a runnable procedure**. Skills that triage review findings apply these dispositions by reference. Do not copy the class definitions into them; point at them by name.
 
 A reviewer (Codex, Copilot, a fresh-context auditor) produces findings without the project context you hold — test results, design intent, scope constraints, conversation history. Triage is the step that converts a raw finding into a disposition. This file is the catalogue of dispositions; the catalogue does not vary by reviewer, so it lives in one place.
 
 ## Scope: stateless, per-finding
 
-Every disposition here is judged on **one finding in isolation** — no dependence on what other findings said or on prior iterations. Loop-level criteria that depend on history across review iterations (oscillation detection, re-triage carryover policy) are **out of scope for this SSOT** and live in `review-pipeline`. A standalone review run (e.g. `codex-review` invoked on its own, outside the pipeline) applies these per-finding classes without the loop machinery — which is exactly why the classes cannot live in `review-pipeline` alone.
+Every disposition here is judged on **one finding in isolation** — no dependence on what other findings said or on prior iterations. Loop-level criteria that depend on history across review iterations (oscillation detection, re-triage carryover policy) are **out of scope for this SSOT** — they belong to whatever orchestrates the review loop. A standalone review run applies these per-finding classes without the loop machinery — which is exactly why the classes cannot live in the loop orchestrator alone.
 
 ## The dispositions
 
@@ -30,7 +30,7 @@ Each finding receives exactly one disposition. A finding may be *re-triaged* to 
 
   The correct disposition is to **re-enter `research`** with the finding as the task, then escalate only the genuinely user-owned residue (scope authority, taste, an external constraint).
 
-- **invariant-premise-check** — the finding's *conclusion* may be correct, but its *premise* may be wrong. Applies to claims about mathematical properties, semantic validity, or precondition necessity. Before committing a fix, **verify the premise** — check whether the invariant the finding assumes actually holds, by reading code and tests and running targeted experiments. When the premise is an external-system-behavior claim, verify it per **Verifying external-system claims** below. Resolves to `actionable` (premise holds → fix it) or `false-positive` (premise fails → the finding's conclusion does not follow). The mechanism for verifying the premise is the caller's (e.g. `review-pipeline` asks Codex a single targeted question); this SSOT owns only the class.
+- **invariant-premise-check** — the finding's *conclusion* may be correct, but its *premise* may be wrong. Applies to claims about mathematical properties, semantic validity, or precondition necessity. Before committing a fix, **verify the premise** — check whether the invariant the finding assumes actually holds, by reading code and tests and running targeted experiments. When the premise is an external-system-behavior claim, verify it per **Verifying external-system claims** below. Resolves to `actionable` (premise holds → fix it) or `false-positive` (premise fails → the finding's conclusion does not follow). The mechanism for verifying the premise is the caller's; this SSOT owns only the class.
 
 - **defer** — the finding is valid and its fix is understood, but it is **out of scope** for the current task. Record it (follow-up issue, note) and do not fix now. Distinct from `opens-a-question`: here the resolution is known and local, only the *timing* is deferred; in `opens-a-question` the resolution itself is unknown.
 

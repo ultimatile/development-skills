@@ -136,7 +136,7 @@ codex exec "<prompt>" < /dev/null -o /tmp/codex-contract-test-review.md
 
 ### 4. Triage the feedback
 
-Classify each finding under the `finding-triage` SSOT dispositions, same as `codex-review` and `codex-plan-review`. The cases that recur here:
+Classify each finding under the `finding-triage` SSOT dispositions. The cases that recur here:
 
 - **`actionable`**: a real contract-expression flaw or critical bug that would let the original bug class through
 - **`false-positive`**: a concern that doesn't apply given project context the reviewer can't see
@@ -147,7 +147,7 @@ Present the triage to the user, not the raw output.
 ### 5. Apply or push
 
 - If actionable findings exist: revise the test, then re-run this skill once. One re-review iteration is the cap — repeated iteration on a single contract test signals the contract itself is unclear; escalate to the user instead of looping.
-- If clean: proceed to `/stage-commit-push` (or whatever the caller's commit step is).
+- If clean: the test verifies the contract; hand back to the caller's commit step.
 
 ## What this skill is bad at
 
