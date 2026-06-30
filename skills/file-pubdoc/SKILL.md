@@ -7,19 +7,6 @@ description: Draft README.md or visitor-facing markdown (top-level *.md, docs/**
 
 Draft visitor-facing markdown (README and `docs/`) using a fixed skeleton so the resulting page documents present-tense, audience-public capability — not the author's session log, rationale dump, or roadmap.
 
-## When to use
-
-- Initial README on a fresh repo.
-- Major rewrite of an existing README (more than a few sentence-level edits).
-- New top-level visitor-facing markdown (`README.md`, top-level `*.md` other than the exclusions below).
-- New page under `docs/` for visitor consumption.
-
-## When NOT to use
-
-- Minor README / docs edits (use direct edit + `done-check`'s `public-doc-durability` audit catches drift).
-- `CONTRIBUTING.md`, `LICENSE`, `NOTICE`, `CHANGELOG.md`, `AUTHORS`, `CODE_OF_CONDUCT.md` — different audience, different shape.
-- ADRs, design notes, post-mortems, internal-team wikis — author-side surfaces; the audience-boundary rule does not apply the same way.
-
 ## Audience
 
 The reader is a **stranger who landed on the repo via search or a link**. They do not share the author's session, dotfiles, design history, or reading list. Everything that only makes sense given context the reader does not have is misplaced.

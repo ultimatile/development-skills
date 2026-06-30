@@ -7,12 +7,6 @@ description: Draft and file a GitHub issue using gh-body-conventions and the iss
 
 Draft a GitHub issue body that follows the user's conventions, show the draft for approval, then file via `gh`.
 
-## When to use
-
-Whenever the user wants to convert an investigation, bug observation, or design idea into a tracked GitHub issue. Trigger on explicit requests ("file an issue", "issue化して") and also when the conversation naturally calls for capturing a discrete piece of work as an issue.
-
-Skip this skill if the user is just discussing — only invoke when the intent is to actually create the issue.
-
 ## Conventions
 
 Apply the rules in `gh-body-conventions` to the title and body. The two issue-specific points to reinforce:

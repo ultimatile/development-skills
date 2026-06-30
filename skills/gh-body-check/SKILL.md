@@ -8,10 +8,6 @@ allowed-tools: Bash(*/gh-body-check/body-math-scan.sh:*)
 
 Two checks: a mechanical math scan (Unicode-math glyphs, the GitHub-unsupported macro `\operatorname`, and inline math neutralized by an enclosing code span), and a cold-reader audit delegated to a fresh-context subagent.
 
-## When to use
-
-Before any GitHub issue / PR body (or in-review reply) is shown for approval or filed. Callers' "Laundering pass" resolves to this skill. Direct invocation is also supported — to audit an already-filed body (`gh issue view <N> --json body -q .body` or `gh pr view <N> --json body -q .body`).
-
 ## Why a cold-reader subagent
 
 The author has just drafted the text. They read what they *meant*, not what the text *literally says*. A fresh-context subagent with no access to the chat history, the plan, or the author's notes is the cleanest implementation of the operative definition of leakage: *a token whose referent cannot be resolved from the target repo's public state.* Whatever the cold reader cannot resolve is, by definition, leakage.

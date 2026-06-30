@@ -7,12 +7,6 @@ description: Draft and file a GitHub PR using gh-body-conventions and the PR bod
 
 Draft a GitHub PR title and body that follow the user's conventions, show the draft for approval, then file via `gh` (or hand off to the review pipeline).
 
-## When to use
-
-Whenever the user wants to convert finished implementation work into a GitHub pull request. Trigger on explicit requests ("PRを作って", "create a PR", "file a PR") and also when called as a gate from `review-pipeline` Phase 2.
-
-Skip this skill if the user is just asking for a diff summary — only invoke when the intent is to actually create or stage the PR.
-
 ## Conventions
 
 Apply the rules in `gh-body-conventions` to both the title and body. The two PR-specific points to reinforce:

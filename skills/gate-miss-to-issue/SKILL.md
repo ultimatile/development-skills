@@ -7,11 +7,6 @@ description: Promote a late-caught defect — one an earlier gate should have ca
 
 A gate's failure is invisible to the gates downstream of it — they judge the product, not which earlier step should have caught the defect. This skill captures that gap as a development-skills issue.
 
-## When to use
-
-- A defect surfaced **later than the earliest gate that could have caught it** — at external review, post-merge, or user pushback.
-- Not when every defect was caught at its earliest gate: nothing underperformed.
-
 ## Do
 
 - Propose which gate should have caught it — skill + step, or *no existing gate* if none owns the class. This is a hypothesis the issue confirms or redirects, not a blame verdict.

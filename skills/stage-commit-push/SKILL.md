@@ -7,10 +7,6 @@ description: Stage changed files, generate a conventional commit message, commit
 
 One-shot skill for the review-fix loop: stage modified files, generate a commit message, commit, and push.
 
-## When to use
-
-During automated pipelines where stopping for manual commit message review would break the flow — typically between fixing a review finding and re-running the reviewer. For manual/careful commits where the user wants to review the message first, use `/generate-conventional-commits-message` instead.
-
 ## Procedure
 
 ### 1. Stage
