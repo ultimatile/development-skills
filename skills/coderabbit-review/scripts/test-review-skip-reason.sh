@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # Contract test for review_skip_reason() in pr-with-coderabbit-review.sh.
 #
-# Zero-dependency harness: bash + jq only (the repo has no bash test framework,
-# and this adds only enough to source and assert this one unit). It sources the
+# Zero-framework harness: bash, jq, and grep only (the repo has no bash test
+# framework, and this adds only enough to source and assert this one unit; jq
+# builds the fixtures and runs the stubbed `gh` filter, grep is what the sourced
+# production code and the frozen pre-fix artifact match with). It sources the
 # script under test, stubs `gh` to run the real --jq filter over fixture comment
 # arrays, and asserts review_skip_reason's contract:
 #   0 = a skip signature was found (cause token echoed on stdout),
