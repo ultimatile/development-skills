@@ -105,43 +105,123 @@ print_review_if_any() {
     return 0
 }
 
-# Detect whether CodeRabbit has auto-paused reviews on this PR.
+# Detect whether CodeRabbit SKIPPED the review instead of running it.
 #
-# `auto_pause_after_reviewed_commits` makes CodeRabbit stop reviewing after
-# a number of commits, yet it still emits a terminal `success` commit status
-# with description "Review completed" — indistinguishable from a genuine
-# clean pass on the status alone. The authoritative pause signal is instead
-# the marker CodeRabbit writes into its PR summary issue comment. This gate
-# runs only before declaring a zero-finding pass, so a paused (unreviewed)
-# push is never reported as clean.
+# A terminal `success` "Review completed" status with no review object is
+# ambiguous: it is either a genuine zero-finding pass or a NON-REVIEW skip that
+# still emits terminal success. Three skip causes are known, each leaving a
+# discriminator in CodeRabbit's bot issue comments:
 #
-# Returns: 0 = pause marker found, 1 = fetched but no marker, 2 = fetch failed.
-review_is_paused() {
+#   paused        auto-pause (`auto_pause_after_reviewed_commits` stops reviewing
+#                 after N commits) — HTML marker `review paused by coderabbit.ai`.
+#   rate-limited  the per-developer PR review limit was reached, so the review
+#                 never started — HTML marker `rate limited by coderabbit.ai`.
+#   file-limit    the diff exceeds the max-files-per-review cap, so the review was
+#                 skipped to avoid a low-quality review — matched on the machine
+#                 prose `skipped due to max files limit` co-occurring with the
+#                 `skip review by coderabbit.ai` marker. CodeRabbit reuses that
+#                 marker for this AND for intentional config skips (title patterns,
+#                 drafts, path filters), so the marker alone cannot single out an
+#                 unintended file-count skip; the prose alone would self-trigger on
+#                 a bot walkthrough that merely quotes the phrase (this repo ships
+#                 that exact sentence). Requiring BOTH — the marker scopes the match
+#                 to a real skip comment, the prose selects the file-count kind —
+#                 brings this check to the same anchoring the other two get from the
+#                 `<!--` wrapper. Deliberate config skips (marker without the
+#                 file-count prose) are intentionally NOT flagged — an intentional
+#                 skip is not a false clean pass. Residual gap: CodeRabbit controls
+#                 the prose and could reword it, which would slip through as a false
+#                 clean pass; no stable file-count marker exists to close that.
+#
+# The marker checks require the `<!--` wrapper so bot walkthrough prose that merely
+# describes the feature does not self-trigger (CodeRabbit's own walkthrough of a PR
+# touching this code echoes words like "reviews paused"). This gate runs only
+# before declaring a zero-finding pass, so a skipped (unreviewed) push is never
+# reported as clean.
+#
+# Echoes the cause token on the first match. Returns: 0 = skip signature found
+# (token on stdout), 1 = fetched but none found, 2 = fetch failed.
+review_skip_reason() {
     local bodies
-    # `--paginate` walks every page: on a long-lived PR the summary comment
-    # carrying the marker can fall outside the first 100 issue comments, and
-    # missing it would misreport an auto-paused run as a clean pass. With
-    # `--paginate` the `--jq` filter runs per page and the matching bodies are
-    # concatenated, so one body per line is the right shape for the grep below.
-    # `|| return 2` distinguishes a fetch/jq failure from an empty-but-OK
-    # result (no bot comments still exits 0 with empty stdout -> "no marker").
+    # `--paginate` walks every page: on a long-lived PR the marker-bearing comment
+    # can fall outside the first 100 issue comments, and missing it would misreport
+    # a skipped run as a clean pass. `.body | @json` emits each comment body as one
+    # JSON-escaped line, so a body's internal newlines don't split it — the
+    # file-limit check below needs the marker and the prose in the SAME comment, so
+    # per-comment granularity matters. `|| return 2` distinguishes a fetch/jq
+    # failure from an empty-but-OK result (no bot comments still exits 0 with empty
+    # stdout -> "no marker").
     bodies=$(
         gh api --paginate "repos/$repo/issues/$pr_number/comments?per_page=100" \
-            --jq ".[] | select(.user.login == \"$BOT_LOGIN\") | .body" \
+            --jq ".[] | select(.user.login == \"$BOT_LOGIN\") | .body | @json" \
             2>/dev/null
     ) || return 2
-    # Match CodeRabbit's machine-emitted HTML pause marker, NOT visible prose.
-    # CodeRabbit's own PR walkthrough describes this very feature with the words
-    # "reviews paused" / "pause marker", so matching bare prose self-triggers a
-    # false pause on any PR that touches or mentions this code. The genuine
-    # auto-pause emits an HTML-comment marker in the `<!-- ... by coderabbit.ai
-    # -->` family (observed siblings: `skip review by coderabbit.ai`,
-    # `summarize by coderabbit.ai`); requiring the `<!--` wrapper excludes prose
-    # and quoted code. `if`-guarded so a grep miss does not trip set -e.
+    # Pause / rate-limit: a single HTML marker anywhere in any body is sufficient,
+    # so grep the whole set. `if`-guarded so a miss does not trip set -e.
     if grep -qiE '<!--[^>]*review paused by coderabbit\.ai' <<<"$bodies"; then
-        return 0
+        echo "paused"; return 0
     fi
+    if grep -qiE '<!--[^>]*rate limited by coderabbit\.ai' <<<"$bodies"; then
+        echo "rate-limited"; return 0
+    fi
+    # File-count: the `skip review` marker AND the file-count prose must sit in the
+    # SAME comment — the marker also flags deliberate config skips, and the prose
+    # alone would self-trigger on a walkthrough that quotes it, so neither in
+    # isolation nor split across two comments qualifies. Scan per body (one
+    # JSON-encoded line each) rather than the concatenated set.
+    local body
+    while IFS= read -r body; do
+        [[ -n "$body" ]] || continue
+        if grep -qiE '<!--[^>]*skip review by coderabbit\.ai' <<<"$body" \
+            && grep -qiE 'skipped due to max files limit' <<<"$body"; then
+            echo "file-limit"; return 0
+        fi
+    done <<<"$bodies"
     return 1
+}
+
+# Print a cause-specific notice for a detected non-review skip. All three causes
+# mean "the review did not run" (the caller maps this to exit 2), but the remedy
+# differs, so the message is per-cause. Reads the globals $repo / $pr_number.
+print_skip_notice() {
+    local reason="$1"
+    local trigger="  gh pr comment $pr_number --repo $repo --body \"@coderabbitai review\""
+    # `${BASH_SOURCE[0]}`, not `$0`: this file is designed to be sourced (the
+    # contract test sources it), and the recovery hint must print the script's own
+    # path even if the function is ever reached from a sourced context where `$0`
+    # would be the calling shell.
+    local poll_cmd="  ${BASH_SOURCE[0]} --poll https://github.com/$repo/pull/$pr_number"
+    case "$reason" in
+        paused)
+            echo "=== Review Auto-Paused ==="
+            echo "CodeRabbit auto-paused reviews on this PR — the terminal 'success' status reflects a"
+            echo "skipped (unreviewed) push, not a clean pass. Resume the review, then re-poll:"
+            echo "$trigger"
+            echo "$poll_cmd"
+            ;;
+        rate-limited)
+            echo "=== Review Rate-Limited ==="
+            echo "CodeRabbit hit its per-developer PR review limit — the review did NOT run, so the terminal"
+            echo "'success' status is not a clean pass. Wait for the limit to reset (the 'Review limit reached'"
+            echo "comment on the PR states the window), then push a new commit or resume, and re-poll:"
+            echo "$trigger"
+            echo "$poll_cmd"
+            ;;
+        file-limit)
+            echo "=== Review Skipped (max files) ==="
+            echo "The diff exceeds CodeRabbit's max-files-per-review limit, so the review was skipped to avoid"
+            echo "a low-quality review — the terminal 'success' status is not a clean pass. Re-polling alone"
+            echo "won't help while the file count is unchanged: either split the PR so fewer files change (the"
+            echo "push re-reviews on its own), or raise the limit (plan / .coderabbit.yaml) and trigger a fresh"
+            echo "review manually — a config change does not auto-apply to an open PR — then re-poll:"
+            echo "$trigger"
+            echo "$poll_cmd"
+            ;;
+        *)
+            echo "=== Review Skipped ==="
+            echo "CodeRabbit skipped the review (cause: ${reason}) — not a clean pass. Inspect the PR before proceeding."
+            ;;
+    esac
 }
 
 # Poll the `CodeRabbit` commit status on the PR's head commit until it
@@ -188,24 +268,21 @@ poll_for_review() {
                     return 0
                 fi
                 # `success` + no review object is ambiguous: it is either a
-                # genuine clean pass or an auto-paused (unreviewed) push.
-                # Disambiguate via the PR summary comment before reporting.
-                local pause_rc=0
-                review_is_paused || pause_rc=$?
-                if [[ "$pause_rc" -eq 0 ]]; then
-                    echo "=== Review Auto-Paused ==="
-                    echo "CodeRabbit auto-paused reviews on this PR — the terminal 'success' status reflects a"
-                    echo "skipped (unreviewed) push, not a clean pass. Resume the review, then re-poll:"
-                    echo "  gh pr comment $pr_number --repo $repo --body \"@coderabbitai review\""
-                    echo "  $0 --poll https://github.com/$repo/pull/$pr_number"
+                # genuine clean pass or a NON-REVIEW skip (auto-pause, rate
+                # limit, or file-count) that still emits terminal success. Rule
+                # out every skip signature before reporting a clean pass.
+                local skip_reason skip_rc=0
+                skip_reason=$(review_skip_reason) || skip_rc=$?
+                if [[ "$skip_rc" -eq 0 ]]; then
+                    print_skip_notice "$skip_reason"
                     return 2
                 fi
-                if [[ "$pause_rc" -eq 2 ]]; then
+                if [[ "$skip_rc" -eq 2 ]]; then
                     # Fail closed: the whole point of this gate is to never call
-                    # an unreviewed push clean, so an unverifiable pause state
+                    # an unreviewed push clean, so an unverifiable skip state
                     # must not fall through to a zero-finding report. Halt and
                     # let the caller re-poll or inspect the PR.
-                    echo "Could not verify pause state from PR comments — refusing to report a clean pass." >&2
+                    echo "Could not verify skip state from PR comments — refusing to report a clean pass." >&2
                     echo "Re-poll, or inspect the PR manually before proceeding." >&2
                     return 1
                 fi
@@ -233,9 +310,11 @@ poll_for_review() {
 }
 
 # Translate poll_for_review's return code into a process exit, preserving the
-# auto-pause signal as a distinct code so callers (e.g. review-pipeline-
-# coderabbit) can resume rather than treat a paused push as a clean pass:
-#   0 -> clean / findings printed;  2 -> auto-paused (resume needed);
+# non-review-skip signal as a distinct code so callers (e.g. review-pipeline-
+# coderabbit) can resume rather than treat a skipped push as a clean pass:
+#   0 -> clean / findings printed;
+#   2 -> non-review skip (auto-pause / rate-limit / file-count) — the printed
+#        notice states the per-cause remedy; the review did not run;
 #   anything else -> failure.
 # `rc=0; poll_for_review || rc=$?` captures the code without tripping set -e.
 poll_and_exit() {
