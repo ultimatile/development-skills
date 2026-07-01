@@ -210,9 +210,11 @@ print_skip_notice() {
         file-limit)
             echo "=== Review Skipped (max files) ==="
             echo "The diff exceeds CodeRabbit's max-files-per-review limit, so the review was skipped to avoid"
-            echo "a low-quality review — the terminal 'success' status is not a clean pass. A bare re-trigger"
-            echo "will NOT help (the file count is unchanged): reduce the diff (split the PR) or raise the limit"
-            echo "(plan / .coderabbit.yaml), then re-poll:"
+            echo "a low-quality review — the terminal 'success' status is not a clean pass. Re-polling alone"
+            echo "won't help while the file count is unchanged: either split the PR so fewer files change (the"
+            echo "push re-reviews on its own), or raise the limit (plan / .coderabbit.yaml) and trigger a fresh"
+            echo "review manually — a config change does not auto-apply to an open PR — then re-poll:"
+            echo "$trigger"
             echo "$poll_cmd"
             ;;
         *)
