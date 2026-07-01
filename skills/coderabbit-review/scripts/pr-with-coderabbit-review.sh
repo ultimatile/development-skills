@@ -186,7 +186,11 @@ review_skip_reason() {
 print_skip_notice() {
     local reason="$1"
     local trigger="  gh pr comment $pr_number --repo $repo --body \"@coderabbitai review\""
-    local poll_cmd="  $0 --poll https://github.com/$repo/pull/$pr_number"
+    # `${BASH_SOURCE[0]}`, not `$0`: this file is designed to be sourced (the
+    # contract test sources it), and the recovery hint must print the script's own
+    # path even if the function is ever reached from a sourced context where `$0`
+    # would be the calling shell.
+    local poll_cmd="  ${BASH_SOURCE[0]} --poll https://github.com/$repo/pull/$pr_number"
     case "$reason" in
         paused)
             echo "=== Review Auto-Paused ==="
