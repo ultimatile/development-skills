@@ -41,6 +41,15 @@ Write the body to a file (typically under `/tmp/`) and pass it to the `gh-post` 
 - Avoid `\_` in GitHub/LaTeX math. Use `` $`\mathrm{\textunderscore}`$ `` when an underscore glyph is required in math mode.
 - Do NOT use `\textunderscore` inside `\text{...}` or `\texttt{...}`. Restructure the expression, or put the literal identifier in Markdown backticks outside math when exact code spelling matters.
 - When two inline math spans are separated by punctuation, put a space before the second math opener. Write `` $`K_1`$/ $`K_2`$ ``, not `` $`K_1`$/$`K_2`$ ``.
+- Keep the `` $`...`$ `` code-span delimiters balanced — an unbalanced backtick makes `gh-post`'s auto-format (mdformat) escape the surrounding text as literal prose (doubling backslashes, escaping `*`), which corrupts the rendered output.
+
+### After `gh-post`: suspect the source first
+
+Broken math on GitHub after `gh-post` is author-side by default — attribute it to `gh-post` only after reproducing the corruption on well-formed, balanced input.
+Two distinct failure surfaces:
+
+- mdformat mangles the *source* — an unbalanced `` $`...`$ `` delimiter, or plain `$...$` with backslash macros.
+- GitHub won't render otherwise-intact source — `\operatorname` (GitHub renders nothing), raw Unicode glyphs (shown as literal text, not math); mdformat leaves these untouched.
 
 ## References
 
