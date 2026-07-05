@@ -72,6 +72,40 @@ N/A when the diff adds no `///` / `//!` lines, or when every doc-comment `$name`
 
 ______________________________________________________________________
 
+## `docstring-drift`
+
+### Triggers (Rust)
+
+A diff makes a new member of an enumerated outcome set reachable from an entry point while a rustdoc `# Errors` section enumerates the returnable variants:
+
+- A new error-enum variant becomes reachable from an existing entry point — a new `#[from]` impl makes the source error convertible and a `?` propagates it, or the variant is constructed directly on a path the entry point reaches. A sibling function returning that error is in scope when a path in its body can yield the new member: it constructs the variant, its `?` converts the newly-convertible source, or its `?` propagates the variant from a callee that itself can now return it (the reflexive `From<E> for E` that `?` applies passes the callee's variants through unchanged). A sibling that returns the same enum but whose body has no such path is out of scope — do not add the variant to its `# Errors`.
+- A rustdoc `# Errors` section that enumerates specific returnable variants — a bulleted per-variant list, or `Returns …` lines each naming a variant — is a closed enumeration; widening the reachable variant set leaves it incomplete even though every listed variant is still returnable.
+
+### Mechanical detection
+
+The trigger has two widening mechanisms; these greps are non-exhaustive starting points for both, not a complete sweep:
+
+```sh
+# (a) new #[from] conversions — widen what `?` can propagate into the enum
+git diff <base>..HEAD -- '*.rs' | rg '^\+.*#\[from\]'
+# (b) new construction / conversion sites of an error variant (also .into(), ? on a new source)
+git diff <base>..HEAD -- '*.rs' | rg '^\+.*(Err\(|ok_or|map_err)'
+# cross-check: every # Errors enumeration against the widened reachable set
+rg -n '# Errors' -g '*.rs'
+```
+
+Also review the error enum's own diff hunk for added variants — a variant added there is constructible even when no `#[from]` accompanies it. The greps only surface candidates; which entry points and siblings actually reach the new member is the main-context reachability judgment, not a grep result.
+
+### False-positive review
+
+Dismiss when the new variant is deliberately documented as internal / unreachable-in-practice, or when the `# Errors` section is intentionally coarse — it names only the top-level error type rather than a per-variant enumeration, making no closed-set claim to drift.
+
+### N/A elaboration
+
+N/A when no entry point sharing the widened error type carries a `# Errors` (or equivalent closed enumeration) rustdoc section.
+
+______________________________________________________________________
+
 ## `escape-hatch-necessity`
 
 ### Triggers (Rust)
