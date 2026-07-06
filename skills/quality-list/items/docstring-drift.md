@@ -23,6 +23,8 @@ When the diff changes behavior — a function delegating to a third-party librar
 2. **Locate every closed-enumeration doc** — enumerated error-variant lists, "returns one of {…}", documented status-code tables, handled-event lists — on the affected entry points **and on any sibling whose body can actually reach the new member** (a propagation or construction path that yields it — not every sibling that merely returns the same type). The enumerating doc is in scope even when the diff does not touch its function.
 3. **Confirm each new member is either listed or deliberately omitted.** A deliberate omission carries a reason in the doc or the change's intent (the outcome is documented as internal / unreachable-in-practice). An unlisted member with no such reason is stale — add it to the enumeration.
 
+For widenings of a symbol's returns, consumer code affected by the widening — match arms, guards — is `impact-verification`'s concern; this section owns the documentation surface.
+
 **Author-blindspot mitigation.** Authors who shipped the behavior change read existing prose through their post-change mental model and tacitly correct the drift. A **cold-read pass** on each in-scope surface — treating the prose as if reading the project for the first time — exposes claims the author would otherwise overlook.
 
 **N/A:** the diff is text-only (formatting, doc-only edit, rename without behavior shift), or every behavior-changing element is fully internal with no docstring / comment / README claim referencing the changed surface.
