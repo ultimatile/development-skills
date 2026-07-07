@@ -104,6 +104,7 @@ Merge subagent reports into a single plan with the following sections.
   - Tests to add/modify with expected behavior
   - For new constructors / input paths: tests passing those inputs through every existing public API that could receive them. A new input path without cross-API tests is incomplete.
   - **Surrogate-probe re-instantiation**: every hypothesis confirmed in Step 2 by a *surrogate* probe (proof-of-concept build, reference implementation, toy fixture standing in for the committed artifact) must emit either an artifact-level Test plan entry that re-runs the check against the committed artifact, or an explicit `surrogate evidence suffices because <reason>` line.
+  - **Perf acceptance criterion** (perf-motivated tasks only): an end-to-end benchmark that provably exercises the changed path, with a before/after (or feature-off/on) comparison, carried forward as a first-class acceptance criterion with the same status as a correctness test. A component-level microbenchmark proves the component win, not the operation win, and does not discharge this. When the win is conditional (neutral on the default build, paying off only under a feature flag / accelerated backend / specific input class), state where it lands rather than implying an unconditional speedup.
 - **Implementation guards** (from confirmed hypotheses):
   - New invariants enforced with assertions, not comments
   - Paired APIs that must stay consistent (sibling methods)
@@ -146,7 +147,7 @@ Report the plan back to the main context.
 
 ## Step 3.4 — Reachability check (mandatory)
 
-A plan can be locally closed yet reach further than the author reasoned about — a new public surface whose semantics depend on consumer code outside scope (Checks 1–3), an enablement that binds compilation units the plan never named (Check 4), or a verification probe that covers fewer build configurations than the obligation spans (Check 5). `codex-plan-review` and author confidence both miss these — they require looking outward. Any check firing means the plan's reach is not closed; rescope or defer.
+A plan can be locally closed yet reach further than the author reasoned about — a new public surface whose semantics depend on consumer code outside scope (Checks 1–3), an enablement that binds compilation units the plan never named (Check 4), a verification probe that covers fewer build configurations than the obligation spans (Check 5), or a performance probe that exercises fewer code paths than the changed path it is trusted to measure (Check 6). `codex-plan-review` and author confidence both miss these — they require looking outward. Any check firing means the plan's reach is not closed; rescope or defer.
 
 ### Check 1 — Dead-on-arrival state
 
@@ -193,6 +194,13 @@ Identify the configuration where the **new** obligation binds and confirm the pr
 
 - Probe runs the binding configuration → proceed.
 - Probe runs only a sibling ("does it build", an integration target linking the non-test build, the ungated build) while the obligation binds elsewhere (the crate's own `--cfg test` unit tests, the gated build) → not certified. Name the binding-configuration probe and add it to the Step 3 test plan, or step back to a structure that keeps the obligation inside one configuration.
+
+### Check 6 — Benchmark-reach check
+
+When the plan cites a benchmark (existing or new) as evidence for a performance claim, confirm the benchmark provably executes the changed code — inputs that hit the changed branch, not a fast-path that bypasses it. A benchmark that misses the changed path reads as coverage but certifies nothing about it — worse than no benchmark, because "benches pass" looks like confirmation. A component-level microbenchmark is not an end-to-end reach: it proves the component win, not that any operation dominated by the changed path improved.
+
+- Benchmark provably reaches the changed path → proceed.
+- Benchmark misses it (fast-path bypass, inputs that never enter the changed branch), or the only evidence is an isolated-component microbench → not certified. Add an end-to-end benchmark that reaches the path to the Step 3 test plan, or name the different public operation — one dominated by the changed path — that will serve as the perf probe.
 
 Output: **clean** (proceed to Step 3.5) or **flagged** (list firings + proposed resolution + surface to user).
 
