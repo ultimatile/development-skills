@@ -24,6 +24,8 @@ Contract-style tests (asserting the invariant the implementation must satisfy, n
 
 When multiple types share semantics — and the language / test framework supports it — generalize via a single type-parametric helper, not per-type duplication.
 
+**Guarantee-broadening diffs (doc-to-test obligation).** When a diff — *including a documentation-only diff* — broadens a behavioral guarantee stated in a docstring or module doc from one symbol to a family of sibling symbols (a hoisted / shared docstring, or wording widened from "this function" to "these functions"), each newly-covered sibling inherits the guarantee's coverage obligation independently: at least one test must exercise the guaranteed behavior for that sibling. Enumerate the symbols the broadened guarantee now covers — resolving the set against the module source, not the diff hunk alone, when the widened wording ("these functions") names the family only implicitly — and, for each, point to a test that exercises it. Shared mechanism is not shared coverage — a cross-wired or diverging sibling is exactly what the per-symbol test catches — so a symbol the doc now guarantees but no test exercises is a concern even when it shares an already-tested member's mechanism.
+
 **Concern conditions:**
 
 - Behavior was added or changed but no test was added
@@ -35,5 +37,6 @@ When multiple types share semantics — and the language / test framework suppor
 - An equivalence / delegation test receives result components that no assertion reads (discarded or ignored bindings)
 - A test predicate is satisfiable by a degenerate witness (zero vector, empty collection, identity element) and no guard excludes that witness
 - Sibling delegation targets are exercised only on fixtures where the siblings mathematically coincide, leaving cross-wiring undetectable
+- A docstring / module-doc edit broadens a behavioral guarantee from one symbol to a family, but some newly-covered sibling has no test exercising that guarantee
 
-**N/A:** the diff is purely mechanical (rename, formatting, file move) or documentation-only.
+**N/A:** the diff is purely mechanical (rename, formatting, file move) or documentation-only, and broadens no behavioral guarantee to a newly-covered sibling symbol. (A docstring hoist that widens a guarantee to a family fails the second conjunct, so it never reaches N/A.)
