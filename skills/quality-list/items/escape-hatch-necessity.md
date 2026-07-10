@@ -1,4 +1,4 @@
-# Escape-hatch necessity
+# Escape-hatch / workaround necessity
 
 A workaround — any construct that routes around a defect or limitation instead of fixing it directly — is not self-justifying. Static-guarantee escape hatches are the representative class (Rust `unsafe`, C++ `reinterpret_cast` / `const_cast` / C-style cast, TypeScript `any` / `as` / non-null `!` / `@ts-ignore`), but the same obligation binds a sleep standing in for a missing readiness signal, a retry loop papering over a race, a special-case branch absorbing an upstream defect, or a defensive re-check compensating for an invariant the producer should guarantee. In every case the workaround's **necessity** must be derived before it is accepted: show that the direct fix is genuinely out of reach. A justification comment (Rust `// SAFETY:`, a cast rationale, a "this is fine because…" note) argues the workaround is *sound* — why it does not break; it does not argue it is *necessary* — why no direct fix can remove the problem. Soundness and necessity are separate obligations, and the comment discharges only the first.
 
