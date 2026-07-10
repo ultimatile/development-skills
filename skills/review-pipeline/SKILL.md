@@ -12,12 +12,12 @@ The pipeline crosses a **user-controlled merge gate** (Phase 4a → 4b): the use
 ## Phase 0: Done-check loop
 
 1. Run `/done-check` against the current diff (committed + staged + unstaged + untracked).
-2. Triage the audit table — every `⚠` concern is actionable.
-3. If concerns exist:
+2. Triage the audit table — every `⚠` concern is actionable or closed as a recorded deferral (done-check step 5's defer path).
+3. If unresolved concerns (actionable, not closed as recorded deferrals) exist:
    - Fix the code
    - Run `/done-check` again (fresh, full audit — do not bias the next pass with the previous concerns list)
    - Re-triage
-4. Repeat until all rows are `✅` or `⊘ N/A`.
+4. Repeat until every row is `✅`, `⊘ N/A`, or `⚠` closed as a recorded deferral per done-check step 5.
 
 Done-check runs **before** any commit.
 
