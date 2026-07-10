@@ -108,6 +108,8 @@ ______________________________________________________________________
 
 ## `escape-hatch-necessity`
 
+This section realizes only the item's representative type-system class — the non-FFI generic → concrete `unsafe` reinterpret. Per the addendum contract in `SKILL.md`, it does not bound the base item: the item's general workaround scope (an open class — see `items/escape-hatch-necessity.md`) applies to any Rust diff, with or without `unsafe`.
+
 ### Triggers (Rust)
 
 A non-FFI `unsafe` whose only job is to bridge a generic / type-erased `T` to a concrete type, paired with a runtime type check:
@@ -135,8 +137,8 @@ Move the per-type branch into the trait. Either add the operation to the boundin
 
 ### False-positive review
 
-`unsafe` at an irreducible boundary is necessity-satisfied and out of scope: FFI / `extern` calls (use `rust-ffi-rule` for those), raw allocation, MMIO, a `repr(C)` layout-compat pointer cast guarded by `assert_eq_size!` / `assert_eq_align!`. The item targets only the *non-FFI generic → concrete reinterpret*; a `transmute` / `from_raw_parts` performing a genuine layout operation no safe construct expresses is ⊘ dismiss.
+`unsafe` at an irreducible boundary is necessity-satisfied and out of scope: FFI / `extern` calls (use `rust-ffi-rule` for those), raw allocation, MMIO, a `repr(C)` layout-compat pointer cast guarded by `assert_eq_size!` / `assert_eq_align!`. This realization targets the *non-FFI generic → concrete reinterpret*; a `transmute` / `from_raw_parts` performing a genuine layout operation no safe construct expresses is ⊘ dismiss.
 
 ### N/A elaboration
 
-N/A when the diff adds no `unsafe` block, or when every `unsafe` it adds sits at an irreducible boundary (above).
+This *section* is N/A when the diff adds no `unsafe` block, or when every `unsafe` it adds sits at an irreducible boundary (above).

@@ -94,7 +94,7 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
 3. **Audit the contextual items in main context.** Read `quality-list/SKILL.md`'s Items index and select every item whose lane is `contextual`, including the contextual half of dual-lane items (an index entry tagged `mechanical (+ contextual half)`, e.g. ported-code-attribution). These need information the subagent does not have — plan / intent / review history, or actual command execution against the working tree. The groupings below are non-exhaustive illustration; the index is the authoritative set:
 
    - `invariant-derivation`, `purpose-verification`, `scope-discipline`, `discovery-surfacing` — need plan / intent / review history
-   - `escape-hatch-necessity` — needs design intent and codebase type-architecture context to judge whether a safe construct could replace the hatch (an escape hatch's *presence* is grep-visible, but its *necessity* is not literal-text-decidable)
+   - `escape-hatch-necessity` — needs design intent and codebase context to judge whether a direct fix could replace the workaround (a workaround's *presence* may be grep-visible, but its *necessity* is not literal-text-decidable)
    - `test-execution`, `completion-hygiene` — need actual command execution against the working tree
    - `pattern-audit` — needs awareness of which patterns were consciously copied vs independently reinvented
    - `docstring-drift` — needs the diff's behavior-change context plus an execution probe when the changed behavior is library-owned
