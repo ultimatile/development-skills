@@ -13,7 +13,7 @@ The pipeline crosses a **user-controlled merge gate** (Phase 4a → 4b): the use
 
 1. Run `/done-check` against the current diff (committed + staged + unstaged + untracked).
 2. Triage the audit table — every `⚠` concern is actionable or closed as a recorded deferral (done-check step 5's defer path).
-3. If concerns exist:
+3. If unresolved concerns (actionable, not closed as recorded deferrals) exist:
    - Fix the code
    - Run `/done-check` again (fresh, full audit — do not bias the next pass with the previous concerns list)
    - Re-triage
