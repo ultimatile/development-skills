@@ -114,7 +114,7 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
 
    Each result is ✅ / ⚠ / ⊘ N/A (definitions per Step 2's prompt). Evidence cell records the basis (command run, manual check, `file:line`, or `not run: <reason>`).
 
-5. If any ⚠ remains, fix before proceeding. State concretely what will change. Do not proceed until concerns are resolved or the user explicitly waives them with reasoning.
+5. If any ⚠ remains, fix before proceeding. State concretely what will change. Do not proceed until each concern is resolved, explicitly waived by the user with reasoning, or closed as a recorded deferral per `finding-triage`'s `defer` — a follow-up issue filed with the user's approval. A deferral closes the concern's handling, not its verdict: the row stays ⚠ with the deferral recorded in its Note.
 
 6. Report the audit table.
 
