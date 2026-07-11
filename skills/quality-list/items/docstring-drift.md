@@ -17,6 +17,8 @@ When the diff changes behavior — a function delegating to a third-party librar
 3. **Verify each claim against current behavior.** Authority order: **execution > current code > tests > docstring > commit message / PR description**. Run an execution probe — construct a minimal call against the working tree and observe the output — when the local code does not by itself prove or disprove the claim. The probe is mandatory when behavior is library-owned; reading the delegating call alone is insufficient.
 4. **Fix stale prose** to match new behavior. If prose represents an intentional spec the new code violates, flag the code as a bug instead (requires user confirmation before treating doc-vs-code mismatch as code drift rather than doc drift).
 
+For a shift in a symbol's side effects or result identity (a memoization toggle or a shared-vs-copy return swap), consumer code affected by the shift — call-site reliance on the effect, observers of the mutated state surface — is `impact-verification`'s concern; this section owns the documentation surface.
+
 **Enumerated-outcome completeness.** A distinct trigger and procedure: a diff widens the set of reachable outcomes feeding a documented **closed enumeration**, so the enumeration silently becomes incomplete even though every listed claim stays individually true. The completeness of the set — not the truth of any single claim — is what drifts, so extracting and re-verifying individual claims leaves it undetected. Members that widen such a set: a new error variant reachable at an entry point, a new return-enum case, a new documented status code, a new handled-event type.
 
 1. **Identify the widened outcome set** and the entry point(s) from which the new member became reachable.
