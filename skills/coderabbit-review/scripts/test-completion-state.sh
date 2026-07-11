@@ -44,7 +44,22 @@ check_payload() { # <status> <conclusion>  (empty conclusion -> null, as GitHub 
     jq -nc --arg st "$1" --arg c "$2" \
         '{check_runs: [{name: "CodeRabbit / Review", status: $st,
                         conclusion: (if $c == "" then null else $c end),
-                        app: {slug: "coderabbitai"}}]}'
+                        app: {slug: "coderabbitai"}, id: 1000}]}'
+}
+
+# Two same-named CodeRabbit / Review runs in the newest-first array order the
+# Checks API returns: the newest (higher id) is still in_progress; an older
+# (lower id) completed successfully. Selecting by max_by(.id) must pick the
+# newest -> pending. A positional `| last` would instead pick the stale older
+# run and misreport success, so asserting `pending` here fails on that
+# implementation and passes only on the id-ordered one.
+check_two_reruns() {
+    jq -nc '{check_runs: [
+        {name: "CodeRabbit / Review", status: "in_progress", conclusion: null,
+         app: {slug: "coderabbitai"}, id: 2002},
+        {name: "CodeRabbit / Review", status: "completed", conclusion: "success",
+         app: {slug: "coderabbitai"}, id: 1001}
+    ]}'
 }
 check_empty() { echo '{"check_runs": []}'; }
 
@@ -200,6 +215,10 @@ assert_state "coderabbit review-named non-exact run -> pending" \
 assert_state "status pending beats check success -> pending" \
     "$(status_payload pending 'Review in progress')" \
     "$(check_payload completed success)" pending
+
+# Multiple same-named runs: the newest (by id) wins, not the last in array order.
+assert_state "two review reruns -> newest (in_progress) -> pending" \
+    "$(status_empty)" "$(check_two_reruns)" pending
 
 # --- Non-tautology differential -------------------------------------------
 # The check-run-only+success fixture is where the fix matters: the frozen

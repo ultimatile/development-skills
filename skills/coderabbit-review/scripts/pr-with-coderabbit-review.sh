@@ -262,10 +262,12 @@ classify_completion() {
     # selection is unambiguous. A future rename would miss here and fall to
     # `pending` -> poll timeout, which surfaces to the user — a safer failure
     # than a broadened matcher silently picking the wrong run's conclusion.
-    # `.conclusion` is null until `.status == "completed"`, so it is read only
-    # after the completed check.
+    # `max_by(.id)` selects the newest run by id, so if a re-run ever leaves
+    # more than one same-named entry in the payload the freshest one wins,
+    # independent of the array's order. `.conclusion` is null until
+    # `.status == "completed"`, so it is read only after the completed check.
     local cr
-    cr=$(jq -c '[.check_runs[] | select(.app.slug == "coderabbitai" and .name == "CodeRabbit / Review")] | last' <<<"$checks_json")
+    cr=$(jq -c '[.check_runs[] | select(.app.slug == "coderabbitai" and .name == "CodeRabbit / Review")] | max_by(.id)' <<<"$checks_json")
     if [[ -z "$cr" || "$cr" == "null" ]]; then
         printf 'pending\t\n'
         return 0
