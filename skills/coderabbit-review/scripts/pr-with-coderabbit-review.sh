@@ -7,9 +7,13 @@
 # step, so every mode below resolves to "wait for a CodeRabbit review
 # of the PR's current head commit".
 #
-# Completion is detected via the `CodeRabbit` commit status on the PR's
-# current head SHA (Review queued / in progress -> Review completed). A
-# clean review posts NO review object, so review presence cannot be the
+# Completion is detected via CodeRabbit's review lifecycle signal on the
+# PR's current head SHA (Review queued / in progress -> Review completed).
+# That signal lands on one of two GitHub surfaces depending on the
+# installation: the `CodeRabbit` commit status (Statuses API), or, on
+# installs that post no commit status, the `CodeRabbit / Review` check run
+# (Checks API). classify_completion() reads whichever is present. A clean
+# review posts NO review object, so review presence cannot be the
 # completion signal. When a review object does exist it is matched to
 # the head commit by commit_id, so a review that arrived between the
 # push and this script's start still counts, and stale reviews of
@@ -224,14 +228,95 @@ print_skip_notice() {
     esac
 }
 
-# Poll the `CodeRabbit` commit status on the PR's head commit until it
+# Classify CodeRabbit's completion signal from the two GitHub surfaces it may
+# use. Pure function (no I/O): takes the normalized Statuses payload
+# ({statuses: [...]}) and Checks payload ({check_runs: [...]}) and echoes
+# "<state>\t<description>" where <state> is success | failed | pending.
+#
+# The `CodeRabbit` commit status is primary (the original, widely-used
+# signal); the `CodeRabbit / Review` check run is the fallback for installs
+# that post no commit status (https://github.com/ultimatile/development-skills/issues/93).
+# Precedence is "status when a
+# CodeRabbit context exists at all, else the check run": on a status-based
+# install the status drives the poll (including its own `pending`), and only
+# the total absence of a CodeRabbit status context falls through to checks —
+# so a check run is never consulted on an install that does use statuses.
+#
+# The status is read per-context (select .context == "CodeRabbit"), never the
+# combined top-level .state, which aggregates every CI context on the commit
+# and would report success/failure from unrelated checks.
+classify_completion() {
+    local status_json="$1" checks_json="$2"
+    local st_state st_desc
+    st_state=$(jq -r '[.statuses[] | select(.context == "CodeRabbit")] | first | .state // empty' <<<"$status_json")
+    st_desc=$(jq -r '[.statuses[] | select(.context == "CodeRabbit")] | first | .description // empty' <<<"$status_json")
+    case "$st_state" in
+        success) printf 'success\t%s\n' "$st_desc"; return 0 ;;
+        failure | error) printf 'failed\t%s\n' "$st_desc"; return 0 ;;
+        pending) printf 'pending\t%s\n' "$st_desc"; return 0 ;;
+    esac
+    # No CodeRabbit commit status context -> consult the review check run.
+    # Match the exact observed run (app slug `coderabbitai`, name
+    # `CodeRabbit / Review`) rather than a name substring: an exact match
+    # cannot be satisfied by a second, non-review CodeRabbit check run, so the
+    # selection is unambiguous. A future rename would miss here and fall to
+    # `pending` -> poll timeout, which surfaces to the user — a safer failure
+    # than a broadened matcher silently picking the wrong run's conclusion.
+    # `.conclusion` is null until `.status == "completed"`, so it is read only
+    # after the completed check.
+    local cr
+    cr=$(jq -c '[.check_runs[] | select(.app.slug == "coderabbitai" and .name == "CodeRabbit / Review")] | last' <<<"$checks_json")
+    if [[ -z "$cr" || "$cr" == "null" ]]; then
+        printf 'pending\t\n'
+        return 0
+    fi
+    local cr_status cr_concl
+    cr_status=$(jq -r '.status // empty' <<<"$cr")
+    cr_concl=$(jq -r '.conclusion // empty' <<<"$cr")
+    if [[ "$cr_status" == "completed" ]]; then
+        case "$cr_concl" in
+            success) printf 'success\tReview completed\n'; return 0 ;;
+            *) printf 'failed\tReview %s\n' "$cr_concl"; return 0 ;;
+        esac
+    fi
+    printf 'pending\tReview %s\n' "$cr_status"
+    return 0
+}
+
+# I/O wrapper over classify_completion: fetch both GitHub surfaces for the
+# head SHA and hand the normalized payloads to the classifier. Reads the
+# global $repo (set by parse_pr_url).
+#
+# `--paginate ... --jq '.<array>[]' | jq -s '{<array>: .}'` walks every page
+# and reassembles a single normalized object, so a signal past the first page
+# is never missed (the same pagination discipline review_skip_reason uses for
+# issue comments). Each fetch falls open to an empty-shaped payload on any
+# gh/jq failure, so a transient API error classifies as `pending` and the
+# poll keeps waiting rather than aborting under `set -euo pipefail`.
+coderabbit_completion_state() {
+    local head_sha="$1"
+    local status_json checks_json
+    status_json=$(
+        gh api --paginate "repos/$repo/commits/$head_sha/status?per_page=100" \
+            --jq '.statuses[]' 2>/dev/null | jq -s '{statuses: .}'
+    ) || status_json='{"statuses":[]}'
+    checks_json=$(
+        gh api --paginate "repos/$repo/commits/$head_sha/check-runs?per_page=100" \
+            --jq '.check_runs[]' 2>/dev/null | jq -s '{check_runs: .}'
+    ) || checks_json='{"check_runs":[]}'
+    classify_completion "$status_json" "$checks_json"
+}
+
+# Poll CodeRabbit's completion signal on the PR's head commit until it
 # reaches a terminal state, then print the review (if one was posted).
 #
-# The status — not review presence — is the completion signal: CodeRabbit
+# The signal — not review presence — is what marks completion: CodeRabbit
 # reports Review queued / Review in progress (pending) -> Review completed
-# (success) on the head SHA, and a clean review posts NO review object at
-# all (only the walkthrough comment plus this status). Waiting on review
-# presence would therefore hang forever on every zero-finding PR.
+# (success) on the head SHA via a commit status or a check run
+# (classify_completion reads whichever the install posts), and a clean review
+# posts NO review object at all (only the walkthrough comment plus this
+# signal). Waiting on review presence would therefore hang forever on every
+# zero-finding PR.
 poll_for_review() {
     local head_sha
     head_sha=$(gh api "repos/$repo/pulls/$pr_number" --jq '.head.sha')
@@ -241,19 +326,12 @@ poll_for_review() {
     for ((i = 1; i <= POLL_ATTEMPTS; i++)); do
         sleep "$interval"
 
-        # Combined status endpoint: latest status per context.
-        status_state=$(
-            gh api "repos/$repo/commits/$head_sha/status" \
-                --jq '[.statuses[] | select(.context == "CodeRabbit")] | first | .state // empty' \
-                2>/dev/null
-        ) || true
-        status_desc=$(
-            gh api "repos/$repo/commits/$head_sha/status" \
-                --jq '[.statuses[] | select(.context == "CodeRabbit")] | first | .description // empty' \
-                2>/dev/null
-        ) || true
+        # Completion signal from the commit status or the review check run,
+        # whichever the installation posts (see classify_completion).
+        local status_state status_desc
+        IFS=$'\t' read -r status_state status_desc < <(coderabbit_completion_state "$head_sha")
 
-        if [[ "$status_state" == "success" || "$status_state" == "failure" || "$status_state" == "error" ]]; then
+        if [[ "$status_state" == "success" || "$status_state" == "failed" ]]; then
             echo "CodeRabbit status: ${status_desc} (${status_state})" >&2
 
             if print_review_if_any "$head_sha"; then
@@ -300,10 +378,10 @@ poll_for_review() {
         (( interval > POLL_MAX )) && interval=$POLL_MAX
     done
 
-    echo "Timeout: no terminal CodeRabbit status on head ${head_sha:0:8} after $POLL_ATTEMPTS attempts" >&2
-    echo "No status at all means the review never started — check the app installation, plan," >&2
-    echo "and automatic-review settings in the CodeRabbit dashboard. (A repo .coderabbit.yaml" >&2
-    echo "with reviews.commit_status: false also hides the signal.) To trigger manually:" >&2
+    echo "Timeout: no terminal CodeRabbit signal on head ${head_sha:0:8} after $POLL_ATTEMPTS attempts" >&2
+    echo "Neither a CodeRabbit commit status nor a CodeRabbit / Review check run reached a" >&2
+    echo "terminal state, which means the review never started — check the app installation," >&2
+    echo "plan, and automatic-review settings in the CodeRabbit dashboard. To trigger manually:" >&2
     echo "  gh pr comment $pr_number --repo $repo --body \"@coderabbitai full review\"" >&2
     echo "then re-run this script with --poll." >&2
     return 1
