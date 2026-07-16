@@ -150,3 +150,35 @@ The base item's N/A clause ("no new invariants") covers diffs that don't add a g
 - compile-time constants
 - signed integer values whose path is sanitizer-instrumented and whose tests cover near-max inputs
 - values whose maximum is enforced by an upstream guard that itself complies with this realization
+
+______________________________________________________________________
+
+## `completion-hygiene`
+
+### Triggers (C++)
+
+**Transitive-include reliance.** A diff that introduces a *new use* of a standard-library symbol (`std::max`, `std::iota`, `std::move`, `std::is_floating_point_v`, `assert`, `std::numeric_limits`, ...) into a file whose include list does not name the owning header (`<algorithm>`, `<numeric>`, `<utility>`, `<type_traits>`, `<cassert>`, `<limits>`, ...) compiles only through transitive includes — fragile across standard-library implementations, include-order changes, and header cleanups in dependencies. The failure is invisible in the authoring build and surfaces as a compile error on someone else's toolchain.
+
+**Element-type-genericity break in a template body.** A function template written over an element type — `template <typename TenT>` with `using elem_t = tci::elem_t<TenT>;`, or the same over a raw scalar `T` — is well-formed only for the instantiations the author actually exercises. The author's build exercises the complex element type; a real element type (`double`) is a valid instantiation the template silently no longer supports when a scalar is written as a two-argument braced literal. `elem_t{re, im}` is a `std::complex` construction, but for a plain `double` it is an *excess-element scalar initializer* and the template fails to compile — for a type nobody instantiated, so the authoring build stays green. Same shape as the transitive-include failure: green here, red on the configuration the author did not build. The recurring instance is a real coefficient dressed as a complex literal, `elem_t{0.5, 0.0}`; the fix is single-argument, `elem_t{0.5}`, which narrows and widens both.
+
+### Mechanical detection
+
+1. Collect the `std::` symbols (and `assert`) added on `+` lines of the diff per file:
+
+   ```sh
+   git diff <base>..HEAD -- '*.h' '*.hpp' '*.cc' '*.cpp' | rg '^\+' | rg -o 'std::[a-z_]+|(^|[^a-zA-Z_])assert\(' | sort -u
+   ```
+
+2. Map each symbol to its owning header (cppreference's header column is the authority; the common ones: `max/min/clamp` → `<algorithm>`, `iota` → `<numeric>`, `move/forward/swap` → `<utility>`, `is_*_v/decay_t/enable_if` → `<type_traits>`, `sqrt/abs/isfinite/pow` → `<cmath>`, `numeric_limits` → `<limits>`, `assert` → `<cassert>`, `complex` → `<complex>`).
+
+3. For each file with a new symbol use, confirm the owning header appears in that file's `#include` list (pre-existing or added by the diff). A symbol whose header is missing is a ⚠ even when the build passes.
+
+For the genericity break, grep the diff's added lines for a two-argument braced element-type literal whose second argument is a literal zero, inside or beside a template that aliases the element type:
+
+```sh
+git diff <base>..HEAD -- '*.h' '*.hpp' | rg '^\+' | rg 'elem_t(<[^>]*>)?\{[^},]+,\s*0(\.0)?\s*\}'
+```
+
+Each hit is a real value written as a complex literal in generic code — a ⚠, because the template will not instantiate for a real element type. **False positive to exclude:** a literal with a genuinely non-zero imaginary part (`elem_t{0.5, -0.5}`, `elem_t{0.0, 1.0}`) is an inherently complex coefficient; such a template is complex-only by construction and the two-argument form is correct there. Only a literally-zero imaginary part is the defect.
+
+**N/A:** the diff adds no new standard-library symbol uses (or every new symbol's owning header is already directly included by the same file), and introduces no two-argument element-type literal with a zero imaginary part into a template body.
