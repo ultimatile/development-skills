@@ -150,3 +150,44 @@ The base item's N/A clause ("no new invariants") covers diffs that don't add a g
 - compile-time constants
 - signed integer values whose path is sanitizer-instrumented and whose tests cover near-max inputs
 - values whose maximum is enforced by an upstream guard that itself complies with this realization
+
+______________________________________________________________________
+
+## `completion-hygiene`
+
+### Triggers (C++)
+
+Both triggers realize the base item's build-ran-clean condition for the case where "clean" is authoring-configuration-relative: the configuration that ran is green while a configuration the author did not build (another toolchain's include graph, another element-type instantiation) is red.
+
+**Transitive-include reliance.** A diff that introduces a *new use* of a standard-library symbol (`std::max`, `std::iota`, `std::move`, `std::is_floating_point_v`, `assert`, `std::numeric_limits`, ...) into a file whose include list does not name the owning header compiles only through transitive includes — fragile across standard-library implementations, include-order changes, and header cleanups in dependencies.
+
+**Element-type-genericity break in a template body.** A function template written over an element type — `template <typename TenT>` with `using elem_t = tci::elem_t<TenT>;`, or the same over a raw scalar `T` — is well-formed only for the instantiations the author actually exercises. The author's build exercises the complex element type; a real element type (`double`) is a valid instantiation the template silently no longer supports when a scalar is written as a two-argument braced literal. `elem_t{re, im}` is a `std::complex` construction, but for a plain `double` it is an *excess-element scalar initializer* and the template fails to compile — for a type nobody instantiated, so the authoring build stays green. The recurring instance is a real coefficient dressed as a complex literal, `elem_t{0.5, 0.0}`; the fix is single-argument, `elem_t{0.5}`, which is well-formed for both the real and complex instantiations.
+
+### Mechanical detection
+
+1. Collect the `std::` symbols (and `assert`) added on `+` lines of the diff, keeping file identity — step 3's owning-header check is per file, so a globally deduplicated symbol list cannot drive it:
+
+   ```sh
+   git diff --name-only <base>..HEAD -- '*.h' '*.hpp' '*.hh' '*.cc' '*.cpp' '*.cxx' | while IFS= read -r f; do
+     echo "== $f"
+     git diff <base>..HEAD -- "$f" | rg '^\+' | rg -o 'std::[A-Za-z_][A-Za-z0-9_:]*|\bassert\s*\(' | sort -u
+   done
+   ```
+
+   The pattern collects only `std::`-qualified tokens; unqualified call sites (under a `using namespace std;` or a pre-existing `using std::max;`, or ADL calls like `swap(a, b)`) escape it. The trigger's condition — a new standard-library symbol use — is the rule; when the diff or file carries using-declarations, sweep the added lines for the imported names by hand.
+
+2. Map each symbol to its owning header (cppreference's header column is the authority; the common ones: `max/min/clamp` → `<algorithm>`, `iota` → `<numeric>`, `move/forward/swap` → `<utility>`, `is_*_v/decay_t/enable_if` → `<type_traits>`, `sqrt/isfinite/pow` → `<cmath>`, `abs` → `<cstdlib>` for integral arguments / `<cmath>` for floating (the integer overloads joined `<cmath>` only in C++17), `numeric_limits` → `<limits>`, `assert` → `<cassert>`, `complex` → `<complex>`).
+
+3. For each file with a new symbol use, confirm the owning header appears in that file's `#include` list (pre-existing or added by the diff). A symbol whose header is missing is a ⚠ even when the build passes.
+
+For the genericity break, grep the diff's added lines for a two-argument braced element-type literal whose second argument is a literal zero, inside or beside a template that aliases the element type:
+
+```sh
+git diff <base>..HEAD -- '*.h' '*.hpp' '*.hh' '*.cc' '*.cpp' '*.cxx' | rg '^\+' | rg 'elem_t(<[^>]*>)?\s*\{[^},]+,\s*-?0(\.0*)?[fFlL]?\s*\}'
+```
+
+The regex is a helper with known false negatives; the rule is the trigger's predicate — the template must stay well-formed for every element type it is meant to support — with the *literally-zero imaginary part* as the recurring instance the regex hunts. Cases that satisfy the predicate while escaping the pattern: zero spellings it does not reach (`.0`, `0e0`, `00`), a first argument containing a comma or brace (`elem_t{f(a, b), 0.0}`), and the raw-scalar-`T` variant of the trigger — the pattern hardcodes the `elem_t` alias, so adapt it to the project's element-type alias name. A literal with a genuinely non-zero imaginary part (`elem_t{0.5, -0.5}`, `elem_t{0.0, 1.0}`) is outside the pattern by design: an inherently complex coefficient makes the template complex-only by construction, and the two-argument form is correct there. Each hit is a candidate defect, not a confirmed one — the regex cannot see whether the enclosing template admits a real element type, so before flagging, confirm that a real element type is a supported instantiation. **False positive to exclude:** a template whose element type is fixed to `std::complex` (the alias never resolves to a real scalar) is complex-only by the same reasoning.
+
+### N/A elaboration
+
+The base item's N/A clause ("documentation-only changes with no code touched") and its concern conditions (lint / format / type-check / build run clean, debug artifacts removed) are untouched by this realization. The two triggers above are additionally N/A when neither fires on the diff.
