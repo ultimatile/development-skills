@@ -163,10 +163,13 @@ ______________________________________________________________________
 
 ### Mechanical detection
 
-1. Collect the `std::` symbols (and `assert`) added on `+` lines of the diff per file:
+1. Collect the `std::` symbols (and `assert`) added on `+` lines of the diff, keeping file identity — step 3's owning-header check is per file, so a globally deduplicated symbol list cannot drive it:
 
    ```sh
-   git diff <base>..HEAD -- '*.h' '*.hpp' '*.cc' '*.cpp' | rg '^\+' | rg -o 'std::[a-z_]+|(^|[^a-zA-Z_])assert\(' | sort -u
+   for f in $(git diff --name-only <base>..HEAD -- '*.h' '*.hpp' '*.hh' '*.cc' '*.cpp' '*.cxx'); do
+     echo "== $f"
+     git diff <base>..HEAD -- "$f" | rg '^\+' | rg -o 'std::[a-z_]+|(^|[^a-zA-Z_])assert\(' | sort -u
+   done
    ```
 
 2. Map each symbol to its owning header (cppreference's header column is the authority; the common ones: `max/min/clamp` → `<algorithm>`, `iota` → `<numeric>`, `move/forward/swap` → `<utility>`, `is_*_v/decay_t/enable_if` → `<type_traits>`, `sqrt/abs/isfinite/pow` → `<cmath>`, `numeric_limits` → `<limits>`, `assert` → `<cassert>`, `complex` → `<complex>`).
@@ -176,9 +179,9 @@ ______________________________________________________________________
 For the genericity break, grep the diff's added lines for a two-argument braced element-type literal whose second argument is a literal zero, inside or beside a template that aliases the element type:
 
 ```sh
-git diff <base>..HEAD -- '*.h' '*.hpp' | rg '^\+' | rg 'elem_t(<[^>]*>)?\{[^},]+,\s*0(\.0)?\s*\}'
+git diff <base>..HEAD -- '*.h' '*.hpp' '*.hh' '*.cc' '*.cpp' '*.cxx' | rg '^\+' | rg 'elem_t(<[^>]*>)?\{[^},]+,\s*-?0(\.0*)?[fFlL]?\s*\}'
 ```
 
-Each hit is a real value written as a complex literal in generic code — a ⚠, because the template will not instantiate for a real element type. **False positive to exclude:** a literal with a genuinely non-zero imaginary part (`elem_t{0.5, -0.5}`, `elem_t{0.0, 1.0}`) is an inherently complex coefficient; such a template is complex-only by construction and the two-argument form is correct there. Only a literally-zero imaginary part is the defect.
+The zero pattern accepts every literal spelling of zero (`0`, `0.`, `0.0`, `0.00`, `-0.0`, `0.f`, `0.0L`, ...) because the defining predicate is a *literally-zero imaginary part*, not one spelling of it. Each hit is a candidate defect, not a confirmed one — the regex cannot see whether the enclosing template admits a real element type, so confirm that a real element type is a supported instantiation before flagging. **False positives to exclude:** (a) a literal with a genuinely non-zero imaginary part (`elem_t{0.5, -0.5}`, `elem_t{0.0, 1.0}`) is an inherently complex coefficient; (b) a template whose element type is fixed to `std::complex` (the alias never resolves to a real scalar) is complex-only by construction. In both cases the two-argument form is correct. The defect is a literally-zero imaginary part in a template meant to be element-type-generic.
 
 **N/A:** the diff adds no new standard-library symbol uses (or every new symbol's owning header is already directly included by the same file), and introduces no two-argument element-type literal with a zero imaginary part into a template body.
