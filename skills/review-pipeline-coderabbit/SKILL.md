@@ -25,12 +25,12 @@ Done-check runs **before** any commit.
 
 Runs after the done-check loop and **before anything is committed**.
 
-1. Run `/code-review medium` against the current diff (raise to `high` for large or risky diffs; keep the chosen effort fixed across this PR's iterations).
+1. Run `/code-review-gate` against the current diff, passing `high` for a large or risky diff and `medium` otherwise. The gate skill owns effort semantics, the lane chain, lane-failure handling, and exhaustion.
 2. Triage the output — classify each finding under the `finding-triage` SSOT dispositions.
-3. If actionable findings exist: fix, run `/done-check` in delta mode, then re-run `/code-review` at the same effort (fresh, full review — no bias from the previous iteration). If the same conceptual topic recurs across 2+ iterations, stop and follow the escalation order in Rules.
+3. If actionable findings exist: fix, run `/done-check` in delta mode, then re-run `/code-review-gate` at the same effort (fresh, full review — no bias from the previous iteration). If the same conceptual topic recurs across 2+ iterations, stop and follow the escalation order in Rules.
 4. Repeat until no actionable findings remain.
 
-From Phase 1 onward, every reviewer finding is by construction a penetration of this gate — note that provenance in each triage presentation.
+From Phase 1 onward, when the final pre-commit diff received a valid gate review (i.e. the gate was not waived), every reviewer finding is by construction a penetration of this gate — note that provenance in each triage presentation.
 
 ## Phase 1: Codex review loop
 
