@@ -39,6 +39,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | `coderabbit-local-review` | Run a local CodeRabbit CLI review (no PR needed) with triage — second pre-PR reviewer alongside `codex-review` |
 | `copilot-review` | Create PR with GitHub Copilot review, poll for results, triage |
 | `coderabbit-review` | Create PR and wait for the auto-triggered CodeRabbit review, triage. Use when CodeRabbit is the repo's PR reviewer instead of Copilot |
+| `code-review-gate` | Run the built-in `/code-review` through a fallback lane chain when the Skill tool cannot invoke it directly; used by the pipelines at Phase 0.5 |
 | `review-pipeline` | Orchestrator — runs the full flow from local changes to reviewed PR |
 | `review-pipeline-coderabbit` | `review-pipeline` variant with Phase 2 swapped from Copilot to CodeRabbit. Use when Copilot review is unavailable or the repo runs CodeRabbit |
 
