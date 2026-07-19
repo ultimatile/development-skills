@@ -1,6 +1,6 @@
 ---
 name: code-review-gate
-description: Run the built-in /code-review skill against the current diff through a lane chain (headless claude -p, user-run, fresh-context subagent) with lane-failure semantics, retry, and exhaustion handling. Invoked by review-pipeline and review-pipeline-coderabbit at Phase 0.5.
+description: Run the built-in /code-review against the current diff through a fallback lane chain (headless claude -p, user-run, fresh-context subagent) with lane-failure, retry, and exhaustion handling, for when the Skill tool cannot invoke it directly.
 ---
 
 # Code-Review Gate
