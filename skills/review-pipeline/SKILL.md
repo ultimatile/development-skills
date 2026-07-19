@@ -30,7 +30,7 @@ Runs after the done-check loop and **before anything is committed**.
 3. If actionable findings exist: fix, run `/done-check` in delta mode, then re-run `/code-review-gate` at the same effort (fresh, full review — no bias from the previous iteration). If the same conceptual topic recurs across 2+ iterations, stop and follow the escalation order in Rules.
 4. Repeat until no actionable findings remain.
 
-From Phase 1 onward, every reviewer finding from a run in which this gate produced a review is by construction a penetration of this gate — note that provenance in each triage presentation.
+From Phase 1 onward, when the final pre-commit diff received a valid gate review (i.e. the gate was not waived), every reviewer finding is by construction a penetration of this gate — note that provenance in each triage presentation.
 
 ## Phase 1: Codex review loop
 
