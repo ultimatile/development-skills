@@ -58,7 +58,7 @@ After Phase 1 + 2 are clean, before the user merges, fold review findings into d
    - If actionable findings: revise the test and re-run this step **once**. Repeated iteration → escalate to the user.
    - If clean: continue.
 
-3. **`/finding-to-audit`** — for findings whose detection would have been **diff-inspectable** (import direction, `pub` widening, missing standard trait impl, debug artifacts, hardcoded values, FFI output dropped, etc.), elevate to a pre-commit audit rule in the `done-check` skill (or the relevant host skill). This edits the `development-skills` repo, which is independent of the project's merge gate — commits land without waiting on Phase 4.
+3. **`/finding-to-audit`** — for findings whose detection would have been **diff-inspectable** (import direction, `pub` widening, missing standard trait impl, debug artifacts, hardcoded values, FFI output dropped, etc.), promote to a pre-commit audit rule in the `done-check` skill (or the relevant host skill). By default this files an issue against `development-skills` proposing the rule, reviewed there on its own timeline — so the elevation neither blocks this project's merge gate nor lands as an unreviewed edit to a shared audit surface.
 
 4. **`/stage-commit-push`** — push the contract-test commits in the project repo.
 
