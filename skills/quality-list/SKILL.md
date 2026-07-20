@@ -5,7 +5,7 @@ description: Single source of truth for universal code-quality items. Definition
 
 # Quality List (SSOT)
 
-This skill is **a definition file, not a runnable procedure**. Skills that audit or preflight against universal code-quality apply these items by reference. When an item changes, referencing skills pick up the change automatically — do not copy item text into them. The Items index below is likewise the single source of truth for **which items exist and which lane each belongs to**: runners derive their active item set by reading this index, never by hardcoding a parallel slug list. Adding an item here propagates to every runner automatically.
+This skill is **a definition file, not a runnable procedure**. Skills that audit or preflight against universal code-quality apply these items by reference. When an item changes, referencing skills pick up the change automatically. **This binds the audit runner and the preflight runner alike:** a runner may carry a compressed mnemonic of an item in a quick reference, but never the item's full triggers, concern conditions, N/A criteria, or enumerations — that copied detail is the manual-synchronization surface this rule removes — and the mnemonic is never the authority. The item body plus every applicable `lang-<lang>.md` addendum section is what determines whether an item applies and holds the item's full detail; a stale mnemonic cannot override it. The Items index below is likewise the single source of truth for **which items exist and which lane each belongs to**: runners derive their active item set by reading this index, never by hardcoding a parallel slug list. Adding an item here propagates to every runner automatically.
 
 ## Audit lanes
 
