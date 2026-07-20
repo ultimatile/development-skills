@@ -78,7 +78,7 @@ Promoting a finding to a rule is a proposal to be reviewed, not an edit to apply
 - **Issue class** — the generalizable diff-inspectable class, not the one token that slipped.
 - **Proposed rule** — the step-4 draft (item name, concern conditions, N/A carve-out).
 
-The rule then lands as a reviewed change in that repository.
+The rule then lands as a reviewed change in that repository. On recurrence of a class that already has an open proposal, comment on it instead of filing a duplicate.
 
 **Escape hatch — edit the host skill directly** only when filing is inappropriate: a skill not under version control, or an explicit opt-in for the case at hand. The same failure-mode-plus-proposal content still travels with the change (e.g. in the PR body), so the diff is never bare. Renumber if needed and update any output tables in the host file.
 
