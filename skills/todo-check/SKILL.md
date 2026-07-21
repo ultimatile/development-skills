@@ -65,19 +65,19 @@ Forward-looking preflight against the planned change. Item definitions live in `
    `mechanical`, including the mechanical half of any dual-lane item (an
    entry tagged `mechanical (+ contextual half)`, e.g.
    ported-code-attribution — handle only its declared-port signal; the
-   undeclared-port signal is main context's job). Read each selected
-   item's <QUALITY_LIST_ROOT>/skills/quality-list/items/<slug>.md in
-   full.
+   undeclared-port signal is main context's job, but still return a row
+   for the item even when its declared half is ⊘ N/A, so the coverage
+   check sees it). Read each selected item's
+   <QUALITY_LIST_ROOT>/skills/quality-list/items/<slug>.md in full.
 
-   Also load every language addendum at
-   <QUALITY_LIST_ROOT>/skills/quality-list/lang-<lang>.md that exists
-   for a detected project language, loading them all when more than one
-   applies. Determine the language(s) from the scope description if it
-   states what Step 0 detected; otherwise from <TARGET_ROOT>/CLAUDE.md's
-   `Language:` line (never <QUALITY_LIST_ROOT>/CLAUDE.md); otherwise
-   from the file extensions in the scope description. No language found,
-   or a detected language with no addendum file, is not a concern —
-   proceed on base rules.
+   The language(s) Step 0 detected are stated below; load each
+   corresponding addendum at
+   <QUALITY_LIST_ROOT>/skills/quality-list/lang-<lang>.md that exists,
+   loading them all when more than one applies. If none are stated, fall
+   back to <TARGET_ROOT>/CLAUDE.md's `Language:` line (never
+   <QUALITY_LIST_ROOT>/CLAUDE.md), then to the file extensions in the
+   scope description. No language found, or a detected language with no
+   addendum file, is not a concern — proceed on base rules.
 
    For each selected item return one of:
 
@@ -97,9 +97,9 @@ Forward-looking preflight against the planned change. Item definitions live in `
    the scope description and what you read in the codebase.
    ```
 
-   Embed only the scope description (Step 1) and the two resolved paths. **Do not embed item body text** — the subagent reads the item files itself.
+   Embed the scope description (Step 1), the language(s) Step 0 detected, and the two resolved paths. **Do not embed item body text** — the subagent reads the item files itself.
 
-   Start Step 3 immediately rather than waiting; the two run in parallel. Block on the subagent's return once you reach Step 4.
+   Start Step 3 immediately rather than waiting; the two run in parallel. When the subagent was dispatched, block on its return once you reach Step 4.
 
 3. **Process the contextual items in main context.** Read `quality-list/SKILL.md`'s Items index and select every item whose lane is `contextual`, including the contextual half of dual-lane items — `ported-code-attribution`'s undeclared-port signal is main's job because it needs the conversation / research history the subagent lacks. These need plan / intent / review history, or command-execution planning against the working tree.
 
@@ -109,13 +109,13 @@ Forward-looking preflight against the planned change. Item definitions live in `
    - **⊘ N/A** — the item's own N/A criterion excludes the scope. State why.
    - **? unknown** — the body is read, but applicability turns on a scope fact not yet settled; record the scope check that would decide it.
 
-4. **Merge results.** When the subagent returns, integrate its mechanical-lane rows with the contextual-lane rows (Step 3) into a single table, one row per item in index order. Confirm the returned rows cover exactly the mechanical-lane slug set the index predicts — a missing or duplicated slug is a failure, not a clean pass; re-dispatch once with the same prompt, and if it fails again, surface to the user rather than proceeding with the mechanical lane incomplete. Render each dual-lane item as one row: △ active if either half is active (note which; if the other half is `?`, carry that unresolved half's scope check forward to Step 5 so its own setup action is not lost behind the active status), ⊘ N/A only if both halves are N/A, otherwise `?`. If the subagent returned a discrepancy list, correct each affected row's setup action to match what it found in the codebase.
+4. **Merge results.** Integrate the mechanical-lane rows — the subagent's returned rows when it was dispatched, or the skip path's directly-marked ⊘ N/A rows (Step 2's skip note) otherwise — with the contextual-lane rows (Step 3) into a single table, one row per item in index order. Confirm the returned rows cover exactly the mechanical-lane slug set the index predicts — a missing or duplicated slug is a failure, not a clean pass; re-dispatch once with the same prompt, and if it fails again, surface to the user rather than proceeding with the mechanical lane incomplete. Render each dual-lane item as one row: △ active if either half is active (note which; if the other half is `?`, carry that unresolved half's scope check forward to Step 5 so its own setup action is not lost behind the active status), ⊘ N/A only if both halves are N/A, otherwise `?`. If the subagent returned a discrepancy list, correct each affected row's setup action to match what it found in the codebase.
 
-5. **Resolve every `?` before declaring preflight done** — promote to △ with a concrete setup action, or downgrade to ⊘ with a reason. Resolve both a row whose overall status is `?` and an unresolved half carried forward from an otherwise-active dual-lane row (Step 4). For a mechanical-lane `?`: if the subagent stated the verdict for each answer to its scope check, settle the fact and read the matching verdict off; otherwise re-dispatch the subagent with the Step 2 prompt narrowed to that one item — replace its "Select every item whose lane is `mechanical`…" sentence with "Process only `<slug>`" (keeping the following read-the-body instruction), which also drops Step 4's whole-set coverage check for that single-item return. Never read the mechanical item's body in main context. A setup action that names a command to run (e.g. `public-api-surface`'s `cargo public-api` baseline) is still a planning action — state that the command runs before implementation, don't run it now.
+5. **Resolve every `?` before declaring preflight done** — promote to △ with a concrete setup action, or downgrade to ⊘ with a reason. Resolve both a row whose overall status is `?` and an unresolved half carried forward from an otherwise-active dual-lane row (Step 4). For a mechanical-lane `?`: if the subagent stated the verdict for each answer to its scope check, settle the fact and read the matching verdict off; otherwise re-dispatch the subagent with the Step 2 prompt narrowed to that one item — replace its "Select every item whose lane is `mechanical`…" sentence with "Process only `<slug>`", or for `ported-code-attribution` with "Process only `ported-code-attribution`'s declared-port signal (the undeclared-port signal stays main context's job)" (keeping the following read-the-body instruction), which also drops Step 4's whole-set coverage check for that single-item return. Never read the mechanical item's body in main context. A setup action that names a command to run (e.g. `public-api-surface`'s `cargo public-api` baseline) is still a planning action — state that the command runs before implementation, don't run it now.
 
 6. **Report the preflight table.** Hand the △ rows to the implementation step as setup actions.
 
-**When to skip the subagent (Step 2).** Skip only when the planned change is formatting-only — no semantic content change at all (whitespace, list renumbering, table padding). Mark every mechanical-lane item ⊘ N/A directly from the index's lane tags and proceed to Step 3. Anything else runs the subagent; do not try to enumerate which items a rename / signature / doc change would trigger — that is exactly the item-body detail the subagent owns.
+**When to skip the subagent (Step 2).** Skip only when the planned change is formatting-only — no semantic content change at all (whitespace, list renumbering, table padding). Mark every mechanical-lane item ⊘ N/A directly from the index's lane tags — including the dual-lane item's mechanical half — and proceed to Step 3; Step 4 still merges these with Step 3's rows and collapses the dual-lane item into a single row. Anything else runs the subagent; do not try to enumerate which items a rename / signature / doc change would trigger — that is exactly the item-body detail the subagent owns.
 
 ## Preflight framing per item (quick reference)
 
