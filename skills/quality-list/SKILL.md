@@ -7,14 +7,14 @@ description: Single source of truth for universal code-quality items. Definition
 
 This skill is **a definition file, not a runnable procedure**. Skills that audit or preflight against universal code-quality apply these items by reference. When an item changes, referencing skills pick up the change automatically. **This binds the audit runner and the preflight runner alike:** a runner may carry a compressed mnemonic of an item in a quick reference, but never the item's full triggers, concern conditions, N/A criteria, or enumerations — that copied detail is the manual-synchronization surface this rule removes — and the mnemonic is never the authority. The item body plus every applicable `lang-<lang>.md` addendum section is what determines whether an item applies and holds the item's full detail; a stale mnemonic cannot override it. The Items index below is likewise the single source of truth for **which items exist and which lane each belongs to**: runners derive their active item set by reading this index, never by hardcoding a parallel slug list. Adding an item here propagates to every runner automatically.
 
-## Audit lanes
+## Item lanes
 
-Each item is tagged for which audit lane it belongs to in `done-check`'s split between fresh-context subagent audit and main-context audit:
+Each item is tagged for which lane it belongs to when a consumer splits work between a fresh-context subagent and main context. `done-check`'s backward audit (subagent Step 2 / main-context Step 3) and `todo-check`'s forward preflight (subagent Step 2 / main-context Step 3) both apply the same split:
 
-- **mechanical** — judgable from literal diff text + literal code text + literal rule text alone, with no need for conversation history, plan context, or actual command execution. Delegated to a fresh-context subagent in `done-check` Step 2 to neutralize the author's blindspot for what their own comments and code actually say (vs what they meant them to say).
-- **contextual** — requires plan / intent / review history that only the main context has, OR requires running a command against the working tree to gather evidence. Stays in main context.
+- **mechanical** — judgable from literal text alone (the diff, for an audit; the planned-scope description, for a preflight) plus literal code text and literal rule text, with no need for conversation history, plan context, or actual command execution. Delegated to a fresh-context subagent (`done-check` Step 2, `todo-check` Step 2) to neutralize the author's blindspot for what their own comments, code, or planned scope actually say (vs what they meant them to say).
+- **contextual** — requires plan / intent / review history that only the main context has, OR requires running a command against the working tree to gather evidence. Stays in main context (`done-check` Step 3, `todo-check` Step 3).
 
-A small number of items are **dual-lane**: their detection has both mechanical (literal-grep) and contextual (history-aware) signals. Such items appear in both audit lanes; consumers (`done-check`) route the relevant signal to the appropriate context. The current dual-lane item is `ported-code-attribution` (declared port = mechanical, undeclared port = contextual).
+A small number of items are **dual-lane**: their detection has both mechanical (literal-grep) and contextual (history-aware) signals. Such items appear in both lanes; consumers (`done-check`, `todo-check`) route the relevant signal to the appropriate context. The current dual-lane item is `ported-code-attribution` (declared port = mechanical, undeclared port = contextual).
 
 Each item's lane is declared once, in the Items index below (the `— mechanical` / `— contextual` suffix on each entry). Item files do not carry a lane tag in their H1 heading.
 

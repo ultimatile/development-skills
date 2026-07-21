@@ -5,67 +5,134 @@ description: Preflight sweep of quality-list items before or during implementati
 
 # Todo-Check
 
-Forward-looking preflight against the current scope. Item definitions live in `quality-list`; this skill is the **runner**. Update `quality-list`, not this file, when adding or modifying items.
+Forward-looking preflight against the planned change. Item definitions live in `quality-list`; this skill is the **runner**. Update `quality-list`, not this file, when adding or modifying items.
 
-`done-check` asks: "Did the diff satisfy item N?" `todo-check` asks: "What does item N require us to set up so the diff will satisfy it?"
+`done-check` asks: "Did the diff satisfy item N?" `todo-check` asks: "What does item N require us to set up so the diff will satisfy it?" Same mechanical / contextual lane split as `done-check` (`quality-list/SKILL.md`'s Item lanes section): mechanical-lane items go to a fresh-context subagent (Step 2), contextual-lane items stay in main context (Step 3).
 
 ## Procedure
 
-0. **Resolve the active rule set.**
+0. **Resolve the active rule set.** Base items live in `quality-list/SKILL.md`; language-specific addenda at `quality-list/lang-<language>.md` realize them concretely.
 
-   The base rule set lives in `quality-list/SKILL.md`. Language-specific addenda live alongside it as `quality-list/lang-<language>.md` and supplement the base rules with triggers, mitigation idioms, and mechanical detection patterns for the language. Items themselves stay language-neutral in the base file; addenda only realize them concretely.
+   Detect language from the project's `CLAUDE.md` `Language:` declaration; otherwise auto-detect from the extensions of the files the work will likely touch — taken from the plan or task description, since Step 0 runs before Step 1 formalizes the scope (`.rs` → rust, `.cpp`/`.cc`/`.cxx`/`.h`/`.hpp` → cpp, `.py` → python, `.ts`/`.tsx` → typescript, `.go` → go, etc.). Multi-language projects detect every present language; each matching addendum applies. Missing addendum → base rules only for that language (not a concern). Step 0 only **detects** the language(s); it routes nothing. Each consumer that runs — the Step 2 mechanical subagent when dispatched, and the Step 3 contextual pass always — loads every matching addendum file itself.
 
-   Detection order for the project language:
+1. **Describe the planned change.** State in plain terms what the change will do: the files / modules it will touch, the behavior it will change, the public symbols / schemas / contracts it will move, and the invariants it introduces or modifies. Capture what is already decided; leave the rest unstated — an unsettled fact surfaces as a `? unknown` row below, not a guess. State the language(s) Step 0 detected here too, so the subagent applies the same addenda the contextual lane does rather than re-deriving them from a scope description that may name modules without file extensions. **Do not pre-classify the change against individual items** — the subagent (Step 2) and the contextual pass (Step 3) read each item's body and decide applicability themselves; the scope description is a plain account of the change, not a per-item trigger checklist.
 
-   1. Check the project's `CLAUDE.md` (or equivalent contributor / agent-guidance file) for a `Language:` declaration line (e.g., `Language: cpp`). If present, load `quality-list/lang-<value>.md`.
-   2. Otherwise, auto-detect from file extensions present in the scope (or the work's likely-touched files): `.cpp` / `.cc` / `.cxx` / `.h` / `.hpp` / `.hh` → `cpp`; `.rs` → `rust`; `.py` → `python`; `.ts` / `.tsx` → `typescript`; `.go` → `go`; etc.
-   3. Multi-language projects: load every matching `lang-*.md` (one per language present).
+   `todo-check` also runs mid-implementation. When earlier units are already materialized on disk, name their inspectable revision range in the scope description too, so the subagent reads the real code instead of treating the tree as unwritten:
 
-   If a detected language has no `lang-<lang>.md`, fall back to the base rules only. Missing addenda are not a concern — they just mean no curated language realizations exist yet.
+   ```bash
+   git log --oneline @{upstream}..HEAD      # committed units
+   git diff @{upstream}..HEAD               # committed content
+   git diff --cached                        # staged
+   git diff                                 # unstaged
+   git ls-files --others --exclude-standard # untracked paths
+   ```
 
-   The active rule set = base items plus, for each item with content in the loaded addendum, that addendum's section. The preflight framing in Step 2 considers both.
+   State that this range is **part of the change under preflight**, not pre-existing baseline to reuse from — a helper just added there is a candidate for `duplication-extraction`'s search, not an existing helper the search should call.
 
-1. **Identify the work scope.** Pull from the plan if one exists, otherwise from the current task description. Determine:
+2. **Spawn a fresh-context preflight subagent for the mechanical items.** A fresh context removes the author's blindspot for what the planned scope actually implies, and keeps the item-body rule text out of main context.
 
-   - What files / modules will change
-   - What public symbols, schemas, or contracts will move
-   - What invariants the change introduces or modifies
-   - Whether a research plan with `Inconclusive / Deferred items` exists (relevant to `discovery-surfacing`)
+   **Main context MUST NOT load a purely-mechanical item's body** (the dual-lane `ported-code-attribution` body is the one exception, read in Step 3 for its contextual half). The subagent reads the index and those bodies in its own fresh context — it derives the mechanical-lane item set from the index itself; main only composes the prompt (scope description + the resolved paths) and dispatches.
 
-2. **Process every item in preflight mode.** Read `quality-list/SKILL.md`'s Items index to get the authoritative item set, and process every item in it. For each item, Read its `quality-list/items/<slug>.md` body — plus every applicable `lang-<lang>.md` addendum section (per Step 0) — **before** deciding its status; the body plus addenda define the applicability criterion and hold the item's full detail, and the active-vs-N/A verdict comes from applying that criterion to the change's scope. Process items one at a time, reading each body as you reach it. The per-item Preflight framing quick reference below is a compressed mnemonic, **not** an applicability authority: consult it for the setup framing once the body has decided the item applies — never to decide applicability itself. An index item with no row is handled from its body alone, which is read regardless.
+   Resolve two absolute paths first: `<QUALITY_LIST_ROOT>`, the repo/package root containing the `skills/quality-list/` directory, and `<TARGET_ROOT>`, the project this preflight is for (cwd) — they coincide only when `quality-list` is vendored inside the target; in a marketplace / symlinked install they differ, and the subagent needs both.
 
-   For each item, determine one of:
+   Use the `Agent` tool with `subagent_type: "general-purpose"` and a prompt of the following shape:
 
-   - **△ active — set up needed**: this item will apply to the finished diff; record what to set up *now* so the audit will pass later. Output the concrete preflight action (test fixture variants to include, guard locations to plan, paired-artifact surfaces to update, probes to thread through, etc.).
-   - **⊘ N/A**: the item's own N/A criterion already excludes the scope. State why.
-   - **? unknown**: the body has been read, but applicability turns on a scope fact not yet settled (what the change will actually touch); record the scope check that would decide it.
+   ```
+   You are running a PREFLIGHT (not an audit) against a planned change,
+   under the `quality-list` quality rules. You have NO access to the
+   conversation history that produced this scope and MUST NOT speculate
+   about author intent beyond the scope description below. Judge from:
 
-3. Resolve every **?** before declaring preflight done — either promote to △ with a concrete setup action, or downgrade to ⊘ with a reason.
+   - the literal scope description (provided below)
+   - if the scope description names an already-materialized revision
+     range, the code in that range — treat it as part of the change
+     under preflight, not as pre-existing baseline
+   - the literal text of the relevant `quality-list` item files (read
+     them yourself from the paths below)
+   - the literal text of the codebase at <TARGET_ROOT> you can read with
+     your tools (existing helpers, current callers, paired-artifact
+     surfaces)
 
-4. Report the preflight table. Hand the △ rows to the implementation step as setup actions.
+   The scope description's characterizations of EXISTING code ("no
+   helper for this exists yet", "sibling X already exposes a symmetric
+   surface") are the author's working hypothesis — sanity-check them
+   against what you can read in the codebase, and flag any discrepancy
+   in your report. A characterization of the not-yet-written change
+   itself has nothing to check against — take it as given.
+
+   First read <QUALITY_LIST_ROOT>/skills/quality-list/SKILL.md and
+   consult its Items index. Select every item whose lane is
+   `mechanical`, including the mechanical half of any dual-lane item (an
+   entry tagged `mechanical (+ contextual half)`, e.g.
+   ported-code-attribution — handle only its declared-port signal; the
+   undeclared-port signal is main context's job, but still return a row
+   for the item even when its declared half is ⊘ N/A, so the coverage
+   check sees it). Read each selected item's
+   <QUALITY_LIST_ROOT>/skills/quality-list/items/<slug>.md in full.
+
+   The language(s) Step 0 detected are stated below; load each
+   corresponding addendum at
+   <QUALITY_LIST_ROOT>/skills/quality-list/lang-<lang>.md that exists,
+   loading them all when more than one applies. If none are stated, fall
+   back to <TARGET_ROOT>/CLAUDE.md's `Language:` line (never
+   <QUALITY_LIST_ROOT>/CLAUDE.md), then to the file extensions in the
+   scope description. No language found, or a detected language with no
+   addendum file, is not a concern — proceed on base rules.
+
+   For each selected item return one of:
+
+   - △ active — this item will apply to the finished diff; state the
+     concrete preflight setup action (test fixture variants, guard
+     locations, paired-artifact surfaces to sweep, existing-helper
+     search results, etc.), grounded in the scope description and the
+     codebase.
+   - ⊘ N/A — using only the item's own N/A criterion as stated.
+   - ? unknown — the body is read, but applicability turns on a scope
+     fact not given; state the scope check that would decide it AND the
+     resulting verdict for each possible answer, so it can be resolved
+     later without re-reading the body.
+
+   Report concisely: one row per item with Status + Setup action / N/A
+   reason / scope check; then a final list of any discrepancies between
+   the scope description and what you read in the codebase.
+   ```
+
+   Embed the scope description (Step 1), the language(s) Step 0 detected, and the two resolved paths. **Do not embed item body text** — the subagent reads the item files itself.
+
+   Start Step 3 immediately rather than waiting; the two run in parallel. When the subagent was dispatched, block on its return once you reach Step 4.
+
+3. **Process the contextual items in main context.** Read `quality-list/SKILL.md`'s Items index and select every item whose lane is `contextual`, including the contextual half of dual-lane items — `ported-code-attribution`'s undeclared-port signal is main's job because it needs the conversation / research history the subagent lacks. These need plan / intent / review history, or command-execution planning against the working tree.
+
+   For each selected contextual item, `Read` its `quality-list/items/<slug>.md` body — plus every `lang-<lang>.md` addendum section for a language Step 0 detected, self-loaded here — before deciding its status. Read only the contextual-lane bodies — plus `ported-code-attribution`'s own body, which the undeclared-port half is decided from even though the item is index-tagged `mechanical (+ contextual half)` — not a purely mechanical-lane item's body. For each, determine one of:
+
+   - **△ active** — this item will apply to the finished diff; record the concrete setup action to do *now* (fixture variants, guard locations, paired-artifact surfaces, probes to thread through).
+   - **⊘ N/A** — the item's own N/A criterion excludes the scope. State why.
+   - **? unknown** — the body is read, but applicability turns on a scope fact not yet settled; record the scope check that would decide it.
+
+4. **Merge results.** Integrate the mechanical-lane rows — the subagent's returned rows when it was dispatched, or the skip path's directly-marked ⊘ N/A rows (Step 2's skip note) otherwise — with the contextual-lane rows (Step 3) into a single table, one row per item in index order. When the subagent was dispatched, confirm its returned rows cover exactly the mechanical-lane slug set the index predicts — a missing or duplicated slug is a failure, not a clean pass; re-dispatch once with the same prompt, and if it fails again, surface to the user rather than proceeding with the mechanical lane incomplete (on the skip path there are no returned rows to check — coverage holds by construction, since every mechanical slug was marked directly from the index). Render each dual-lane item as one row: △ active if either half is active (note which; if the other half is `?`, carry that unresolved half's scope check forward to Step 5 so its own setup action is not lost behind the active status), ⊘ N/A only if both halves are N/A, otherwise `?`. If the subagent returned a discrepancy list, adjudicate each: correct the affected row's setup action to match what the subagent found, or — if the scope description was right and the subagent's codebase read was the mistaken side — note that resolution instead rather than rewriting the row.
+
+5. **Resolve every `?` before declaring preflight done** — promote to △ with a concrete setup action, or downgrade to ⊘ with a reason. Resolve both a row whose overall status is `?` and an unresolved half carried forward from an otherwise-active dual-lane row (Step 4). For a mechanical-lane `?`: if the subagent stated the verdict for each answer to its scope check, settle the fact and read the matching verdict off; otherwise re-dispatch the subagent with the Step 2 prompt narrowed to that one item — replace its "Select every item whose lane is `mechanical`…" sentence with "Process only `<slug>`", or for `ported-code-attribution` with "Process only `ported-code-attribution`'s declared-port signal (the undeclared-port signal stays main context's job)" (keeping the following read-the-body instruction), which also drops Step 4's whole-set coverage check for that single-item return. Never read a purely-mechanical item's body in main context. A setup action that names a command to run (e.g. `public-api-surface`'s `cargo public-api` baseline) is still a planning action — state that the command runs before implementation, don't run it now.
+
+6. **Report the preflight table.** Hand the △ rows to the implementation step as setup actions.
+
+**When to skip the subagent (Step 2).** Skip only when the planned change is formatting-only — no semantic content change at all (whitespace, list renumbering, table padding). Mark every mechanical-lane item ⊘ N/A directly from the index's lane tags — including the dual-lane item's mechanical half — with a fixed reason (`skipped: formatting-only, Step 2 skip path`) in the N/A-reason cell, and proceed to Step 3; Step 4 still merges these with Step 3's rows and collapses the dual-lane item into a single row. Anything else runs the subagent; do not try to enumerate which items a rename / signature / doc change would trigger — that is exactly the item-body detail the subagent owns.
 
 ## Preflight framing per item (quick reference)
 
-These are how each `quality-list` item reads in preflight mode — a compressed mnemonic of the lens-shift from the item's audit question to a preflight setup action. A row is **not** the applicability authority and decides nothing: Step 2 reads each item's body (`quality-list/items/<slug>.md`) plus any applicable `lang-<lang>.md` addendum for every item, and that — with the `quality-list/SKILL.md` index as the item set — decides whether an item applies. Because Step 2 always reads the body, a stale row cannot cause a wrong status decision or a dropped item; and its setup framing is the uniform lens-shift this skill applies to every item (reframing the item's requirement as a setup action), re-derivable from the body. Keep rows concise; consult one for its setup framing once the body has marked the item active.
+These are how each `quality-list` item reads in preflight mode — a compressed mnemonic of the lens-shift from the item's audit question to a preflight setup action. A row is **not** the applicability authority and decides nothing: Step 3 reads each contextual item's body (`quality-list/items/<slug>.md`) plus any applicable addendum, and that — with the index as the item set — decides whether it applies. Consult a row for its setup framing once the body has marked the item active.
+
+This list covers only the contextual-lane items (and the contextual half of the dual-lane item) that Step 3 processes. Mechanical-lane items have no row *in this quick reference* (they still get a row in the final preflight table, per Step 4): the subagent never reads this file, so a mnemonic for it would have no consumer.
 
 - **`invariant-derivation`** — Before patching, derive the full necessary-and-sufficient condition from first principles. List it in the plan.
 - **`purpose-verification`** — Identify the input that exposes the purpose end-to-end. Plan to exercise it before declaring done.
 - **`pattern-audit`** — Plan to re-derive any reused sibling pattern's correctness in the current context before relying on it.
 - **`scope-discipline`** — Resolve to evaluate findings on their merits, not narrowed to the originating task.
-- **`behavior-coverage`** — Design fixtures now with the smallest non-trivial parameters per axis, covering happy + error paths, via a generic helper for type-parametric semantics.
-- **`implementation-guards`** — Plan `assert!` locations for new invariants, sibling-method consistency reviews, constructor validations, and validation ordering.
-- **`impact-verification`** — Build the impact list now, before editing, and trace public-symbol callers if no formal list exists.
 - **`test-execution`** — Plan which test commands will be run, and capture the pre-existing failure baseline before any edit.
 - **`completion-hygiene`** — Plan which lint / format / type-check / build commands will be run. Note any debug artifacts to strip.
-- **`architectural-boundary`** — Identify any new imports / dep edges / `pub` widenings the change will introduce; plan to check them against the project's boundary rules.
 - **`escape-hatch-necessity`** — Plan to derive any workaround's necessity before using it, treating it as a last resort rather than a default.
-- **`paired-artifact-drift`** — List now every textual surface a primary-identifier edit must propagate to, and plan the sweep before editing the primaries.
 - **`docstring-drift`** — List the docstring / comment / README surfaces describing any behavior the change alters, and plan a cold-read re-verification of each against the new behavior, with an execution probe where the behavior becomes library-owned.
 - **`discovery-surfacing`** — Extract any research plan's `Inconclusive` items into a watch list for the implementation phase.
-- **`ported-code-attribution`** — Plan the attribution surface for any ported external implementation before it lands.
-- **`signature-change-regression`** — Plan a mitigation now for any function-signature change.
-- **`public-doc-durability`** — Plan the denylist sweep up front for any `README.md` / `docs/**/*.md` the change touches. Use `file-pubdoc` for fresh writes.
-- **`public-api-surface`** — Plan the surface-diff baseline now (e.g. a `cargo public-api` snapshot) for any public-API-surface change, and a symmetry check across the public surfaces of parallel implementations.
+- **`ported-code-attribution`** (undeclared-port half) — If research surfaced an external implementation this scope structurally follows but hasn't named, plan the attribution surface now even though no comment names it yet.
 
 ## Output format
 
@@ -75,12 +142,12 @@ preflight: <task / unit description>
 | Item                          | Status   | Setup action / N/A reason                              |
 |-------------------------------|----------|--------------------------------------------------------|
 | invariant-derivation          | △ active | derive condition for <invariant> from <constraint>     |
+| scope-discipline              | ⊘ N/A    | no findings raised yet                                 |
 | behavior-coverage             | △ active | fixtures: 3-site MPS bulk variant, non-square 2×3 ...  |
 | implementation-guards         | △ active | assert! at <site>; review siblings <a>, <b>            |
+| architectural-boundary        | ⊘ N/A    | no new imports / dep edges / pub widening              |
 | paired-artifact-drift         | △ active | sweep: examples/foo.rs, README.md, doctests in <mod>   |
 | discovery-surfacing           | △ active | watch: inconclusive[1] probe at <site>; branches X/Y   |
-| scope-discipline              | ⊘ N/A    | no findings raised yet                                 |
-| architectural-boundary        | ⊘ N/A    | no new imports / dep edges / pub widening              |
 ```
 
-Hand the △ rows forward as the implementation setup.
+Emit one row per item in the `quality-list/SKILL.md` Items index, in index order — the rows above illustrate the format and the status vocabulary (△ active / ⊘ N/A), not the full set. `? unknown` is a working state Step 5 resolves before this report is emitted; it never appears in the final table. The table merges the mechanical-lane rows (Step 2's subagent, or the skip path's direct ⊘ N/A rows) with Step 3's contextual-lane rows, per Step 4. Hand the △ rows forward as the implementation setup.
