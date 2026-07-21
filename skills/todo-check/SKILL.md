@@ -23,7 +23,7 @@ Forward-looking preflight against the current scope. Item definitions live in `q
 
    If a detected language has no `lang-<lang>.md`, fall back to the base rules only. Missing addenda are not a concern — they just mean no curated language realizations exist yet.
 
-   Step 0 only **detects** the language(s); it routes nothing. Each consumer — the Step 2 mechanical subagent and the Step 3 contextual pass — loads every matching addendum file itself.
+   Step 0 only **detects** the language(s); it routes nothing. Each consumer that actually runs — the Step 2 mechanical subagent when dispatched, and the Step 3 contextual pass always — loads every matching addendum file itself.
 
 1. **Identify the work scope.** Pull from the plan if one exists, otherwise from the current task description. Determine:
 
@@ -185,7 +185,7 @@ Forward-looking preflight against the current scope. Item definitions live in `q
 
 ## Preflight framing per item (quick reference)
 
-These are how each `quality-list` item reads in preflight mode — a compressed mnemonic of the lens-shift from the item's audit question to a preflight setup action. A row is **not** the applicability authority and decides nothing: for each contextual-lane item below, Step 3 (not this list) reads the item's body (`quality-list/items/<slug>.md`) plus any applicable `lang-<lang>.md` addendum, and that — with the `quality-list/SKILL.md` index as the item set — decides whether an item applies. (Mechanical-lane items' applicability is decided the same way, by Step 2's subagent, on its own bodies — see the note below the list.) Because bodies are always read, a stale row cannot cause a wrong status decision or a dropped item; and its setup framing is the uniform lens-shift this skill applies to every listed item, re-derivable from the body. Keep rows concise; consult one for its setup framing once the body has marked the item active.
+These are how each `quality-list` item reads in preflight mode — a compressed mnemonic of the lens-shift from the item's audit question to a preflight setup action. A row is **not** the applicability authority and decides nothing: for each contextual-lane item below, Step 3 (not this list) reads the item's body (`quality-list/items/<slug>.md`) plus any applicable `lang-<lang>.md` addendum, and that — with the `quality-list/SKILL.md` index as the item set — decides whether an item applies. (Mechanical-lane items' applicability is decided the same way, by Step 2's subagent, on its own bodies, whenever Step 2 actually dispatches — see the note below the list.) Because Step 3's contextual-item bodies are always read, and Step 2's mechanical-item bodies are read whenever the subagent runs, a stale row cannot cause a wrong status decision or a dropped item; and its setup framing is the uniform lens-shift this skill applies to every listed item, re-derivable from the body. Keep rows concise; consult one for its setup framing once the body has marked the item active.
 
 This list covers only the contextual-lane items (and the contextual half of the dual-lane item) that Step 3 processes directly in main context. Mechanical-lane items have no row here: Step 2's subagent never reads this file, so a mnemonic for it would have no consumer and would just be a manual-synchronization surface with no payoff — the subagent derives its setup-action framing independently, straight from each item's own body, every time.
 
