@@ -118,7 +118,7 @@ Post-hoc audit against the current diff. Item definitions live in `quality-list`
 
 6. Report the audit table.
 
-**When to skip the subagent (step 2).** Pure renames, formatting-only changes, or file moves with no content change — the subagent step is wasted overhead. Any prose / comment / docstring / log / error string add or modify → run the subagent.
+**When to skip the subagent (step 2).** Skip only when the diff is formatting-only — no semantic content change at all (whitespace, list renumbering, table padding). Anything else runs the subagent; do not try to enumerate which items a rename / signature / doc change would trigger — that is exactly the item-body detail the subagent owns.
 
 ## Output format
 
