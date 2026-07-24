@@ -14,7 +14,7 @@ GitHub-integrated wrapper around `quaere-evidence`. Drives the Finding → Hypot
 Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
 
 - **Number** → `gh issue view $ARGUMENTS` and proceed with that issue.
-- **Free text** → use the text as the task description; an issue will be created in Step 5.
+- **Free text** → use the text as the task description; an issue will be created in Step 7.
 
 ## Step 1 — Read issue/task and form hypotheses
 
@@ -145,7 +145,7 @@ A sub-decision is genuinely unresolved only when the above are silent or contrad
 
 Report the plan back to the main context.
 
-## Step 3.4 — Reachability check (mandatory)
+## Step 4 — Reachability check (mandatory)
 
 A plan can be locally closed yet reach further than the author reasoned about — a new public surface whose semantics depend on consumer code outside scope (Checks 1–3), an enablement that binds compilation units the plan never named (Check 4), a verification probe that covers fewer build configurations than the obligation spans (Check 5), or a performance probe that exercises fewer code paths than the changed path it is trusted to measure (Check 6). `codex-plan-review` and author confidence both miss these — they require looking outward. Any check firing means the plan's reach is not closed; rescope or defer.
 
@@ -202,11 +202,11 @@ When the plan cites a benchmark (existing or new) as evidence for a performance 
 - Benchmark provably reaches the changed path → proceed.
 - Benchmark misses it (fast-path bypass, inputs that never enter the changed branch), or the only evidence is an isolated-component microbench → not certified. Add an end-to-end benchmark that reaches the path to the Step 3 test plan, or name the different public operation — one dominated by the changed path — that will serve as the perf probe.
 
-Output: **clean** (proceed to Step 3.5) or **flagged** (list firings + proposed resolution + surface to user).
+Output: **clean** (proceed to Step 5) or **flagged** (list firings + proposed resolution + surface to user).
 
-## Step 3.5 — Plan review gate (mandatory offer)
+## Step 5 — Plan review gate (mandatory offer)
 
-After Step 3 produces a plan and before Step 4 collects user approval:
+After Step 3 produces a plan and before Step 6 collects user approval:
 
 1. **Always offer `codex-plan-review`** — never silently skip. Phrase it as a recommendation, not a question:
 
@@ -222,21 +222,21 @@ After Step 3 produces a plan and before Step 4 collects user approval:
 
 3. **Loop gate**: after patching, re-run `codex-plan-review` per its Step 4 re-run rule. Exit the loop when the last valid verdict is `approve` or `approve with conditions`. Cap: 3 iterations within the same premise. If the cap is reached, or if the loop sits at `reject` with no further re-run warranted, surface the verdict and outstanding findings to the user and ask whether to proceed as-is, patch further manually, or escalate. Premise concerns return to Step 1 and reset the counter — iteration count is per-premise, not lifetime.
 
-4. **The plan that exits this step is the contract.** Step 5 will post that plan once. Revisions happen here, before posting; there is no "post then revise" loop.
+4. **The plan that exits this step is the contract.** Step 7 will post that plan once. Revisions happen here, before posting; there is no "post then revise" loop.
 
-## Step 4 — User approval
+## Step 6 — User approval
 
-Present the plan (after any Step 3.5 revisions) and ask for approval before posting to GitHub.
+Present the plan (after any Step 5 revisions) and ask for approval before posting to GitHub.
 
-## Step 5 — Post plan to GitHub
+## Step 7 — Post plan to GitHub
 
-### 5.0 Laundering pass — run `gh-body-check` (MANDATORY)
+### 7.0 Laundering pass — run `gh-body-check` (MANDATORY)
 
 Run `gh-body-check` on the plan body before any `gh-post` invocation; resolve any ⚠ before posting.
 
-### 5.1 Route to the correct surface
+### 7.1 Route to the correct surface
 
-After 5.0 clears, route the plan based on what `$ARGUMENTS` resolves to:
+After 7.0 clears, route the plan based on what `$ARGUMENTS` resolves to:
 
 - **Existing single-scope issue** → `gh-post issue comment $ARGUMENTS` (per `file-issue` step 5) with the plan as body.
 - **Existing umbrella issue** (the body contains a Phases table or sub-tasks list) → spawn a new sub-issue whose body IS the plan, following `file-issue`'s `Variants > Umbrella sub-issue` shape: `Parent: #<umbrella>` on the first line, `Phase N: <topic>` title, Goal / Scope / Out of scope / Acceptance derived from the plan. After creation, append the new sub-issue's number to the umbrella's Phases table row. Do not also post the plan as an umbrella comment.
