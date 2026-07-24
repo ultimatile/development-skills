@@ -25,7 +25,7 @@ From the plan, extract:
 - **Plan checklist** (units of work)
 - **Impact list** (callers expected to be touched)
 - **Implementation guards** (assertions, paired APIs, constructor validations)
-- **Derivations** (specific examples and their deductive properties, already verified in `research` Step 2.B). The list of examples whose properties have been derived defines the **derivationally cleared example set** — examples not on this list are unverified by the plan, regardless of how obvious their properties may seem.
+- **Derivations** (specific examples and their deductive properties, already verified in `research`'s Derivational hypotheses step). The list of examples whose properties have been derived defines the **derivationally cleared example set** — examples not on this list are unverified by the plan, regardless of how obvious their properties may seem.
 - **Inconclusive items** with their `probe` and `expected branches`
 - **Deferred items** with their `reason` and `resolution-point`
 
@@ -102,7 +102,7 @@ For every such example, before adding the implementation:
 
 1. **Check the derivationally cleared example set** (extracted in Step 2 from the plan's `Derivations` section). If the example is on the list, it has already been derivationally verified during research; proceed.
 2. **If the example is not on the list, halt.** Do not add it on the strength of its properties feeling obvious.
-3. **Required action when halted:** Surface to the user with: the proposed example, the deductive properties it is being relied on to satisfy (e.g., "this Hamiltonian must be U(1)-symmetric, must be Hermitian, must be non-diagonal in the chosen basis, must exercise the multi-sector path"), and the request to extend the plan's `Derivations` section before proceeding. The derivation itself is performed in `research` Step 2.B, not in implementation.
+3. **Required action when halted:** Surface to the user with: the proposed example, the deductive properties it is being relied on to satisfy (e.g., "this Hamiltonian must be U(1)-symmetric, must be Hermitian, must be non-diagonal in the chosen basis, must exercise the multi-sector path"), and the request to extend the plan's `Derivations` section before proceeding. The derivation itself is performed in `research`'s Derivational hypotheses step, not in implementation.
 
 A `rejected` derivational outcome is a plan bug — return to research and choose a different example.
 
