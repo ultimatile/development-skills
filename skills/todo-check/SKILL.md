@@ -109,9 +109,82 @@ Forward-looking preflight against the planned change. Item definitions live in `
    - **⊘ N/A** — the item's own N/A criterion excludes the scope. State why.
    - **? unknown** — the body is read, but applicability turns on a scope fact not yet settled; record the scope check that would decide it.
 
-4. **Merge results.** Integrate the mechanical-lane rows the subagent returned with the contextual-lane rows (Step 3) into a single table, one row per item in index order. Confirm the subagent's returned rows cover exactly the mechanical-lane slug set the index predicts — a missing or duplicated slug is a failure, not a clean pass; re-dispatch once with the same prompt, and if it fails again, surface to the user rather than proceeding with the mechanical lane incomplete. Render each dual-lane item as one row: △ active if either half is active (note which; if the other half is `?`, carry that unresolved half's scope check forward to Step 5 so its own setup action is not lost behind the active status), ⊘ N/A only if both halves are N/A, otherwise `?`. If the subagent returned a discrepancy list, adjudicate each: correct the affected row's setup action to match what the subagent found, or — if the scope description was right and the subagent's codebase read was the mistaken side — note that resolution instead rather than rewriting the row.
+4. **Merge results.** Integrate the mechanical-lane rows the subagent returned with the contextual-lane rows (Step 3) into a single table.
 
-5. **Resolve every `?` before declaring preflight done** — promote to △ with a concrete setup action, or downgrade to ⊘ with a reason. Resolve both a row whose overall status is `?` and an unresolved half carried forward from an otherwise-active dual-lane row (Step 4). For a mechanical-lane `?`: if the subagent stated the verdict for each answer to its scope check, settle the fact and read the matching verdict off; otherwise re-dispatch the subagent with the Step 2 prompt narrowed to that one item — replace its "Select every item whose lane is `mechanical`…" sentence with "Process only `<slug>`", or for `ported-code-attribution` with "Process only `ported-code-attribution`'s declared-port signal (the undeclared-port signal stays main context's job)" (keeping the following read-the-body instruction), which also drops Step 4's whole-set coverage check for that single-item return. Never read a purely-mechanical item's body in main context. A setup action that names a command to run (e.g. `public-api-surface`'s `cargo public-api` baseline) is still a planning action — state that the command runs before implementation, don't run it now.
+   ```
+   domain: every item in the `quality-list/SKILL.md` Items index
+
+   coverage — the subagent's returned mechanical rows against the
+   mechanical-lane slug set the index predicts. This applies to a
+   full-set dispatch; a narrowed single-item return (Step 5) is exempt:
+     exactly one row per predicted slug,
+     and no others                        → proceed
+     any other return (a slug missing,
+     duplicated, or outside the predicted
+     set), first occurrence               → re-dispatch Step 2 with the
+                                            prompt unchanged; re-check
+     any other return, after that
+     re-dispatch                          → surface to the user; do not
+                                            proceed with the mechanical
+                                            lane incomplete, and do not
+                                            emit the table
+
+   row rendering — one row per item, in index order:
+     single-lane item                     → that lane's verdict
+     dual-lane, either half △             → △ active; name which half
+     dual-lane, both halves ⊘             → ⊘ N/A
+     dual-lane, otherwise                 → ?
+   ```
+
+   A half left `?` at merge time carries its scope check forward to Step 5, so the half's own setup action is not lost behind an active status.
+
+   If the subagent returned a discrepancy list, adjudicate each: correct the affected row's setup action to match what the subagent found, or — if the scope description was right and the subagent's codebase read was the mistaken side — note that resolution instead rather than rewriting the row.
+
+5. **Resolve every `?` before declaring preflight done.**
+
+   ```
+   domain: every unsettled scope check — the one behind a single-lane `?`
+           row, and one per unsettled half of any dual-lane row,
+           which can therefore carry two. Each check belongs to exactly
+           one lane; settle them one at a time.
+
+   pass 1 — settle the scope fact, by the lane of the check being settled:
+     mechanical lane, and the subagent
+     stated a verdict per answer to its
+     scope check                          → settle the fact; read the
+                                            matching verdict off. If the
+                                            settled answer is not one it
+                                            enumerated, take the arm below
+     mechanical lane, otherwise           → narrowed re-dispatch (below)
+     contextual lane                      → settle the scope check Step 3
+                                            recorded, in main context
+
+   pass 2 — record the outcome:
+     settled, single-lane `?` row         → △ with a concrete setup action
+                                          | ⊘ with a reason
+     settled, a half of a dual-lane row   → add that half's own setup action
+                                            to the row's Setup action cell,
+                                            or note the half N/A there with
+                                            its reason, alongside whatever
+                                            the other half already put there.
+                                            The row's status is then Step 4's
+                                            row-rendering rule over its two
+                                            half-statuses, so a row already
+                                            rendered △ stays △
+     could not be settled at preflight
+     time                                 → surface to the user, naming what
+                                            the row already carries; do not
+                                            declare preflight done, and do not
+                                            emit the table
+
+   always: never read a purely-mechanical item's body in main context.
+   always: a setup action that names a command to run (e.g.
+           `public-api-surface`'s `cargo public-api` baseline) is still a
+           planning action — state that the command runs before
+           implementation, don't run it now.
+   ```
+
+   **Narrowed re-dispatch.** Re-dispatch the subagent with the Step 2 prompt narrowed to that one item — replace its "Select every item whose lane is `mechanical`…" sentence with "Process only `<slug>`", or for `ported-code-attribution` with "Process only `ported-code-attribution`'s declared-port signal (the undeclared-port signal stays main context's job)", keeping the sentence after it that tells the subagent to read the selected item's body in full. Its single-item return is exempt from Step 4's whole-set coverage check.
 
 6. **Report the preflight table.** Hand the △ rows to the implementation step as setup actions.
 
@@ -148,4 +221,4 @@ preflight: <task / unit description>
 | discovery-surfacing           | △ active | watch: inconclusive[1] probe at <site>; branches X/Y   |
 ```
 
-Emit one row per item in the `quality-list/SKILL.md` Items index, in index order — the rows above illustrate the format and the status vocabulary (△ active / ⊘ N/A), not the full set. `? unknown` is a working state Step 5 resolves before this report is emitted; it never appears in the final table. The table merges the mechanical-lane rows (Step 2's subagent) with Step 3's contextual-lane rows, per Step 4. Hand the △ rows forward as the implementation setup.
+Emit one row per item in the `quality-list/SKILL.md` Items index, in index order — the rows above illustrate the format and the status vocabulary (△ active / ⊘ N/A), not the full set. `? unknown` is a working state that Step 5 resolves, so it never appears in the final table. Step 4 and Step 5 each also carry a halt path, and a halted preflight emits no table. The table merges the mechanical-lane rows (Step 2's subagent) with Step 3's contextual-lane rows, per Step 4. Hand the △ rows forward as the implementation setup.
