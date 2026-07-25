@@ -112,7 +112,7 @@ Forward-looking preflight against the planned change. Item definitions live in `
 4. **Merge results.** Integrate the mechanical-lane rows the subagent returned with the contextual-lane rows (Step 3) into a single table.
 
    ```
-   domain: every item in the `quality-list` Items index
+   domain: every item in the `quality-list/SKILL.md` Items index
 
    coverage — the subagent's returned mechanical rows against the
    mechanical-lane slug set the index predicts. This applies to a
