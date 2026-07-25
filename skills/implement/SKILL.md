@@ -41,7 +41,7 @@ Invoke the `quaere-execution` skill with the plan as the source of truth. Honor 
 
 ### 3.0 Preflight via todo-check
 
-Before any code change, invoke `todo-check` against the plan to extract the active `quality-list` items and their setup actions for this work. Hand the resulting △ rows to `quaere-execution`'s Plan step so the unit checks already include them. Re-invoke `todo-check` between units when the next unit changes the active item set (e.g., it introduces a new public API → `impact-verification` and `paired-artifact-drift` become active).
+Before any code change, invoke `todo-check` against the plan to extract the active `quality-list` items and their setup actions for this work. Hand the resulting △ rows to `quaere-execution`'s Plan step so the unit checks already include them. A preflight that halts emits no table at all, so there are no △ rows to hand on; it has surfaced something to the user, and the unit does not start. Re-invoke `todo-check` between units when the next unit changes the active item set (e.g., it introduces a new public API → `impact-verification` and `paired-artifact-drift` become active).
 
 ### 3.0.1 Pre-commit hook recall
 
