@@ -95,6 +95,16 @@ Normalization rules:
 
 4. Echo the appended line back to the user for a final visual check.
 
+The log is append-only (`chflags uappnd`), so `>>` works and any rewrite fails with
+`Operation not permitted`. If the path is a symlink, the flag is on the target. To change the file,
+unlock it, change it, and re-lock:
+
+```bash
+chflags nouappnd <log>
+# change
+chflags uappnd <log>
+```
+
 ## Reading the log
 
 Aggregation one-liners for later analysis sessions:
