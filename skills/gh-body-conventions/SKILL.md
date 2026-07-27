@@ -101,8 +101,8 @@ A record is available when the author observed the execution's result and can st
 Work done in another session, or in a stretch of this one since summarized, leaves no such record unless something durable holds it; a summary or a handoff note describing that work is not a record of it.
 
 - A command-backed claim names the command and its observed result in the body.
-  An agent-backed claim maps to exactly one return; the author checks that mapping, and the body need not name the run.
-  A statement asserting several runs is that many claims, one per run.
+  An agent-backed claim maps to one result in one return; the author checks that mapping, and the body need not name the run.
+  A statement asserting several runs is that many claims, one per run, and a return reporting several results holds that many records.
   Matching totals are not sufficient: a fabricated entry and an omitted one cancel, so the mapping is checked entry by entry rather than by count.
   Within an enumeration of runs, no two entries map to the same record; describing one run in two places is not double-counting — claiming it as two entries is.
 - A claim that cannot be stated without naming something § Exclusions forbids is dropped, or restated against something nameable.
