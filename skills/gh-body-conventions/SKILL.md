@@ -102,11 +102,13 @@ Work done in another session, or in a stretch of this one since summarized, leav
 
 - A command-backed claim names the command and its observed result in the body.
   An agent-backed claim maps to exactly one return; the author checks that mapping, and the body need not name the run.
+  A statement asserting several runs is that many claims, one per run.
   Matching totals are not sufficient: a fabricated entry and an omitted one cancel, so the mapping is checked entry by entry rather than by count.
   Within an enumeration of runs, no two entries map to the same record; describing one run in two places is not double-counting — claiming it as two entries is.
 - A claim that cannot be stated without naming something § Exclusions forbids is dropped, or restated against something nameable.
 - An enumeration need not be complete — work performed but not written up states nothing false.
   An enumeration that claims completeness ("all runs performed", "the only cases exercised") does require every record within the scope it claims to appear; work that verifies the body itself is outside any such scope.
+  Later work can falsify a completeness claim without its own text changing, so it is re-checked whenever the body is discharged again.
 - A claim with no available record is re-run or dropped.
   It is not softened into a hedge.
 - Text edited after its claims were discharged is discharged again before it is shown or filed.
