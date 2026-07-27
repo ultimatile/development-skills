@@ -50,8 +50,7 @@ Reconstruct from the current conversation's triage records, and from `git` / `gh
           "disposition": "actionable",
           "duplicate_of_gate": null,
           "topic_opened_by": "code-review",
-          "injected_at_gate": null,
-          "fixed": true
+          "injected_at_gate": null
         }
       ]
     }
