@@ -106,10 +106,11 @@ Work done in another session, or in a stretch of this one since summarized, leav
   Within an enumeration of runs, no two entries map to the same return; describing one run in two places is not double-counting — claiming it as two entries is.
 - A claim that cannot be stated without naming something § Exclusions forbids is dropped, or restated against something nameable.
 - An enumeration need not be complete — work performed but not written up states nothing false.
-  An enumeration that claims completeness ("all runs performed", "the only cases exercised") does require every record to appear.
+  An enumeration that claims completeness ("all runs performed", "the only cases exercised") does require every record within the scope it claims to appear; work that verifies the body itself is outside any such scope.
 - A claim with no available record is re-run or dropped.
   It is not softened into a hedge.
 - Text edited after its claims were discharged is discharged again before it is shown or filed.
   Revise-and-re-run loops are the usual source: a revision made to clear another check can introduce a claim that check does not read.
 
-A statement about an artifact's existence or properties (a test file added, a tolerance value, an identifier) is not an evidence claim; it is checked against the code, not against a record.
+A statement about an artifact's existence or static properties (a test file added, a tolerance value, an identifier) is not an evidence claim; it is checked against the code, not against a record.
+A property that could only be known by running something — a suite passing, a coverage figure, a timing — is an evidence claim however it is phrased.

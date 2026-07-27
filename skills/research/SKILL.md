@@ -246,7 +246,7 @@ After 7.0 clears, route the plan based on what `$ARGUMENTS` resolves to:
 - **Existing umbrella issue** (the body contains a Phases table or sub-tasks list) → spawn a new sub-issue whose body IS the plan, following `file-issue`'s `Variants > Umbrella sub-issue` shape: `Parent: #<umbrella>` on the first line, `Phase N: <topic>` title, Goal / Scope / Out of scope / Acceptance derived from the plan. After creation, append the new sub-issue's number to the umbrella's Phases table row. Do not also post the plan as an umbrella comment.
 - **New task** → `gh-post issue create` (per `file-issue` step 6) with the plan in the body; report the new issue number.
 
-Where the routed body is derived from the plan rather than posted verbatim — an umbrella sub-issue's Goal / Scope / Out of scope / Acceptance, or one of several issues a multi-commit plan splits into — discharge that body's evidence claims and run `gh-body-check` against it, re-discharging and re-running until no unresolved ⚠ remains. Show the derived body for approval before filing it.
+Where the routed body is derived from the plan rather than posted verbatim — an umbrella sub-issue's Goal / Scope / Out of scope / Acceptance, or one of several issues a multi-commit plan splits into — discharge that body's evidence claims and run `gh-body-check` against it, re-discharging and re-running until no unresolved ⚠ remains. Show the derived body for approval before filing it; if the user requests changes, revise, re-discharge, re-run the check, and re-show.
 
 When ambiguous, ask the user. Umbrella sub-issue is the D1 default.
 
