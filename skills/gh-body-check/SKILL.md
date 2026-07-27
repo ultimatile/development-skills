@@ -86,8 +86,8 @@ Combine the rg hit (if any) and the cold-reader report into a single status. For
 - **True positive** (`actionable`) — fix before proceeding.
 - **False positive due to missing context** — record explicitly why (e.g., the cold reader did not recognize a public external reference, or the term is a standard library identifier the reader was unfamiliar with). Per `finding-triage`, false-positive classification is itself a triage step the user can challenge; do not silently override.
 
-Any unresolved ⚠ blocks the caller's next step. Return the report; the caller revises the draft and re-runs `gh-body-check`. Iterate until clean, or each remaining ⚠ has an inline waiver with a one-line justification.
+Any unresolved ⚠ blocks the caller's next step. Return the report; the caller revises the draft, re-discharges its evidence claims, and re-runs `gh-body-check`. Iterate until clean, or each remaining ⚠ has an inline waiver with a one-line justification.
 
 ## What this skill does NOT do
 
-Does not draft or file the body (caller's job). Does not maintain the rule set (`gh-body-conventions` is SSOT — update it first, then add the corresponding check here if a new mechanical rule is needed). Does not check hard-wrap (delegated upstream to `gh-post`'s `detect_hardwrap`) or reference anchoring (raw line numbers, broken issue refs — a separate concern that may live in a future reference-validity tool).
+Does not draft or file the body (caller's job). Does not maintain the rule set (`gh-body-conventions` is SSOT — update it first, then add the corresponding check here if a new mechanical rule is needed). Does not discharge `gh-body-conventions` § Evidence claims: that rule compares the body against the drafting session's record of what ran, which is exactly the context this check's subagent is denied — the caller discharges it in main context before invoking this check. Does not check hard-wrap (delegated upstream to `gh-post`'s `detect_hardwrap`) or reference anchoring (raw line numbers, broken issue refs — a separate concern that may live in a future reference-validity tool).
