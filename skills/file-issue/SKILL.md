@@ -74,7 +74,7 @@ Section headings are optional for short issues — a 5-line body often needs no 
 
 ### 3. Discharge evidence claims
 
-Discharge every statement in the draft that asserts verification was performed, per `gh-body-conventions` § Evidence claims — across all sections, not only the `## Reproduction / Evidence` slot that asks for commands run and results observed.
+Discharge every evidence claim in the draft, as `gh-body-conventions` § Evidence claims defines one — across all sections, not only the `## Reproduction / Evidence` slot that asks for commands run and results observed.
 Run this in main context: the record the rule compares against is the drafting session's own, which a subagent does not have.
 
 Editing the body here is expected; the laundering pass runs on the result.
