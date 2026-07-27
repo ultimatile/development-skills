@@ -72,21 +72,28 @@ Produce a title and body following the conventions above.
 
 Section headings are optional for short issues — a 5-line body often needs no headings at all.
 
-### 3. Laundering pass — run `gh-body-check`
+### 3. Discharge evidence claims
+
+Discharge every statement in the draft that asserts verification was performed, per `gh-body-conventions` § Evidence claims — across all sections, not only the `## Reproduction / Evidence` slot that asks for commands run and results observed.
+Run this in main context: the record the rule compares against is the drafting session's own, which a subagent does not have.
+
+Editing the body here is expected; the laundering pass runs on the result.
+
+### 4. Laundering pass — run `gh-body-check`
 
 Run `gh-body-check` against the drafted body. The check runs a Unicode-math regex scan and a cold-reader subagent that judges whether every referent in the body resolves from the target repo's public state alone — the author has just drafted the text and is primed to read what they meant rather than what they wrote, which has repeatedly let private-context tokens slip past a self-administered cold re-read.
 
-Pass artifact kind `issue`, the target repo, and the target language. The check returns a ✅ / ⚠ status. Mandatory before every `gh-post issue create` / `gh-post issue comment`. Any ⚠ blocks step 4; revise the draft and re-run until no unresolved ⚠ remains, or explicitly waive a finding with a one-line justification.
+Pass artifact kind `issue`, the target repo, and the target language. The check returns a ✅ / ⚠ status. Mandatory before every `gh-post issue create` / `gh-post issue comment`. Any ⚠ blocks step 5; revise the draft, re-discharge its evidence claims, and re-run until no unresolved ⚠ remains, or explicitly waive a finding with a one-line justification.
 
 See `gh-body-check/SKILL.md` for the procedure.
 
-### 4. Show for approval
+### 5. Show for approval
 
 Present the laundered draft to the user verbatim before filing. Do not file without confirmation.
 
-If the user requests changes, revise and re-show. Do not file partially — the next step runs only after explicit approval.
+If the user requests changes, revise, re-discharge its evidence claims, re-run the laundering pass, and re-show. Do not file partially — the next step runs only after explicit approval.
 
-### 5. File
+### 6. File
 
 Write the laundered body to a temp file, then invoke the wrapper:
 
@@ -101,7 +108,7 @@ gh-post issue create \
 
 If labels or assignees are appropriate and the user mentioned them, add `--label` / `--assignee` flags — these are forwarded to `gh` verbatim. Do not invent labels; only use ones the user named or that are obviously required by the repo's template.
 
-### 6. Report
+### 7. Report
 
 After filing, show the user:
 

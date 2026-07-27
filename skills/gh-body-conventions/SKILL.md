@@ -91,3 +91,25 @@ Common leak shapes — each fails the cold-reader test:
 - Working-session phase / step numbers ("Phase 2 of the umbrella", "Step 3 of the plan") — unless the artifact is itself a public umbrella sub-issue / sub-PR.
 - Chat-tone scaffolding ("As we discussed", "Following up from chat", etc.).
 - Inline Japanese clauses in an otherwise-English body.
+
+## Evidence claims
+
+A statement that verification was performed — a command run, a suite executed, a measurement taken, a probe or agent run carried out — is admissible only if a record of that execution is available to the author at drafting time.
+This is a relation between the text and the drafting session rather than a property of the text, so a cold reader cannot see it and it is discharged in main context by whoever drafts the text.
+
+A record is available when the author observed the execution's result and can still point at it: a command's output, an agent's return, or something durable that holds the result itself — a committed fixture, a linked run.
+Work done in another session, or in a stretch of this one since summarized, leaves no such record unless something durable holds it; a summary or a handoff note describing that work is not a record of it.
+
+- A command-backed claim names the command and its observed result in the body.
+  An agent-backed claim maps to exactly one return; the author checks that mapping, and the body need not name the run.
+  Matching totals are not sufficient: a fabricated entry and an omitted one cancel, so the mapping is checked entry by entry rather than by count.
+  Within an enumeration of runs, no two entries map to the same return; describing one run in two places is not double-counting — claiming it as two entries is.
+- A claim that cannot be stated without naming something § Exclusions forbids is dropped, or restated against something nameable.
+- An enumeration need not be complete — work performed but not written up states nothing false.
+  An enumeration that claims completeness ("all runs performed", "the only cases exercised") does require every record to appear.
+- A claim with no available record is re-run or dropped.
+  It is not softened into a hedge.
+- Text edited after its claims were discharged is discharged again before it is shown or filed.
+  Revise-and-re-run loops are the usual source: a revision made to clear another check can introduce a claim that check does not read.
+
+A statement about an artifact's existence or properties (a test file added, a tolerance value, an identifier) is not an evidence claim; it is checked against the code, not against a record.

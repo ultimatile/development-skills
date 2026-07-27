@@ -222,29 +222,35 @@ After Step 3 produces a plan and before Step 6 collects user approval:
 
 3. **Loop gate**: after patching, re-run `codex-plan-review` per its Step 4 re-run rule. Exit the loop when the last valid verdict is `approve` or `approve with conditions`. Cap: 3 iterations within the same premise. If the cap is reached, or if the loop sits at `reject` with no further re-run warranted, surface the verdict and outstanding findings to the user and ask whether to proceed as-is, patch further manually, or escalate. Premise concerns return to Step 1 and reset the counter — iteration count is per-premise, not lifetime.
 
-4. **The plan that exits this step is the contract.** Step 7 will post that plan once. Revisions happen here, before posting; there is no "post then revise" loop.
+4. **The plan that exits this step is the contract.** Step 7 posts that plan once and does not revise it afterwards; there is no "post then revise" loop. Every revision — this step's, the user's at Step 6, a discharge, a laundering fix — happens before posting.
 
 ## Step 6 — User approval
 
+Discharge the plan's evidence claims per `gh-body-conventions` § Evidence claims before presenting it — the plan enumerates probe outcomes, and neither the user nor the cold-reader check at 7.0 can see the returns they rest on.
+
 Present the plan (after any Step 5 revisions) and ask for approval before posting to GitHub.
+
+If the user requests changes, revise, re-discharge the plan's evidence claims, and re-show — and if 7.0 has already run, re-run it before posting.
 
 ## Step 7 — Post plan to GitHub
 
 ### 7.0 Laundering pass — run `gh-body-check` (MANDATORY)
 
-Run `gh-body-check` on the plan body before any `gh-post` invocation; resolve any ⚠ before posting.
+Run `gh-body-check` on the plan body before any `gh-post` invocation. Resolve any ⚠, re-discharge the plan's evidence claims, and re-run the check until no unresolved ⚠ remains. If that changed the plan, re-show it for approval before posting — Step 6 approved the text as it stood.
 
 ### 7.1 Route to the correct surface
 
 After 7.0 clears, route the plan based on what `$ARGUMENTS` resolves to:
 
-- **Existing single-scope issue** → `gh-post issue comment $ARGUMENTS` (per `file-issue` step 5) with the plan as body.
+- **Existing single-scope issue** → `gh-post issue comment $ARGUMENTS` (per `file-issue` step 6) with the plan as body.
 - **Existing umbrella issue** (the body contains a Phases table or sub-tasks list) → spawn a new sub-issue whose body IS the plan, following `file-issue`'s `Variants > Umbrella sub-issue` shape: `Parent: #<umbrella>` on the first line, `Phase N: <topic>` title, Goal / Scope / Out of scope / Acceptance derived from the plan. After creation, append the new sub-issue's number to the umbrella's Phases table row. Do not also post the plan as an umbrella comment.
-- **New task** → `gh-post issue create` (per `file-issue` step 5) with the plan in the body; report the new issue number.
+- **New task** → `gh-post issue create` (per `file-issue` step 6) with the plan in the body; report the new issue number.
+
+Where the routed body is derived from the plan rather than posted verbatim — an umbrella sub-issue's Goal / Scope / Out of scope / Acceptance, or one of several issues a multi-commit plan splits into — discharge that body's evidence claims and run `gh-body-check` against it, re-discharging and re-running until no unresolved ⚠ remains. Show the derived body for approval before filing it.
 
 When ambiguous, ask the user. Umbrella sub-issue is the D1 default.
 
-**Issue creation rules** (research-specific; body shape and the language / reference / line-number / exclusion rules come from `gh-body-conventions` via `file-issue`):
+**Issue creation rules** (research-specific; body shape and the language / reference / line-number / evidence-claim / exclusion rules come from `gh-body-conventions` via `file-issue`):
 
 1. **Split issues by commit unit.** Each issue corresponds to one atomic, independently committable change. Multi-commit plans become multiple issues with `Depends on #N` links.
 2. **No "rejected alternatives" sections** unless explicitly requested.
