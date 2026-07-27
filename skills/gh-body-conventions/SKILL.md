@@ -103,7 +103,7 @@ Work done in another session, or in a stretch of this one since summarized, leav
 - A command-backed claim names the command and its observed result in the body.
   An agent-backed claim maps to exactly one return; the author checks that mapping, and the body need not name the run.
   Matching totals are not sufficient: a fabricated entry and an omitted one cancel, so the mapping is checked entry by entry rather than by count.
-  Within an enumeration of runs, no two entries map to the same return; describing one run in two places is not double-counting — claiming it as two entries is.
+  Within an enumeration of runs, no two entries map to the same record; describing one run in two places is not double-counting — claiming it as two entries is.
 - A claim that cannot be stated without naming something § Exclusions forbids is dropped, or restated against something nameable.
 - An enumeration need not be complete — work performed but not written up states nothing false.
   An enumeration that claims completeness ("all runs performed", "the only cases exercised") does require every record within the scope it claims to appear; work that verifies the body itself is outside any such scope.
@@ -112,5 +112,5 @@ Work done in another session, or in a stretch of this one since summarized, leav
 - Text edited after its claims were discharged is discharged again before it is shown or filed.
   Revise-and-re-run loops are the usual source: a revision made to clear another check can introduce a claim that check does not read.
 
-A statement about an artifact's existence or static properties (a test file added, a tolerance value, an identifier) is not an evidence claim; it is checked against the code, not against a record.
+A statement of an artifact's existence or static properties (a test file added, a tolerance value, an identifier) is not an evidence claim; it is checked against the code, not against a record. What is exempt is the proposition — reporting that you ran something to check it is an evidence claim like any other.
 A property that could only be known by running something — a suite passing, a coverage figure, a timing — is an evidence claim however it is phrased.
