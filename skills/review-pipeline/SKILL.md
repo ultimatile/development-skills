@@ -91,7 +91,7 @@ Skip when the work is not tied to an umbrella tracking issue. Trigger only when 
 
    Apply `gh-body-conventions` to the appended section (same semantic line breaks, same exclusions). Line refs into this PR's diff are permitted.
 
-   Discharge the appended section's evidence claims per `gh-body-conventions` § Evidence claims before running the check below.
+   Discharge the appended section's evidence claims per `gh-body-conventions` § Evidence claims before running the check below, and re-check any completeness claim already in the body — work done since the body was last discharged can have falsified one without its text changing.
 
    Before invoking `gh-post pr edit`, run `/gh-body-check` against the **final body** (existing PR body concatenated with the appended delta section). Paragraph boundaries and reference patterns can cross the section seam, so auditing only the appended section would miss them. Pass artifact kind `pr` and the target language. Any unresolved ⚠ blocks `gh-post pr edit` — revise the appended section, re-discharge its evidence claims, and re-run until clean.
 

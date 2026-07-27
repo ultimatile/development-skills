@@ -114,5 +114,5 @@ Work done in another session, or in a stretch of this one since summarized, leav
 - Text edited after its claims were discharged is discharged again before it is shown or filed.
   Revise-and-re-run loops are the usual source: a revision made to clear another check can introduce a claim that check does not read.
 
-A statement of an artifact's existence or static properties (a test file added, a tolerance value, an identifier) is not an evidence claim; it is checked against the code, not against a record. What is exempt is the proposition — reporting that you ran something to check it is an evidence claim like any other.
-A property that could only be known by running something — a suite passing, a coverage figure, a timing — is an evidence claim however it is phrased.
+A statement is an evidence claim if it asserts an execution or reports an observation, or if the property it states could only be known by running something — a suite passing, a coverage figure, a timing — however phrased.
+A statement of an artifact's existence, or of a property establishable by reading the code (a test file added, a tolerance value, an identifier, which cases a test covers), is not one; it is checked against the code, not against a record, even where something was also run to confirm it. Reporting that run is a separate statement, and that one is an evidence claim.
