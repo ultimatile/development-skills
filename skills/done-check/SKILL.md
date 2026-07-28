@@ -9,7 +9,9 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
 
 ## Procedure
 
-0. **Resolve the active rule sets.** `quality-list` always applies: its base items live in `quality-list/SKILL.md`, and language-specific addenda at `quality-list/lang-<language>.md` realize them concretely. `authoritative-text-rules` applies conditionally, by the firing rule in Step 2.
+0. **Resolve the active rule sets.** Resolve two absolute paths first, and use them everywhere below: `<RULES_ROOT>`, the repo / package root holding the `skills/quality-list/` and `skills/authoritative-text-rules/` directories, and `<TARGET_ROOT>`, the project under audit (cwd). They coincide only when the rule sets are vendored inside the target; in a marketplace or symlinked install they differ, and every read of a rule file — main context's as much as a subagent's — resolves against `<RULES_ROOT>`.
+
+   `quality-list` always applies: its base items live in `<RULES_ROOT>/skills/quality-list/SKILL.md`, and language-specific addenda at `<RULES_ROOT>/skills/quality-list/lang-<language>.md` realize them concretely. `authoritative-text-rules` applies conditionally, by the firing rule in Step 2.
 
    Detect language from the project's `CLAUDE.md` `Language:` declaration; otherwise auto-detect from diff file extensions (`.rs` → rust, `.cpp`/`.cc`/`.cxx`/`.h`/`.hpp` → cpp, `.py` → python, `.ts`/`.tsx` → typescript, `.go` → go, etc.). Multi-language projects detect every present language; each matching addendum applies. Missing addendum → base rules only for that language (not a concern). Step 0 only **detects** the language(s); it routes nothing. Each consumer that applies `quality-list` — the Step 2 mechanical subagent and the Step 3 contextual pass — loads every matching addendum file itself.
 
@@ -29,7 +31,7 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
 
    **Main context MUST NOT load a purely-mechanical `quality-list` item body, and MUST NOT load any `authoritative-text-rules` item body.** Each subagent reads its own SSOT's index and the bodies it needs in its own fresh context, deriving its item set from that index; main only composes the prompts (diff + resolved paths) and dispatches. Main reads the contextual-lane `quality-list` bodies it audits in Step 3, and may read either SSOT's index — that is how Step 3 selects contextual items and how Step 4 predicts the authoritative-text row set.
 
-   Resolve two absolute paths before dispatching: `<RULES_ROOT>`, the repo / package root containing the `skills/quality-list/` and `skills/authoritative-text-rules/` directories, and `<TARGET_ROOT>`, the project under audit (cwd). They coincide only when the rule sets are vendored inside the target; in a marketplace or symlinked install they differ, and a subagent needs both.
+   Both prompts below carry the two absolute paths Step 0 resolved; a subagent needs both.
 
    **Auditor 1 — `quality-list` mechanical lane.** Always dispatched. Use the `Agent` tool with `subagent_type: "general-purpose"` and a prompt of the following shape:
 
@@ -82,7 +84,8 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
    derivative claims to mirror.
 
    Report concisely (under 600 words):
-   - one row per item with Result + Evidence + Note
+   - one row per item, labelled with that item's slug exactly as the
+     Items index spells it, carrying Result + Evidence + Note
    - a final list of any cross-cutting concerns spanning multiple
      items
    ```
@@ -144,7 +147,7 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
 
    Each dispatched subagent runs in parallel with main-context step 3 below; do not block waiting on any of them unless step 4 requires the result.
 
-3. **Audit the contextual items in main context.** Read `quality-list/SKILL.md`'s Items index and select every item whose lane is `contextual`, including the contextual half of dual-lane items (an index entry tagged `mechanical (+ contextual half)`, e.g. ported-code-attribution). These need information the subagent does not have — plan / intent / review history, or actual command execution against the working tree. The groupings below are non-exhaustive illustration; the index is the authoritative set:
+3. **Audit the contextual items in main context.** Read `<RULES_ROOT>/skills/quality-list/SKILL.md`'s Items index and select every item whose lane is `contextual`, including the contextual half of dual-lane items (an index entry tagged `mechanical (+ contextual half)`, e.g. ported-code-attribution). These need information the subagent does not have — plan / intent / review history, or actual command execution against the working tree. The groupings below are non-exhaustive illustration; the index is the authoritative set:
 
    - `invariant-derivation`, `purpose-verification`, `scope-discipline`, `discovery-surfacing` — need plan / intent / review history
    - `escape-hatch-necessity` — needs design intent and codebase context to judge whether a direct fix could replace the workaround (a workaround's *presence* may be grep-visible, but its *necessity* is not literal-text-decidable)
@@ -152,7 +155,7 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
    - `pattern-audit` — needs awareness of which patterns were consciously copied vs independently reinvented
    - `docstring-drift` — needs the diff's behavior-change context plus an execution probe when the changed behavior is library-owned
 
-   For each selected contextual item, `Read` the corresponding `quality-list/items/<slug>.md` file; if a detected language has an addendum section for that item (per Step 0 — e.g. `escape-hatch-necessity`'s Rust realization in `lang-<lang>.md` carries the concrete trigger / detection / mitigation guidance), read every such section too; this contextual pass self-loads every matching addendum itself, one per detected language (Step 0 only detects the languages). Which bodies this pass may open is Step 2's prohibition, stated there and not restated here.
+   For each selected contextual item, `Read` the corresponding `<RULES_ROOT>/skills/quality-list/items/<slug>.md` file; if a detected language has an addendum section for that item (per Step 0 — e.g. `escape-hatch-necessity`'s Rust realization in `lang-<lang>.md` carries the concrete trigger / detection / mitigation guidance), read every such section too; this contextual pass self-loads every matching addendum itself, one per detected language (Step 0 only detects the languages). Which bodies this pass may open is Step 2's prohibition, stated there and not restated here.
 
    `ported-code-attribution` is dual-lane: the subagent handles the *declared* case (literal grep for "ported from" / "derived from" / external project names → verify attribution); main context handles the *undeclared* case where the conversation history shows research surfaced an external implementation that the diff structurally mirrors but no comment names. If research identified an upstream reference and the diff looks like it followed it, demand attribution even if no comment marks the port. Read `items/ported-code-attribution.md` for both halves.
 
@@ -160,7 +163,7 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
 
 4. **Merge results.** When each dispatched subagent (step 2) returns, integrate three row sources into a single table: auditor 1's `quality-list` mechanical-lane rows, main-context's contextual-lane rows, and — when auditor 2 was dispatched — its `authoritative-text-rules` rows. One row per item; dual-lane items render once with both half-results merged.
 
-   **Coverage check on auditor 2's rows.** Only when it was dispatched. Read `authoritative-text-rules/SKILL.md`'s Items index for the predicted slug set — the index, never an item body, and never a slug list written into this file. A return that is exactly one row per predicted slug and no others passes. Any other return — a slug missing, duplicated, or outside the set — gets one re-dispatch of auditor 2 with its prompt unchanged; if the second return still does not match, carry the mismatch as a cross-cutting concern naming the offending slugs. It closes through step 5 like any other concern, so an incomplete rule set blocks completion without introducing an exit of its own.
+   **Coverage check on auditor 2's rows.** Only when it was dispatched. Read `<RULES_ROOT>/skills/authoritative-text-rules/SKILL.md`'s Items index for the predicted slug set — the index, never an item body, and never a slug list written into this file. A return that is exactly one row per predicted slug and no others passes. Any other return — a slug missing, duplicated, or outside the set — gets one re-dispatch of auditor 2 with its prompt unchanged; if the second return still does not match, carry the mismatch as a cross-cutting concern naming the offending slugs. It closes through step 5 like any other concern, so an incomplete rule set blocks completion without introducing an exit of its own.
 
    Auditor 1's rows carry no equivalent check; that asymmetry is a known gap in this runner, not a property of either rule set.
 
