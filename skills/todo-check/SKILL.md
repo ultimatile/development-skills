@@ -1,13 +1,13 @@
 ---
 name: todo-check
-description: Preflight sweep of quality-list items before or during implementation, framed as 'what to set up so done-check passes at the end'. Dual of done-check.
+description: Preflight sweep of quality-list items before or during implementation, framed as 'what to set up so done-check's quality-list rows pass at the end'. Dual of done-check on that rule set.
 ---
 
 # Todo-Check
 
 Forward-looking preflight against the planned change. Item definitions live in `quality-list`; this skill is the **runner**. Update `quality-list`, not this file, when adding or modifying items.
 
-`done-check` asks: "Did the diff satisfy item N?" `todo-check` asks: "What does item N require us to set up so the diff will satisfy it?" Same mechanical / contextual lane split as `done-check` (`quality-list/SKILL.md`'s Item lanes section): mechanical-lane items go to a fresh-context subagent (Step 2), contextual-lane items stay in main context (Step 3).
+`done-check` asks: "Did the diff satisfy item N?" `todo-check` asks: "What does item N require us to set up so the diff will satisfy it?" On `quality-list` the two apply the same mechanical / contextual lane split (`quality-list/SKILL.md`'s Item lanes section): mechanical-lane items go to a fresh-context subagent (Step 2), contextual-lane items stay in main context (Step 3). The duality stops at that rule set — `done-check` also applies `authoritative-text-rules` when the diff calls for it, and this preflight does not, so a clean preflight does not by itself predict a clean audit.
 
 ## Procedure
 

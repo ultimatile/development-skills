@@ -56,8 +56,9 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | Skill | Description |
 | -- | -- |
 | `quality-list` | Single source of truth for universal code-quality items, referenced by `done-check` and `todo-check` |
-| `todo-check` | Preflight sweep of quality items before/during implementation |
-| `done-check` | Post-hoc audit of quality items before declaring a task complete or requesting external review |
+| `authoritative-text-rules` | Single source of truth for audit items covering text the agent executes as instructions — skill bodies, rule definitions, agent-instruction files — referenced by `done-check` |
+| `todo-check` | Preflight sweep of quality-list items before/during implementation |
+| `done-check` | Post-hoc audit against whichever rule sets the diff calls for, before declaring a task complete or requesting external review |
 
 ### Post-Ship Hygiene
 
