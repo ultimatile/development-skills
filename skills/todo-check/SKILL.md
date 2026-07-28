@@ -7,13 +7,17 @@ description: Preflight sweep of quality-list items before or during implementati
 
 Forward-looking preflight against the planned change. Item definitions live in `quality-list`; this skill is the **runner**. Update `quality-list`, not this file, when adding or modifying items.
 
-`done-check` asks: "Did the diff satisfy item N?" `todo-check` asks: "What does item N require us to set up so the diff will satisfy it?" On `quality-list` the two apply the same mechanical / contextual lane split (`quality-list/SKILL.md`'s Item lanes section): mechanical-lane items go to a fresh-context subagent (Step 2), contextual-lane items stay in main context (Step 3). The duality stops at that rule set — `done-check` also applies `authoritative-text-rules` when the diff calls for it, and this preflight does not, so a clean preflight does not by itself predict a clean audit.
+`done-check` asks: "Did the diff satisfy item N?" `todo-check` asks: "What does item N require us to set up so the diff will satisfy it?" On `quality-list` the two apply the same mechanical / contextual lane split (its Item lanes section): mechanical-lane items go to a fresh-context subagent (Step 2), contextual-lane items stay in main context (Step 3). The duality stops at that rule set — `done-check` also applies `authoritative-text-rules` when the diff calls for it, and this preflight does not, so a clean preflight does not by itself predict a clean audit.
 
 ## Procedure
 
-0. **Resolve the active rule set.** Base items live in `quality-list/SKILL.md`; language-specific addenda at `quality-list/lang-<language>.md` realize them concretely.
+0. **Resolve the active rule set.** Resolve two absolute paths first, and use them everywhere below: `<SKILLS_DIR>`, the directory holding this skill's own directory, and `<TARGET_ROOT>`, the project this preflight is for (cwd). Every read of a rule file — main context's as much as the subagent's — resolves against `<SKILLS_DIR>`, so both paths are resolved here and carried, never re-derived downstream.
 
-   Detect language from the project's `CLAUDE.md` `Language:` declaration; otherwise auto-detect from the extensions of the files the work will likely touch — taken from the plan or task description, since Step 0 runs before Step 1 formalizes the scope (`.rs` → rust, `.cpp`/`.cc`/`.cxx`/`.h`/`.hpp` → cpp, `.py` → python, `.ts`/`.tsx` → typescript, `.go` → go, etc.). Multi-language projects detect every present language; each matching addendum applies. Missing addendum → base rules only for that language (not a concern). Step 0 only **detects** the language(s); it routes nothing. Each consumer — the Step 2 mechanical subagent and the Step 3 contextual pass — loads every matching addendum file itself.
+   `<SKILLS_DIR>` is `${CLAUDE_SKILL_DIR}/..`.
+
+   Base items live in `<SKILLS_DIR>/quality-list/SKILL.md`; language-specific addenda at `<SKILLS_DIR>/quality-list/lang-<language>.md` realize them concretely. Verify `<SKILLS_DIR>/quality-list/SKILL.md` is present here, before anything reads it. A rule set that is not there halts, reporting the file looked for and the directory looked in, so that whoever reads the halt can tell a wrong `<SKILLS_DIR>` from a rule set that is not installed.
+
+   Detect language from `<TARGET_ROOT>/CLAUDE.md`'s `Language:` declaration — the target's, never one found beside the rule files; otherwise auto-detect from the extensions of the files the work will likely touch — taken from the plan or task description, since Step 0 runs before Step 1 formalizes the scope (`.rs` → rust, `.cpp`/`.cc`/`.cxx`/`.h`/`.hpp` → cpp, `.py` → python, `.ts`/`.tsx` → typescript, `.go` → go, etc.). Multi-language projects detect every present language; each matching addendum applies. Missing addendum → base rules only for that language (not a concern). Step 0 only **detects** the language(s); it routes nothing. Each consumer — the Step 2 mechanical subagent and the Step 3 contextual pass — loads every matching addendum file itself.
 
 1. **Describe the planned change.** State in plain terms what the change will do: the files / modules it will touch, the behavior it will change, the public symbols / schemas / contracts it will move, and the invariants it introduces or modifies. Capture what is already decided; leave the rest unstated — an unsettled fact surfaces as a `? unknown` row below, not a guess. State the language(s) Step 0 detected here too, so the subagent applies the same addenda the contextual lane does rather than re-deriving them from a scope description that may name modules without file extensions. **Do not pre-classify the change against individual items** — the subagent (Step 2) and the contextual pass (Step 3) read each item's body and decide applicability themselves; the scope description is a plain account of the change, not a per-item trigger checklist.
 
@@ -33,7 +37,7 @@ Forward-looking preflight against the planned change. Item definitions live in `
 
    **Main context MUST NOT load a purely-mechanical item's body** (the dual-lane `ported-code-attribution` body is the one exception, read in Step 3 for its contextual half). The subagent reads the index and those bodies in its own fresh context — it derives the mechanical-lane item set from the index itself; main only composes the prompt (scope description + the resolved paths) and dispatches.
 
-   Resolve two absolute paths first: `<QUALITY_LIST_ROOT>`, the repo/package root containing the `skills/quality-list/` directory, and `<TARGET_ROOT>`, the project this preflight is for (cwd) — they coincide only when `quality-list` is vendored inside the target; in a marketplace / symlinked install they differ, and the subagent needs both.
+   The prompt carries the two absolute paths Step 0 resolved; the subagent needs both.
 
    Use the `Agent` tool with `subagent_type: "general-purpose"` and a prompt of the following shape:
 
@@ -60,7 +64,7 @@ Forward-looking preflight against the planned change. Item definitions live in `
    in your report. A characterization of the not-yet-written change
    itself has nothing to check against — take it as given.
 
-   First read <QUALITY_LIST_ROOT>/skills/quality-list/SKILL.md and
+   First read <SKILLS_DIR>/quality-list/SKILL.md and
    consult its Items index. Select every item whose lane is
    `mechanical`, including the mechanical half of any dual-lane item (an
    entry tagged `mechanical (+ contextual half)`, e.g.
@@ -68,16 +72,17 @@ Forward-looking preflight against the planned change. Item definitions live in `
    undeclared-port signal is main context's job, but still return a row
    for the item even when its declared half is ⊘ N/A, so the coverage
    check sees it). Read each selected item's
-   <QUALITY_LIST_ROOT>/skills/quality-list/items/<slug>.md in full.
+   <SKILLS_DIR>/quality-list/items/<slug>.md in full.
 
    The language(s) Step 0 detected are stated below; load each
    corresponding addendum at
-   <QUALITY_LIST_ROOT>/skills/quality-list/lang-<lang>.md that exists,
+   <SKILLS_DIR>/quality-list/lang-<lang>.md that exists,
    loading them all when more than one applies. If none are stated, fall
-   back to <TARGET_ROOT>/CLAUDE.md's `Language:` line (never
-   <QUALITY_LIST_ROOT>/CLAUDE.md), then to the file extensions in the
-   scope description. No language found, or a detected language with no
-   addendum file, is not a concern — proceed on base rules.
+   back to the `Language:` line of <TARGET_ROOT>/CLAUDE.md — that file
+   and no other CLAUDE.md, whatever its location — then to the file
+   extensions in the scope description. No language found, or a
+   detected language with no addendum file, is not a concern —
+   proceed on base rules.
 
    For each selected item return one of:
 
@@ -101,9 +106,9 @@ Forward-looking preflight against the planned change. Item definitions live in `
 
    Start Step 3 immediately rather than waiting; the two run in parallel. Block on the subagent's return once you reach Step 4.
 
-3. **Process the contextual items in main context.** Read `quality-list/SKILL.md`'s Items index and select every item whose lane is `contextual`, including the contextual half of dual-lane items — `ported-code-attribution`'s undeclared-port signal is main's job because it needs the conversation / research history the subagent lacks. These need plan / intent / review history, or command-execution planning against the working tree.
+3. **Process the contextual items in main context.** Read `<SKILLS_DIR>/quality-list/SKILL.md`'s Items index and select every item whose lane is `contextual`, including the contextual half of dual-lane items — `ported-code-attribution`'s undeclared-port signal is main's job because it needs the conversation / research history the subagent lacks. These need plan / intent / review history, or command-execution planning against the working tree.
 
-   For each selected contextual item, `Read` its `quality-list/items/<slug>.md` body — plus every `lang-<lang>.md` addendum section for a language Step 0 detected, self-loaded here — before deciding its status. Read only the contextual-lane bodies — plus `ported-code-attribution`'s own body, which the undeclared-port half is decided from even though the item is index-tagged `mechanical (+ contextual half)` — not a purely mechanical-lane item's body. For each, determine one of:
+   For each selected contextual item, `Read` its `<SKILLS_DIR>/quality-list/items/<slug>.md` body — plus every `lang-<lang>.md` addendum section for a language Step 0 detected, self-loaded here — before deciding its status. Read only the contextual-lane bodies — plus `ported-code-attribution`'s own body, which the undeclared-port half is decided from even though the item is index-tagged `mechanical (+ contextual half)` — not a purely mechanical-lane item's body. For each, determine one of:
 
    - **△ active** — this item will apply to the finished diff; record the concrete setup action to do *now* (fixture variants, guard locations, paired-artifact surfaces, probes to thread through).
    - **⊘ N/A** — the item's own N/A criterion excludes the scope. State why.
@@ -112,7 +117,7 @@ Forward-looking preflight against the planned change. Item definitions live in `
 4. **Merge results.** Integrate the mechanical-lane rows the subagent returned with the contextual-lane rows (Step 3) into a single table.
 
    ```
-   domain: every item in the `quality-list/SKILL.md` Items index
+   domain: every item in the `<SKILLS_DIR>/quality-list/SKILL.md` Items index
 
    coverage — the subagent's returned mechanical rows against the
    mechanical-lane slug set the index predicts. This applies to a
@@ -190,7 +195,7 @@ Forward-looking preflight against the planned change. Item definitions live in `
 
 ## Preflight framing per item (quick reference)
 
-These are how each `quality-list` item reads in preflight mode — a compressed mnemonic of the lens-shift from the item's audit question to a preflight setup action. A row is **not** the applicability authority and decides nothing: Step 3 reads each contextual item's body (`quality-list/items/<slug>.md`) plus any applicable addendum, and that — with the index as the item set — decides whether it applies. Consult a row for its setup framing once the body has marked the item active.
+These are how each `quality-list` item reads in preflight mode — a compressed mnemonic of the lens-shift from the item's audit question to a preflight setup action. A row is **not** the applicability authority and decides nothing: Step 3 reads each contextual item's body (`<SKILLS_DIR>/quality-list/items/<slug>.md`) plus any applicable addendum, and that — with the index as the item set — decides whether it applies. Consult a row for its setup framing once the body has marked the item active.
 
 This list covers only the contextual-lane items (and the contextual half of the dual-lane item) that Step 3 processes. Mechanical-lane items have no row *in this quick reference* (they still get a row in the final preflight table, per Step 4): the subagent never reads this file, so a mnemonic for it would have no consumer.
 
@@ -221,4 +226,4 @@ preflight: <task / unit description>
 | discovery-surfacing           | △ active | watch: inconclusive[1] probe at <site>; branches X/Y   |
 ```
 
-Emit one row per item in the `quality-list/SKILL.md` Items index, in index order — the rows above illustrate the format and the status vocabulary (△ active / ⊘ N/A), not the full set. `? unknown` is a working state that Step 5 resolves, so it never appears in the final table. Step 4 and Step 5 each also carry a halt path, and a halted preflight emits no table. The table merges the mechanical-lane rows (Step 2's subagent) with Step 3's contextual-lane rows, per Step 4. Hand the △ rows forward as the implementation setup.
+Emit one row per item in the `<SKILLS_DIR>/quality-list/SKILL.md` Items index, in index order — the rows above illustrate the format and the status vocabulary (△ active / ⊘ N/A), not the full set. `? unknown` is a working state that Step 5 resolves, so it never appears in the final table. Only a preflight that reaches Step 6 emits a table at all; every halt above ends it without one, however many such halts the steps above come to hold. The table merges the mechanical-lane rows (Step 2's subagent) with Step 3's contextual-lane rows, per Step 4. Hand the △ rows forward as the implementation setup.

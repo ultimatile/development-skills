@@ -2,7 +2,7 @@
 
 A step that names its executor promises that executor can perform it. The promise fails when the step demands information the executor is never given, or a judgment nothing in its inputs can settle, or when the condition it turns on cannot be evaluated at all.
 
-**Trigger.** The diff adds, modifies, or removes an authoritative-text step that names who or what executes it — a subagent dispatch, a main-context pass, a command invocation, a lane assignment, or an instruction addressed to a specific reader.
+**Trigger.** The diff adds, modifies, or removes an authoritative-text step that names who or what executes it. Recurring instances: a subagent dispatch, a main-context pass, a command invocation, a lane assignment, an instruction addressed to a specific reader.
 
 **Sweep.**
 
@@ -24,3 +24,5 @@ A step that names its executor promises that executor can perform it. The promis
 
 - Against `consumer-closure`: this item asks whether the step can be performed; `consumer-closure` asks whether what it produces is received.
 - Against `case-space-totality`: a branch the executor cannot evaluate is this item. A branch that is evaluable but covers no case is totality's.
+- Against `single-reading`: if the written definition supplies the demanded input under one admissible reading of it, the defect is the ambiguity — report it there. If no reading supplies it, the unfitness survives every reading and is this item's.
+- Against `clause-composition`: compose the clauses before deciding. An input still absent once they are composed is this item's. An absence the clauses themselves produce — one supplying the input and another contradicting or suppressing that provision — is `clause-composition`'s, because a suppressed provision reads as a missing input to a sweep that looks only at the step.

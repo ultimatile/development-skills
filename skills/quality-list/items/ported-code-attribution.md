@@ -25,6 +25,6 @@ Code reused from an external project — whether copied verbatim, ported line-fo
 - Upstream license is incompatible with this project's license (e.g., GPL code in an Apache-2.0 project) and the diff does not address the conflict.
 - Modifications relative to upstream are not enumerated, and the upstream license requires marking changed files (e.g., Apache-2.0 § 4(b)).
 - A NOTICE / THIRD_PARTY file in the diff claims to mirror an upstream NOTICE, but the upstream does not have one (verified by fetching it from the canonical source).
-- The naming-as-claim concern from item 11 also fires: the ported code's name asserts a property not in the upstream (e.g., calling a U(2)-sampling helper "Haar"), which can imply distributional guarantees the port does not provide.
+- The naming-as-claim concern from `paired-artifact-drift` also fires: the ported code's name asserts a property not in the upstream (e.g., calling a U(2)-sampling helper "Haar"), which can imply distributional guarantees the port does not provide.
 
 **N/A:** the diff contains no ported code from an external project (fresh design or trivial idiom).
