@@ -194,7 +194,7 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
 
 5. If any ⚠ remains, fix before proceeding. State concretely what will change. Do not proceed until each concern is resolved, explicitly waived by the user with reasoning, or closed as a recorded deferral per `finding-triage`'s `defer` — a follow-up issue filed with the user's approval. A deferral closes the concern's handling, not its verdict: the row stays ⚠ with the deferral recorded in its Note.
 
-6. Report the audit table, followed by any cross-cutting concerns and their triage. Only a run that reaches this step reports at all: every halt above — a rule set that is not under `<SKILLS_DIR>`, a coverage check still unmatched after its re-dispatch — ends the run without a table, however many such halts the steps above come to hold. Delta mode narrows this report rather than removing it (below).
+6. Report the audit table, followed by any cross-cutting concerns and their triage. Only a run that reaches this step emits a table at all: every halt above — a rule set that is not under `<SKILLS_DIR>`, a coverage check still unmatched after its re-dispatch — ends the run without one, however many such halts the steps above come to hold. Delta mode narrows this report rather than removing it (below).
 
 ## Output format
 
@@ -212,7 +212,7 @@ self-audit: <commit-range or "uncommitted">
 
 The table's row domain is every item in the `<SKILLS_DIR>/quality-list/SKILL.md` Items index, in index order, followed — when step 2's firing rule dispatched auditor 2 — by every item in the `<SKILLS_DIR>/authoritative-text-rules/SKILL.md` Items index, in that index's order. One row per item, and no rows outside the two domains. The rows above illustrate the format and the result vocabulary (✅ pass / ⚠ concern / ⊘ N/A), not the full set. Dual-lane items render once with both half-results merged. Each block is generated from its own index, never maintained as an independent list.
 
-That domain is the full report's. Delta mode renders a subset of it, per the exception below, and a run that halted before step 6 renders no table at all.
+That domain is the full report's. Delta mode renders a subset of it, per the exception below, and a halted run renders none of it, on the terms step 6 states.
 
 ## Delta mode
 

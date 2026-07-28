@@ -134,7 +134,7 @@ Runs only after the user has merged.
 
 - **A halted done-check stops the pipeline.** This binds every `/done-check` invocation here — Phase 0, Phase 0.5, and the fix-loop substep alike. A halted run emits no table. The step that invoked it does not complete: do not fix, do not commit, do not re-review. It has surfaced something to the user; that is where the pipeline waits.
 
-- **Done-check delta mode.** `done-check` defines the mode and what a delta report carries. Its step 5 gate binds the whole audit, not the narrowed report, so satisfy that gate before the subsequent `/stage-commit-push` rather than only the ⚠ the delta printed. Pay special attention to:
+- **Done-check delta mode.** `done-check` defines the mode, what a delta report carries, and what its step 5 gate binds. Satisfy that gate before the subsequent `/stage-commit-push` rather than only the ⚠ the delta printed. Pay special attention to:
 
   - `paired-artifact-drift`: every comment / docstring / PR-body sentence touched by or referring to the fixed code must still be accurate. Accuracy is not the whole test: a fix that answers a reviewer by *qualifying* a documented behavior — admitting a case the doc did not — strands every unqualified statement of that behavior elsewhere, which an accuracy check over the fix's own text never looks at. Run the item's **Qualification completeness** sweep on those fixes. Fix loops generate this class, which the first-pass audit cannot pre-empt: the caveat does not exist yet for the earlier text to contradict.
   - `completion-hygiene`: pre-commit hooks catch lint / fmt / line count, but the fix may have added stray `dbg!` / `println!` / scratch test code.
