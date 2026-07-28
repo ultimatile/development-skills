@@ -6,7 +6,7 @@ A rule set is executed as a whole, so a clause is correct only in company. Two c
 
 **Sweep.**
 
-1. **Fix the rule set.** It is the authoritative-text files the diff touches, plus every file they reference as rule content — an index they read, an item body they dispatch on, a definition file they point at by name. A file merely mentioned in passing is not rule content.
+1. **Fix the rule set.** It is the authoritative-text files the diff touches, plus every file joined to them by a rule-content reference in **either** direction: the ones they reference — an index they read, an item body they dispatch on, a definition file they point at by name — and the ones that reference them. Traverse inbound too, because references run runner-to-rule: an item body names no runner, so an outbound-only rule set makes every item-only diff a single unit and hides exactly the runner-versus-item conflict this item exists to catch. Find the inbound side by searching the tree for the changed file's path and slug. A file merely mentioned in passing is not rule content.
 2. **Derive the search keys from the clause's own terms.** Take its subject, its governing verb, and every artifact, step, or status token it names. Search on the named artifacts rather than on the clause's phrasing: a condition restated in different words still has to mention the things it constrains, so the artifact names find it where the wording does not.
 3. **Read every hit and classify it:**
    - **contradiction** — the two clauses assign incompatible outcomes to a case both cover;
