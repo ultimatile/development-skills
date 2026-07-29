@@ -62,7 +62,7 @@ Language-specific skills go under `skills/languages/<Language>/<skill-name>/` (c
 A change reaches `main` one of two ways; determine which before you bump or tag, because the timing differs:
 
 - **Direct commit to `main`** — the commit you create is itself the published change. Bump and tag on it, following "Direct commit to `main`" below.
-- **PR + squash merge** — any reviewed-implementation flow (`reimre`, `reimrecr`, `review-pipeline`, and the like) puts several commits on a feature branch that collapse into one squash-merge commit on `main`. The published unit is that merge commit, not the branch commits. Follow "PR + squash merge" below.
+- **PR + squash merge** — any reviewed-implementation flow (`reimre`, `review-pipeline`, and the like) puts several commits on a feature branch that collapse into one squash-merge commit on `main`. The published unit is that merge commit, not the branch commits. Follow "PR + squash merge" below.
 
 ### Direct commit to `main`
 
