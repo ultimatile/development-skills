@@ -36,19 +36,15 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | `stage-commit-push` | Stage, generate conventional commit message, commit, and push |
 | `finding-triage` | Single source of truth for per-finding review-triage dispositions (actionable / false-positive / uncertain-validity / opens-a-question → research / invariant-premise-check / defer), referenced by the review and audit skills instead of each restating the taxonomy. Definition file, not a procedure |
 | `codex-review` | Run OpenAI Codex review with triage before PR creation |
-| `coderabbit-local-review` | Run a local CodeRabbit CLI review (no PR needed) with triage — second pre-PR reviewer alongside `codex-review` |
 | `copilot-review` | Create PR with GitHub Copilot review, poll for results, triage |
-| `coderabbit-review` | Create PR and wait for the auto-triggered CodeRabbit review, triage. Use when CodeRabbit is the repo's PR reviewer instead of Copilot |
-| `code-review-gate` | Run the built-in `/code-review` through a fallback lane chain when the Skill tool cannot invoke it directly; used by the pipelines at Phase 0.5 |
+| `code-review-gate` | Run the built-in `/code-review` through a fallback lane chain when the Skill tool cannot invoke it directly; used by `review-pipeline` at Phase 0.5 |
 | `review-pipeline` | Orchestrator — runs the full flow from local changes to reviewed PR |
-| `review-pipeline-coderabbit` | `review-pipeline` variant with Phase 2 swapped from Copilot to CodeRabbit. Use when Copilot review is unavailable or the repo runs CodeRabbit |
 
 ### End-to-end composite
 
 | Skill | Description |
 | -- | -- |
 | `reimre` | Full end-to-end wrapper — runs `research-and-implement` then `review-pipeline` back to back, with an automatic seam rule that skips the duplicate `done-check` at the boundary. Stops at the user-controlled merge gate inherited from `review-pipeline`. |
-| `reimrecr` | `reimre` variant wrapping `review-pipeline-coderabbit` instead of `review-pipeline`. Use when Copilot review is unavailable or the repo runs CodeRabbit |
 | `land-via-integration-branch` | Land a large change too big for one PR as a sequence of PRs merging into a long-lived integration branch, under a four-gate cadence (per-commit done-check, per-unit codex review, per-PR-open codex review, per-PR-review Copilot); a final PR merges the branch into main via `review-pipeline`. Use when one PR would exceed a reviewer's diff-size limit or when multiple component APIs must migrate together. |
 
 ### Quality Gates

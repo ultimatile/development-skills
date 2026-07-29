@@ -20,7 +20,7 @@ One line per pipeline run. Create the directory on first use (`mkdir -p ~/.claud
 Reconstruct from the current conversation's triage records, and from `git` / `gh` for repo facts:
 
 - repo, PR number, pipeline skill name, diff stats (`gh pr view <N> --json additions,deletions,changedFiles`)
-- per gate, in execution order: iterations run, config that varied (e.g. `/code-review` effort), and every triaged finding with its disposition. `iterations` (re-run count) and per-gate false-positive count are the cost proxies; both are reconstructable post-hoc. Do not record wall-clock — gate elapsed time is reconstructed after the run, so a duration nobody clocked at execution time is unrecoverable, and it conflates compute with external-service poll-wait (CodeRabbit / Copilot arrive async) and human approval-wait, which say nothing about the gate's own cost.
+- per gate, in execution order: iterations run, config that varied (e.g. `/code-review` effort), and every triaged finding with its disposition. `iterations` (re-run count) and per-gate false-positive count are the cost proxies; both are reconstructable post-hoc. Do not record wall-clock — gate elapsed time is reconstructed after the run, so a duration nobody clocked at execution time is unrecoverable, and it conflates compute with external-service poll-wait (Copilot arrives async) and human approval-wait, which say nothing about the gate's own cost.
 - per finding, two distinct relations to earlier gates:
   - `duplicate_of_gate` — strictly an **instance re-report**: the same defect (same location, same fix) an earlier gate already surfaced. `null` means the defect itself is new — the instance-level penetration signal.
   - `topic_opened_by` — the gate that **first surfaced this topic** in the run (the gate's own slug when it opened the topic). A new instance of an earlier gate's topic is `duplicate_of_gate: null` + `topic_opened_by: <earlier gate>` — value added, but no topic novelty.
@@ -36,7 +36,7 @@ Reconstruct from the current conversation's triage records, and from `git` / `gh
   "recorded_at": "<ISO8601 UTC>",
   "repo": "owner/name",
   "pr": 123,
-  "pipeline": "review-pipeline-coderabbit",
+  "pipeline": "review-pipeline",
   "diff": {"files": 6, "additions": 964, "deletions": 0},
   "gates": [
     {
@@ -63,7 +63,8 @@ Schema 1 records lack `topic_opened_by`; gate the schema-2 queries with `select(
 
 Normalization rules:
 
-- `gates[].gate` slugs: `done-check`, `code-review`, `codex-review`, `copilot-pr`, `coderabbit-pr`, `coderabbit-local`. Array order = execution order.
+- `gates[].gate` slugs: `done-check`, `code-review`, `codex-review`, `copilot-pr`. Array order = execution order.
+- Retired values are read-only. Records written before the CodeRabbit review lane was removed carry the gate slug `coderabbit-pr`, and the `pipeline` values `review-pipeline-coderabbit` and `coderabbit-review`. Read them; never write one into a new record.
 - `findings[].disposition` uses the `finding-triage` SSOT slugs verbatim (`actionable`, `false-positive`, `uncertain-validity`, `opens-a-question`, `invariant-premise-check`, `defer`).
 - `findings[].topic` is a short kebab-case slug at **class level**, reused across gates and runs for grouping; per-variant detail goes in the one-sentence `summary`. Splitting one class into per-variant slugs breaks every topic aggregation.
 - `duplicate_of_gate` is instance-strict (same defect re-reported); `topic_opened_by` carries class recurrence. Never encode class recurrence in `duplicate_of_gate` — that conflation is exactly what the two fields exist to prevent.
@@ -149,5 +150,7 @@ jq -r 'select(.schema >= 3) | .gates[] | .findings[]
   | [.injected_at_gate, .topic_opened_by] | @tsv' \
   ~/.claude/review-telemetry/runs.jsonl | sort | uniq -c
 ```
+
+Every query above groups by whatever `.gate` holds, so the retired `coderabbit-pr` keeps appearing as its own row over the runs that carry it, and the `-pr$` filter keeps matching it. Its counts stop growing at the point the lane was removed — a retirement, not a gate that went quiet. Any per-gate comparison spanning that point is between a gate that ran throughout and one that ran for part of the log.
 
 Interpret only across many runs — single-run records are anecdotes by definition.
