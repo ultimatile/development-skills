@@ -64,7 +64,7 @@ Schema 1 records lack `topic_opened_by`; gate the schema-2 queries with `select(
 Normalization rules:
 
 - `gates[].gate` slugs: `done-check`, `code-review`, `codex-review`, `copilot-pr`. Array order = execution order.
-- Retired values are read-only. Records written before the CodeRabbit review lane was removed carry the gate slug `coderabbit-pr`, and the `pipeline` values `review-pipeline-coderabbit` and `coderabbit-review`. Read them; never write one into a new record.
+- Records predating the CodeRabbit lane's retirement carry values from it: the gate slug `coderabbit-pr`, and the `pipeline` values `review-pipeline-coderabbit` and `coderabbit-review`. They are history — read them, never write them. `coderabbit-pr`'s counts end at the retirement; a reader who takes that ending for a gate that went quiet misreads it.
 - `findings[].disposition` uses the `finding-triage` SSOT slugs verbatim (`actionable`, `false-positive`, `uncertain-validity`, `opens-a-question`, `invariant-premise-check`, `defer`).
 - `findings[].topic` is a short kebab-case slug at **class level**, reused across gates and runs for grouping; per-variant detail goes in the one-sentence `summary`. Splitting one class into per-variant slugs breaks every topic aggregation.
 - `duplicate_of_gate` is instance-strict (same defect re-reported); `topic_opened_by` carries class recurrence. Never encode class recurrence in `duplicate_of_gate` — that conflation is exactly what the two fields exist to prevent.
@@ -128,7 +128,8 @@ jq -r '.gates[] | .gate as $g | .findings[] | select(.disposition == "false-posi
   ~/.claude/review-telemetry/runs.jsonl | sort | uniq -c
 
 # Runs where a PR-side gate surfaced anything novel
-jq -c 'select(.gates[] | select(.gate | test("-pr$")) | .findings[] | .duplicate_of_gate == null)' \
+# `-pr$` matches the retired `coderabbit-pr` too — narrow it to judge `copilot-pr` alone
+jq -c 'select(any(.gates[] | select(.gate | test("-pr$")) | .findings[]; .duplicate_of_gate == null))' \
   ~/.claude/review-telemetry/runs.jsonl
 
 # Escape-distance: per surfaced defect, how many gates had it in front of them and missed
@@ -150,7 +151,5 @@ jq -r 'select(.schema >= 3) | .gates[] | .findings[]
   | [.injected_at_gate, .topic_opened_by] | @tsv' \
   ~/.claude/review-telemetry/runs.jsonl | sort | uniq -c
 ```
-
-Every query above groups by whatever `.gate` holds, so the retired `coderabbit-pr` keeps appearing as its own row over the runs that carry it, and the `-pr$` filter keeps matching it. Its counts stop growing at the point the lane was removed — a retirement, not a gate that went quiet. Any per-gate comparison spanning that point is between a gate that ran throughout and one that ran for part of the log.
 
 Interpret only across many runs — single-run records are anecdotes by definition.
