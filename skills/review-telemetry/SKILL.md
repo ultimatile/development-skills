@@ -128,7 +128,8 @@ jq -r '.gates[] | .gate as $g | .findings[] | select(.disposition == "false-posi
   ~/.claude/review-telemetry/runs.jsonl | sort | uniq -c
 
 # Runs where a PR-side gate surfaced anything novel
-# `-pr$` matches the retired `coderabbit-pr` too — narrow it to judge `copilot-pr` alone
+# `-pr$` spans both PR-side gates, the retired `coderabbit-pr` included; swap it for
+# `.gate == "copilot-pr"` when the question is about that gate alone
 jq -c 'select(any(.gates[] | select(.gate | test("-pr$")) | .findings[]; .duplicate_of_gate == null))' \
   ~/.claude/review-telemetry/runs.jsonl
 
