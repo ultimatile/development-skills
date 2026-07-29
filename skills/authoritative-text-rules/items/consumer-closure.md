@@ -2,7 +2,7 @@
 
 A value the rule tells its executor to produce is only worth producing if some step accepts it, and an obligation the rule imposes is only dischargeable if something ends it and something receives its result. A verdict outside the consumer's vocabulary and a task with no receiver both fail silently: the executor does the work and nothing happens.
 
-**Trigger.** The diff adds, modifies, or removes authoritative text that emits a value or imposes an obligation — a verdict token, a status, a disposition, a row, a named field, a return shape, or an instruction whose result another step is expected to use.
+**Trigger.** The diff adds, modifies, or removes authoritative text that emits a value or imposes an obligation. Recurring instances: a verdict token, a status, a disposition, a row, a named field, a return shape, an instruction whose result another step is expected to use.
 
 **Sweep.**
 
@@ -31,3 +31,5 @@ A value the rule tells its executor to produce is only worth producing if some s
 
 - Against `executor-fitness`: that item asks whether a step's inputs let it run; this one asks whether its outputs land.
 - Against `case-space-totality`: a vocabulary whose members are each received, but which leaves some case unable to produce any member, is totality's.
+- Against `single-reading`: if the consuming step is identified, or the value falls inside its vocabulary, under one admissible reading, the defect is the ambiguity — report it there. If no reading lands the value, it is unreceived and this item's.
+- Against `clause-composition`: compose the clauses before deciding. A value still unreceived once they are composed — no consuming step, or one whose vocabulary excludes it — is this item's. A receiver one clause establishes and another suppresses or contradicts is `clause-composition`'s.

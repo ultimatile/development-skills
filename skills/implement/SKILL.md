@@ -121,7 +121,7 @@ Substantive rules for guards, fixtures, docstring consistency, textual drift, na
 
 ## Step 4 — Run done-check
 
-Invoke the `done-check` skill against the diff. Resolve every `⚠` before proceeding. If a ⚠ cannot be resolved within the current scope, file a follow-up issue and document the deferral.
+Invoke the `done-check` skill against the diff. Do not proceed until `done-check`'s step 5 gate is satisfied over both domains — the audit table's `⚠` rows and the cross-cutting concerns reported under it. That gate owns which dispositions close each, the deferral path for a concern that cannot be resolved within the current scope included; do not restate them here. An audit that halts emits no table at all. It has surfaced something to the user, and this step does not complete.
 
 ## Step 5 — Final output
 

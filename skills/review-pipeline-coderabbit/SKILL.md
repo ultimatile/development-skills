@@ -12,12 +12,12 @@ The pipeline crosses a **user-controlled merge gate** (Phase 4a → 4b): the use
 ## Phase 0: Done-check loop
 
 1. Run `/done-check` against the current diff (committed + staged + unstaged + untracked).
-2. Triage the audit table — every `⚠` concern is actionable or closed as a recorded deferral (done-check step 5's defer path).
-3. If unresolved concerns (actionable, not closed as recorded deferrals) exist:
+2. Triage what it returned — both the `⚠` rows of the audit table and the cross-cutting concerns reported under it.
+3. If done-check's step 5 gate is not yet satisfied over everything it returned:
    - Fix the code
    - Run `/done-check` again (fresh, full audit — do not bias the next pass with the previous concerns list)
    - Re-triage
-4. Repeat until every row is `✅`, `⊘ N/A`, or `⚠` closed as a recorded deferral per done-check step 5.
+4. Repeat until done-check's step 5 gate is satisfied over both domains — its rows and its cross-cutting concerns. That gate owns which dispositions close each; do not restate them here.
 
 Done-check runs **before** any commit.
 
@@ -27,7 +27,7 @@ Runs after the done-check loop and **before anything is committed**.
 
 1. Run `/code-review-gate` against the current diff, passing `high` for a large or risky diff and `medium` otherwise. The gate skill owns effort semantics, the lane chain, lane-failure handling, and exhaustion.
 2. Triage the output — classify each finding under the `finding-triage` SSOT dispositions.
-3. If actionable findings exist: fix, run `/done-check` in delta mode, then re-run `/code-review-gate` at the same effort (fresh, full review — no bias from the previous iteration). If the same conceptual topic recurs across 2+ iterations, stop and follow the escalation order in Rules.
+3. If actionable findings exist: fix, run `/done-check` in delta mode against the previous audit's rows and concerns, then re-run `/code-review-gate` at the same effort (fresh, full review — no bias from the previous iteration). If the same conceptual topic recurs across 2+ iterations, stop and follow the escalation order in Rules.
 4. Repeat until no actionable findings remain.
 
 From Phase 1 onward, when the final pre-commit diff received a valid gate review (i.e. the gate was not waived), every reviewer finding is by construction a penetration of this gate — note that provenance in each triage presentation.
@@ -124,7 +124,7 @@ Runs only after the user has merged.
 
   1. **Oscillation check (iteration N ≥ 2).** Compare current actionable topics against the previous iteration's preserved topics. If any conceptual topic recurs, halt and follow the escalation order below — do NOT fix or done-check.
   2. Fix the code.
-  3. Run `/done-check` in delta mode.
+  3. Run `/done-check` in delta mode, against the previous audit's rows and concerns.
   4. Run `/stage-commit-push`.
   5. Re-run the review (fresh, full review — no bias from previous iteration). Phase 2 uses `--re-review` instead.
   6. Preserve actionable topic classifications for the next iteration's oscillation check.
@@ -132,7 +132,9 @@ Runs only after the user has merged.
 
 - **Never skip done-check, including in fix loops.** Every fix commit is itself a diff that can introduce new drift — especially `completion-hygiene` and `paired-artifact-drift`.
 
-- **Done-check delta mode.** Report only rows whose status changes from the previous audit, plus any new ⚠. Resolve every new ⚠ before the subsequent `/stage-commit-push`. Pay special attention to:
+- **A halted done-check stops the pipeline.** This binds every `/done-check` invocation here — Phase 0, Phase 0.5, and the fix-loop substep alike. A halted run emits no table. The step that invoked it does not complete: do not fix, do not commit, do not re-review. It has surfaced something to the user; that is where the pipeline waits.
+
+- **Done-check delta mode.** `done-check` defines the mode, what a delta report carries, and what its step 5 gate binds. Satisfy that gate before the subsequent `/stage-commit-push` rather than only the ⚠ the delta printed. Pay special attention to:
 
   - `paired-artifact-drift`: every comment / docstring / PR-body sentence touched by or referring to the fixed code must still be accurate. Accuracy is not the whole test: a fix that answers a reviewer by *qualifying* a documented behavior — admitting a case the doc did not — strands every unqualified statement of that behavior elsewhere, which an accuracy check over the fix's own text never looks at. Run the item's **Qualification completeness** sweep on those fixes. Fix loops generate this class, which the first-pass audit cannot pre-empt: the caveat does not exist yet for the earlier text to contradict.
   - `completion-hygiene`: pre-commit hooks catch lint / fmt / line count, but the fix may have added stray `dbg!` / `println!` / scratch test code.
