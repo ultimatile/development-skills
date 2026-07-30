@@ -40,6 +40,8 @@ A branch root is supplied as a **bare branch name**, and that is the only spelli
 
 One input spelling is what keeps this decidable. A rule accepting either could not tell a remote-tracking ref from a branch whose own first segment happens to match a remote's name — `upstream/release` under an `upstream` remote is both readings at once, and picking wrong selects a different history and a different PR base.
 
+**One repository.** These rules assume `origin` is the repository the work merges into — the one the branch is pushed to and the PR opens in. A cross-fork arrangement, where `origin` is a fork and the PR targets a different repository, is outside them: a bare branch name cannot name a repository, so a root supplied there would send the gates to the fork's branch while the PR targets the other one's. Nothing else in this skill set carries a target remote either — the pipeline's branch guard, the PR-base derivation, and the push all read `origin`. In that arrangement, halt and surface it rather than stretching these rules over it.
+
 Where a rule needs the repository default branch, read it with `git symbolic-ref --short refs/remotes/origin/HEAD`, which prints `origin/<default>`. Empty output or a nonzero exit means remote HEAD was never fetched: run `git remote set-head origin -a`, and halt if that still resolves nothing. Never treat the unset result as a value — an empty string compares unequal to every branch name, so a guard built on one passes exactly when it should fire.
 
 ## Per-command conversion
