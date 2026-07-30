@@ -24,8 +24,8 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
    Cover all four sources so recently-added implementation files are not missed:
 
    ```bash
-   git log --oneline <root>..HEAD           # committed
-   git diff <root>...HEAD                   # committed content
+   git log --oneline <root-rev>..HEAD           # committed
+   git diff <root-rev>...HEAD                   # committed content
    git diff --cached                        # staged
    git diff                                 # unstaged
    git ls-files --others --exclude-standard # untracked paths

@@ -14,7 +14,7 @@ The fix-commit lane uses a **root** on `diff-root`'s consumer contract, halt inc
 | Input | What to collect |
 | -- | -- |
 | Review findings | Actionable findings that resulted in code changes — the reviewer's framing of the issue |
-| Fix commits | Branch commits whose subject signals a fix: `git log <root>..HEAD --oneline --grep="fix" -i`, then `git show <sha>` |
+| Fix commits | Branch commits whose subject signals a fix: `git log <root-rev>..HEAD --oneline --grep="fix" -i`, then `git show <sha>` |
 
 ## Procedure
 

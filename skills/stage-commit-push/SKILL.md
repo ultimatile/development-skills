@@ -11,11 +11,18 @@ One-shot skill for the review-fix loop: stage modified files, generate a commit 
 
 ### 0. Route by working state
 
-Check what there is to do before staging anything. Three states:
+Check what there is to do before staging anything:
+
+```bash
+git status --porcelain                      # non-empty → changes to commit
+git log --oneline HEAD --not --remotes      # non-empty → commits no remote has
+```
+
+The second command answers for a branch ahead of its upstream and for one that has no upstream yet, which `git log @{upstream}..HEAD` cannot. Route on the pair:
 
 - **Changes to commit** — run steps 1 through 4.
-- **Nothing to commit, but commits the remote does not have** — skip to step 4. This covers a branch ahead of its upstream and a branch that has no upstream yet; step 4 handles both. Staging nothing and committing nothing fails, and the push is what this invocation is for.
-- **Nothing to commit and nothing to push** — report that and stop.
+- **Nothing to commit, commits no remote has** — skip to step 4. Staging nothing and committing nothing fails, and the push is what this invocation is for.
+- **Neither** — report that and stop.
 
 ### 1. Stage
 

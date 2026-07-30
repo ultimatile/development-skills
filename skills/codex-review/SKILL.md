@@ -16,7 +16,7 @@ The caller supplies the **root** — the ref the change under review is measured
 ### Review branch diff against base
 
 ```bash
-mb=$(git merge-base <root> HEAD)
+mb=$(git merge-base <root-rev> HEAD)
 test -n "$mb" || { echo "no merge base for <root>"; exit 1; }
 codex exec review --base "$mb" -o <output-file> </dev/null
 ```
@@ -55,7 +55,7 @@ If any of the above is yes, skip `codex exec review` and use `codex exec "<inlin
 
 **Inline prompt template** — the prompt should tell codex to:
 
-1. Run `git log <root>..HEAD --oneline` and `git show <sha>` to read the commits.
+1. Run `git log <root-rev>..HEAD --oneline` and `git show <sha>` to read the commits.
 2. Read the tracking Issue (`gh issue view <n>`) and the relevant ADRs (pass absolute paths so codex doesn't have to search).
 3. Enumerate explicitly which states are intentional (sentinel values, scoped-off paths, deferred behaviors) and must NOT be flagged as regressions.
 4. List what the review should focus on (forwarding correctness, default / expert contract consistency, docstring drift, missed call sites, etc. — project-specific).
@@ -89,7 +89,7 @@ Each iteration runs a full, unbiased review of the entire diff against base. Do 
 1. **Run review**
 
    ```bash
-   mb=$(git merge-base <root> HEAD)
+   mb=$(git merge-base <root-rev> HEAD)
    test -n "$mb" || { echo "no merge base for <root>"; exit 1; }
    codex exec review --base "$mb" -o /tmp/codex-review.md </dev/null
    ```

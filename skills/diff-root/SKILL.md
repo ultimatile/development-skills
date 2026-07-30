@@ -33,10 +33,16 @@ A caller that does not know the merge target **asks the user**. Do not substitut
 
 A root is either a **branch** or a **commit**. A commit root — a SHA or tag, which an incremental gate uses to fix a point a moving branch ref cannot name — is a revision already: use it unchanged, and note it never reaches a forge argument, since no PR opens against a SHA.
 
-A branch root is supplied as a **bare branch name**, and that is the only spelling a caller may pass. Two uses follow from it:
+A branch root is supplied as a **bare branch name**, and that is the only spelling a caller may pass.
 
-- **A revision argument** — `git log`, `git diff`, `git merge-base` — takes `origin/<root>`. The bare name would resolve to the local branch, which is routinely ahead of or behind the remote one the work merges into.
-- **A branch name on the forge** (`gh pr create --base`, `gh pr edit --base`) and **a comparison against this repository's default branch** take the root as supplied.
+Two metavariables keep the uses apart, and every rule below and in every consumer spells the one it means:
+
+- `<root>` — the root as supplied.
+- `<root-rev>` — its revision spelling. For a branch root that is `origin/<root>`; for a commit root the two are the same string.
+
+**Revision arguments take `<root-rev>`** — `git log`, `git diff`, `git merge-base`, and anything else resolving a ref. A bare branch name there resolves to the local branch, which is routinely ahead of or behind the remote one the work merges into, so writing `<root>` where `<root-rev>` belongs reintroduces exactly the wrong-scope review this contract exists to prevent.
+
+**A branch name on the forge takes `<root>`** — `gh pr create --base`, `gh pr edit --base`. So does a comparison against this repository's default branch, which is read prefixed and must have that prefix stripped before comparing, since `<root>` carries none.
 
 One input spelling is what keeps this decidable. A rule accepting either could not tell a remote-tracking ref from a branch whose own first segment happens to match a remote's name — `upstream/release` under an `upstream` remote is both readings at once, and picking wrong selects a different history and a different PR base.
 
@@ -48,8 +54,8 @@ Where a rule needs the repository default branch, read it with `git symbolic-ref
 
 | Command | Form | Why this form |
 | -- | -- | -- |
-| `git log` | `git log <root>..HEAD` — two dots | lists this branch's own commits; the three-dot form is the symmetric difference and adds the root's |
-| `git diff` | `git diff <root>...HEAD` — three dots | measures from the merge base; the two-dot form is the endpoint diff and reports as this branch's own whatever landed on the root after the branch was cut |
+| `git log` | `git log <root-rev>..HEAD` — two dots | lists this branch's own commits; the three-dot form is the symmetric difference and adds the root's |
+| `git diff` | `git diff <root-rev>...HEAD` — three dots | measures from the merge base; the two-dot form is the endpoint diff and reports as this branch's own whatever landed on the root after the branch was cut |
 | `codex exec review` | `--base` the merge base of the root and `HEAD` | the flag takes a single revision, and the merge base is correct whether the tool diffs endpoints or selects a merge base itself |
 
 The dot forms do not normalize across commands. A sweep that makes them uniform reintroduces in one command the defect it removes from the other.

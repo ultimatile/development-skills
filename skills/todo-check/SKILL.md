@@ -24,8 +24,8 @@ Forward-looking preflight against the planned change. Item definitions live in `
    `todo-check` also runs mid-implementation. When earlier units are already materialized on disk, name their inspectable revision range in the scope description too, so the subagent reads the real code instead of treating the tree as unwritten. Name a **committed** range only when earlier units are already committed; it takes a **root** on `diff-root`'s consumer contract, halt included, and that skill's per-command conversion. A run with no committed units names no such range and so needs no root — a preflight runs against work that does not exist yet, and its scope description, not the repository, is what says how much of it is written. `done-check` has no equivalent case: it audits work that exists, and whether that work includes commits is what a root decides rather than something the audit may assume. The working-tree commands below still apply in that case.
 
    ```bash
-   git log --oneline <root>..HEAD           # committed units
-   git diff <root>...HEAD                   # committed content
+   git log --oneline <root-rev>..HEAD           # committed units
+   git diff <root-rev>...HEAD                   # committed content
    git diff --cached                        # staged
    git diff                                 # unstaged
    git ls-files --others --exclude-standard # untracked paths

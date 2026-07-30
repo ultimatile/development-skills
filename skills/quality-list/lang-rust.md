@@ -51,7 +51,7 @@ Describe the concrete behavior, not the metavariable. For a tol-narrowing helper
 ### Mechanical detection
 
 ```sh
-git diff <root>...HEAD -- '*.rs' | rg '^\+\s*//[/!].*\$[A-Za-z_]'
+git diff <root-rev>...HEAD -- '*.rs' | rg '^\+\s*//[/!].*\$[A-Za-z_]'
 ```
 
 Or sweep the working tree:
@@ -87,9 +87,9 @@ The trigger has two widening mechanisms; these greps are non-exhaustive starting
 
 ```sh
 # (a) new #[from] conversions — widen what `?` can propagate into the enum
-git diff <root>...HEAD -- '*.rs' | rg '^\+.*#\[from\]'
+git diff <root-rev>...HEAD -- '*.rs' | rg '^\+.*#\[from\]'
 # (b) new construction / conversion sites of an error variant (also .into(), ? on a new source)
-git diff <root>...HEAD -- '*.rs' | rg '^\+.*(Err\(|ok_or|map_err)'
+git diff <root-rev>...HEAD -- '*.rs' | rg '^\+.*(Err\(|ok_or|map_err)'
 # cross-check: every # Errors enumeration against the widened reachable set
 rg -n '# Errors' -g '*.rs'
 ```
