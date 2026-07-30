@@ -44,7 +44,7 @@ When that diff received a valid gate review (i.e. the gate was not waived), attr
 
 ## Phase 1: Codex review loop
 
-1. Ensure the diff Phase 0.5 reviewed is committed and pushed, which is the state `/codex-review`'s `--base` mode is defined over. Run `/stage-commit-push` when anything is still uncommitted or unpushed; an entry arriving already committed and pushed satisfies this step without action.
+1. Ensure the diff Phase 0.5 reviewed is committed and pushed, which is the state `/codex-review`'s `--base` mode is defined over. Run `/stage-commit-push`, which routes on what is actually outstanding — commit and push, push only, or nothing — so an entry arriving already committed and pushed passes through it without action.
 2. Run `/codex-review` to review the branch diff, passing the root resolved at pipeline entry
 3. Triage the output — classify each finding under the `finding-triage` SSOT dispositions
 4. If actionable findings exist, apply the **fix-loop substeps** (see Rules) and repeat until no actionable findings remain.

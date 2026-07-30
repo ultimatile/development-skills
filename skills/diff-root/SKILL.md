@@ -31,7 +31,10 @@ A caller that does not know the merge target **asks the user**. Do not substitut
 
 ## Spelling
 
-The root arrives spelled as whoever supplied it wrote it. Use it as a revision unchanged. A step comparing it **by name** against the default branch strips the leading `origin/` from both first, and only that — `upstream/main` and `integration/x` keep their prefixes, so neither is ever mistaken for the default branch.
+The root names a branch, and two spellings of that name are in play. Callers supply either; each step derives the one its own argument takes.
+
+- **A revision argument** — `git log`, `git diff`, `git merge-base` — takes the **remote-tracking** spelling. Prefix the name with `origin/` unless its first path segment is already a configured remote (`git remote`), which is what makes `upstream/main` remote-tracking as it stands.
+- **A branch name on the forge** — `gh pr create --base`, `gh pr edit --base` — and **a comparison against the default branch's name** take the **bare** spelling. Strip a leading `origin/` when present, and only that: `upstream/main` and `integration/x` keep what they have, so neither is ever mistaken for the default branch.
 
 Where a rule needs the repository default branch, read it with `git symbolic-ref --short refs/remotes/origin/HEAD`, which prints `origin/<default>`. Empty output or a nonzero exit means remote HEAD was never fetched: run `git remote set-head origin -a`, and halt if that still resolves nothing. Never treat the unset result as a value — an empty string compares unequal to every branch name, so a guard built on one passes exactly when it should fire.
 

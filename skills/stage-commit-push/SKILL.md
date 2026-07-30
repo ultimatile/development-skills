@@ -9,6 +9,14 @@ One-shot skill for the review-fix loop: stage modified files, generate a commit 
 
 ## Procedure
 
+### 0. Route by working state
+
+Check what there is to do before staging anything. Three states:
+
+- **Changes to commit** — run steps 1 through 4.
+- **Nothing to commit, branch ahead of its upstream** — skip to step 4. Staging nothing and committing nothing fails, and the push is what this invocation is for.
+- **Nothing to commit, nothing to push** — report that and stop.
+
 ### 1. Stage
 
 ```bash
