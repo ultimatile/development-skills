@@ -21,14 +21,13 @@ The root is one ref, not a range. Each step converts it to what its own command 
 
 ## Where the root comes from
 
-The caller supplies it, **per gate invocation**. A caller whose gates all measure one change from one ref supplies that ref to each. A caller whose gates measure from different refs — a per-PR audit against an integration branch and a final PR against the default branch, say — supplies each gate its own.
+The caller supplies it, **per gate invocation**, and the two kinds of gate take different values.
 
-Two ways a caller holds a root without guessing:
+A **PR-scope gate** — the audit that closes the work, the code-review gate, the pre-open codex review, the reviewer on the open PR — takes the **branch the change merges into**, spelled as its remote-tracking ref. That is the PR's base, whether or not the PR exists yet. Anything else makes the gate review something other than what merges, in one of two directions: a root ahead of the base drops commits the branch inherited without authoring, and those land unreviewed; a root behind it pulls in work other branches already merged and reviewed, which cannot be fixed here and yields findings indefinitely.
 
-- **It created the branch.** An entry point that cut the working branch in this run records the ref it cut from. That is a record, not an inference.
-- **It knows the arrangement.** A skill that set up a long-lived integration branch knows which gate measures from which ref, and states it per gate.
+An **incremental gate** — a per-unit review, a per-commit audit during implementation — takes the last approved point instead, and deliberately reviews less. Incremental gates exist for early feedback and establish no coverage: every commit that lands must fall inside some PR-scope gate's range.
 
-A caller with neither **asks the user**. Do not substitute a guess — not the default branch, not a PR's base, not a fork point. Each is right in some arrangement and silently wrong in others, and nothing in the repository distinguishes them.
+A caller that does not know the merge target **asks the user**. Do not substitute a guess — not the repository default branch, not the ref the branch was cut from, not a fork point. The cut-from ref is the sharpest of those traps: a branch is routinely cut from a local ref that is ahead of or behind what it will merge into, and nothing in the repository records the merge target at all.
 
 ## Spelling
 

@@ -11,11 +11,9 @@ The pipeline crosses a **user-controlled merge gate** (Phase 4a → 4b): the use
 
 ## Pipeline entry
 
-This pipeline takes three inputs, stated before the first phase the run executes. A run entering at Phase 4a or 4b takes none of them: from Phase 4a on, no step commits, uses a root, or opens a PR — 4a reads the sub-issue and edits the PR body, and 4b runs on `main` after the merge.
+This pipeline takes two inputs, stated before the first phase the run executes. A run entering at Phase 4a or 4b takes neither: from Phase 4a on, no step commits, uses a root, or opens a PR — 4a reads the sub-issue and edits the PR body, and 4b runs on `main` after the merge.
 
-- **Root** — the ref this change is measured from, supplied by the caller on `diff-root`'s terms. This pipeline resolves none: with none supplied, ask. Its gates all measure one change from one ref, so the same root goes to each — every `/done-check` invocation (Phase 0, Phase 0.5's delta run, and the fix-loop substep), Phase 0.5's `/code-review-gate`, Phase 1's `/codex-review`, and Phase 3's `/bug-to-contract` and `/finding-to-audit`.
-
-- **PR base** — the branch Phase 2's PR merges into, a different value from the root. Default: the repository default branch, read as `diff-root` directs. A default is admissible here and not for the root, because a wrong PR base is displayed on the PR itself while a wrong root is invisible.
+- **Root** — the branch this change merges into, spelled as its remote-tracking ref, supplied by the caller on `diff-root`'s terms. Every gate here is a PR-scope gate in that skill's sense, so all of them take this one value: every `/done-check` invocation (Phase 0, Phase 0.5's delta run, and the fix-loop substep), Phase 0.5's `/code-review-gate`, Phase 1's `/codex-review`, and Phase 3's `/bug-to-contract` and `/finding-to-audit`. Phase 2 opens the PR against that same branch, as a branch name per `diff-root`'s spelling rule. This pipeline resolves no root: with none supplied, ask.
 
 - **Branch guard** — run the default-branch check in Rules. This entry check is in addition to the per-`/stage-commit-push` checks, not a replacement for them.
 
@@ -53,8 +51,8 @@ When that diff received a valid gate review (i.e. the gate was not waived), attr
 
 ## Phase 2: Copilot review
 
-1. Run `/file-pullreq` in **gate mode**, passing the PR base — drafts the PR title + body following `gh-body-conventions` and the standard body skeleton, discharges its evidence claims, runs the laundering pass, and gets the user's approval. The skill stops at approval and emits the approved title + body for the next step. It does NOT create the PR itself.
-2. Run `/copilot-review` in its PR-open mode, passing the approved title + body **and the PR base** — this creates the PR with `--reviewer @copilot` and polls until the review arrives. Omitting the base opens the PR against the repository default branch, which is wrong for any run whose merge target is an integration branch.
+1. Run `/file-pullreq` in **gate mode**, passing the base — drafts the PR title + body following `gh-body-conventions` and the standard body skeleton, discharges its evidence claims, runs the laundering pass, and gets the user's approval. The skill stops at approval and emits the approved title + body for the next step. It does NOT create the PR itself.
+2. Run `/copilot-review` in its PR-open mode, passing the approved title + body **and the base** — this creates the PR with `--reviewer @copilot` and polls until the review arrives. Omitting the base opens the PR against the repository default branch, and every gate above measured from the branch this run was told it merges into, so the two would then disagree.
 3. Triage the review — filter to the latest review's comments only (by `pull_request_review_id`)
 4. Reply to each inline comment individually via `gh-post reply-inline <owner>/<repo> <PR> < /tmp/replies.jsonl`. Build the JSONL with one `{"id": <comment-id>, "body": "<reply>"}` per line; the wrapper validates every body through the hardwrap detector before any send (halt-before-send) and prints un-sent indices on a mid-batch API failure.
 5. If actionable findings exist, apply the **fix-loop substeps** (see Rules), replacing the re-review step with `${CLAUDE_SKILL_DIR}/../copilot-review/scripts/pr-with-copilot-review.sh --re-review <PR_URL>`. Triage only new comments. Repeat until no actionable findings remain.
