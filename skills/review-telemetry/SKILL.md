@@ -20,9 +20,9 @@ One line per pipeline run. Create the directory on first use (`mkdir -p ~/.claud
 Reconstruct from the current conversation's triage records, and from `git` / `gh` for repo facts:
 
 - repo, PR number, pipeline skill name, diff stats (`gh pr view <N> --json additions,deletions,changedFiles`)
-- per gate: iterations run, config that varied (e.g. `/code-review` effort), and every triaged finding with its disposition. `iterations` (re-run count) and per-gate false-positive count are the cost proxies; both are reconstructable post-hoc. Do not record wall-clock — gate elapsed time is reconstructed after the run, so a duration nobody clocked at execution time is unrecoverable, and it conflates compute with external-service poll-wait (Copilot arrives async) and human approval-wait, which say nothing about the gate's own cost.
+- per gate: iterations run, config that varied (e.g. `/code-review` effort), and every triaged finding with its disposition. `iterations` and per-gate false-positive count are the cost proxies; both are reconstructable post-hoc. Do not record wall-clock — gate elapsed time is reconstructed after the run, so a duration nobody clocked at execution time is unrecoverable, and it conflates compute with external-service poll-wait (Copilot arrives async) and human approval-wait, which say nothing about the gate's own cost.
 - per finding, three distinct gate relations:
-  - `duplicate_of_gate` — strictly an **instance re-report**: the same defect (same location, same fix) an earlier gate already surfaced. `null` means the defect itself is new — the instance-level penetration signal.
+  - `duplicate_of_gate` — strictly an **instance re-report**: the same defect (same location, same fix) a gate already surfaced earlier in the run. `null` means the defect itself is new — the instance-level penetration signal.
   - `topic_opened_by` — the gate that **first surfaced this topic** in the run (the gate's own slug when it opened the topic). A new instance of an earlier gate's topic is `duplicate_of_gate: null` + `topic_opened_by: <earlier gate>` — value added, but no topic novelty.
   - `injected_at_gate` — the in-run gate whose **fix loop introduced** this defect (its slug), or `null` for the default: the defect was present in the original diff. Most findings are `null`. A non-null value marks a **fix-induced regression**.
 
@@ -59,7 +59,7 @@ Reconstruct from the current conversation's triage records, and from `git` / `gh
 }
 ```
 
-Schema 1 records lack `topic_opened_by`; gate the schema-2 queries with `select(.schema >= 2)`. Schema ≤2 records lack `injected_at_gate`; gate every query reading that field with `select(.schema >= 3)`.
+Schema 1 records lack `topic_opened_by`; gate every query reading that field with `select(.schema >= 2)`. Schema ≤2 records lack `injected_at_gate`; gate every query reading that field with `select(.schema >= 3)`.
 
 Normalization rules:
 
@@ -67,7 +67,7 @@ Normalization rules:
 - Records predating the CodeRabbit lane's retirement carry values from it: the gate slug `coderabbit-pr`, and the `pipeline` values `review-pipeline-coderabbit` and `coderabbit-review`. They are history — read them, never write them. `coderabbit-pr`'s counts end at the retirement; a reader who takes that ending for a gate that went quiet misreads it.
 - `findings[].disposition` uses the `finding-triage` SSOT slugs verbatim (`actionable`, `false-positive`, `uncertain-validity`, `opens-a-question`, `invariant-premise-check`, `defer`).
 - `findings[].topic` is a short kebab-case slug at **class level**, reused across gates and runs for grouping; per-variant detail goes in the one-sentence `summary`. Splitting one class into per-variant slugs breaks every topic aggregation.
-- `duplicate_of_gate` is instance-strict (same defect re-reported); `topic_opened_by` carries class recurrence. Never encode class recurrence in `duplicate_of_gate` — that conflation is exactly what the two fields exist to prevent.
+- `duplicate_of_gate` and `topic_opened_by` are written per their definitions in **Collect the run's facts**. Never encode class recurrence in `duplicate_of_gate` — that conflation is exactly what the two fields exist to prevent.
 - `injected_at_gate` is written per its definition in **Collect the run's facts**. `plan-actual-drift` is the reserved class-level `topic` for a finding where the implementation diverged from the research plan. **Do not derive an escape-distance — how many gates had the defect in front of them and missed it — from this record.**
 - A gate that ran and found nothing gets `"findings": []` — that zero is data. A gate that was skipped is omitted from the array and named in `gaps`.
 
