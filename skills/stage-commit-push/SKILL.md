@@ -14,8 +14,8 @@ One-shot skill for the review-fix loop: stage modified files, generate a commit 
 Check what there is to do before staging anything. Three states:
 
 - **Changes to commit** — run steps 1 through 4.
-- **Nothing to commit, branch ahead of its upstream** — skip to step 4. Staging nothing and committing nothing fails, and the push is what this invocation is for.
-- **Nothing to commit, nothing to push** — report that and stop.
+- **Nothing to commit, but commits the remote does not have** — skip to step 4. This covers a branch ahead of its upstream and a branch that has no upstream yet; step 4 handles both. Staging nothing and committing nothing fails, and the push is what this invocation is for.
+- **Nothing to commit and nothing to push** — report that and stop.
 
 ### 1. Stage
 

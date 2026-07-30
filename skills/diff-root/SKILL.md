@@ -31,10 +31,13 @@ A caller that does not know the merge target **asks the user**. Do not substitut
 
 ## Spelling
 
-The root names a branch, and two spellings of that name are in play. Callers supply either; each step derives the one its own argument takes.
+A root is either a **branch** or a **commit**. A commit root — a SHA or tag, which an incremental gate uses to fix a point that a moving branch ref cannot name — is already a revision: use it unchanged, and note that it never reaches a forge argument, since no PR opens against a SHA.
 
-- **A revision argument** — `git log`, `git diff`, `git merge-base` — takes the **remote-tracking** spelling. Prefix the name with `origin/` unless its first path segment is already a configured remote (`git remote`), which is what makes `upstream/main` remote-tracking as it stands.
-- **A branch name on the forge** — `gh pr create --base`, `gh pr edit --base` — and **a comparison against the default branch's name** take the **bare** spelling. Strip a leading `origin/` when present, and only that: `upstream/main` and `integration/x` keep what they have, so neither is ever mistaken for the default branch.
+A branch root has three spellings, and each argument takes a different one. Callers supply whichever they hold; the step derives the rest.
+
+- **A revision argument** — `git log`, `git diff`, `git merge-base` — takes the **remote-tracking** spelling. Prefix with `origin/` unless the first path segment is already a configured remote (`git remote`), which is what makes `upstream/main` remote-tracking as it stands.
+- **A branch name on the forge** — `gh pr create --base`, `gh pr edit --base` — takes the **bare** spelling. Strip a leading configured-remote segment, whichever remote it is: both `origin/main` and `upstream/main` give `main`, while `integration/x` keeps what it has because `integration` is no remote.
+- **A comparison against this repository's default branch** strips a leading `origin/` and only that. Here a non-`origin` prefix is load-bearing rather than noise: `upstream/main` is a different repository's branch, so it must not compare equal to this one's default.
 
 Where a rule needs the repository default branch, read it with `git symbolic-ref --short refs/remotes/origin/HEAD`, which prints `origin/<default>`. Empty output or a nonzero exit means remote HEAD was never fetched: run `git remote set-head origin -a`, and halt if that still resolves nothing. Never treat the unset result as a value — an empty string compares unequal to every branch name, so a guard built on one passes exactly when it should fire.
 
