@@ -39,9 +39,11 @@ If the plan has no `Derivations` section but the work involves specific-example 
 
 Invoke the `quaere-execution` skill with the plan as the source of truth. Honor its workflow exactly: Plan → Do → Study → Act with scoped units, fresh verification evidence, diff review, fix loops, and commit/push discipline. The wrapper layers the following additional rules on top.
 
+The **root** — the ref this change is measured from — is an input, supplied by the caller on `diff-root`'s terms. This wrapper resolves none: with none supplied, ask. State it, and pass it to Step 3.0's `todo-check` and Step 4's `done-check`.
+
 ### 3.0 Preflight via todo-check
 
-Before any code change, invoke `todo-check` against the plan to extract the active `quality-list` items and their setup actions for this work. `todo-check` covers that rule set only; the `done-check` at Step 4 below may apply a second rule set on top of it, and nothing previews those items here. Hand the resulting △ rows to `quaere-execution`'s Plan step so the unit checks already include them. A preflight that halts emits no table at all, so there are no △ rows to hand on; it has surfaced something to the user, and the unit does not start. Re-invoke `todo-check` between units when the next unit changes the active item set (e.g., it introduces a new public API → `impact-verification` and `paired-artifact-drift` become active).
+Before any code change, invoke `todo-check` against the plan, passing the resolved root, to extract the active `quality-list` items and their setup actions for this work. `todo-check` covers that rule set only; the `done-check` at Step 4 below may apply a second rule set on top of it, and nothing previews those items here. Hand the resulting △ rows to `quaere-execution`'s Plan step so the unit checks already include them. A preflight that halts emits no table at all, so there are no △ rows to hand on; it has surfaced something to the user, and the unit does not start. Re-invoke `todo-check` between units when the next unit changes the active item set (e.g., it introduces a new public API → `impact-verification` and `paired-artifact-drift` become active).
 
 ### 3.0.1 Pre-commit hook recall
 
@@ -121,7 +123,7 @@ Substantive rules for guards, fixtures, docstring consistency, textual drift, na
 
 ## Step 4 — Run done-check
 
-Invoke the `done-check` skill against the diff. Do not proceed until `done-check`'s step 5 gate is satisfied over both domains — the audit table's `⚠` rows and the cross-cutting concerns reported under it. That gate owns which dispositions close each, the deferral path for a concern that cannot be resolved within the current scope included; do not restate them here. An audit that halts emits no table at all. It has surfaced something to the user, and this step does not complete.
+Invoke the `done-check` skill against the diff, passing the root resolved at Step 3. Do not proceed until `done-check`'s step 5 gate is satisfied over both domains — the audit table's `⚠` rows and the cross-cutting concerns reported under it. That gate owns which dispositions close each, the deferral path for a concern that cannot be resolved within the current scope included; do not restate them here. An audit that halts emits no table at all. It has surfaced something to the user, and this step does not complete.
 
 ## Step 5 — Final output
 

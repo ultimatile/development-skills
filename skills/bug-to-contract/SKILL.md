@@ -11,12 +11,12 @@ A single fix prevents one bug. A contract test prevents the entire class.
 
 ## Inputs
 
-This skill works from two kinds of input:
+This skill works from two kinds of input. The fix-commit lane uses a **root** on `diff-root`'s consumer contract, halt included; the review-findings lane uses none.
 
 | Input | What to collect |
 | -- | -- |
 | Review findings | Actionable findings from any review pass (codex, Copilot, human reviewer) that resulted in code changes. The reviewer's framing of the issue. |
-| Fix commits | Branch commits whose subject signals a fix: `git log main..HEAD --oneline --grep="fix" -i`, then `git show <sha>`. |
+| Fix commits | Branch commits whose subject signals a fix: `git log <root>..HEAD --oneline --grep="fix" -i`, then `git show <sha>`. |
 
 When both are available, prefer review findings — a reviewer saying "this doesn't handle column-major layout" is a stronger signal than a commit message.
 
@@ -32,7 +32,7 @@ When both are available, prefer review findings — a reviewer saying "this does
 
 - Examine the diff of each fix commit:
   ```bash
-  git log main..HEAD --oneline --grep="fix" -i
+  git log <root>..HEAD --oneline --grep="fix" -i
   git show <commit-sha>
   ```
 

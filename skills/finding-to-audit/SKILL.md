@@ -9,10 +9,12 @@ A single fix prevents one bug. An audit rule prevents the entire class without w
 
 ## Inputs
 
+The fix-commit lane uses a **root** on `diff-root`'s consumer contract, halt included; the review-findings lane uses none.
+
 | Input | What to collect |
 | -- | -- |
 | Review findings | Actionable findings that resulted in code changes — the reviewer's framing of the issue |
-| Fix commits | Branch commits whose subject signals a fix: `git log main..HEAD --oneline --grep="fix" -i`, then `git show <sha>` |
+| Fix commits | Branch commits whose subject signals a fix: `git log <root>..HEAD --oneline --grep="fix" -i`, then `git show <sha>` |
 
 ## Procedure
 

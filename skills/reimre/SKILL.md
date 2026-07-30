@@ -13,9 +13,9 @@ Runs `research-and-implement` then `review-pipeline` back to back.
 ## Flow
 
 1. **Phase A** — invoke `research-and-implement $ARGUMENTS`.
-   Branch baseline, research, and implementation are handled there.
+   Branch baseline, root baseline, research, and implementation are handled there.
    **Skip `/implement`'s terminal `/done-check`** — Phase B owns the audit.
-2. **Phase B** — invoke `review-pipeline`.
+2. **Phase B** — invoke `review-pipeline`, supplying the root Phase A settled.
 
 Sub-skill internal phases are referenced by name only.
 Do not inline their steps, diagrams, or rule lists — they drift when the sub-skill is updated.

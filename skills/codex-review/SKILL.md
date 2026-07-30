@@ -7,12 +7,18 @@ description: Pre-PR code review on the current branch using the OpenAI Codex CLI
 
 Orchestrate `codex exec review` to review branch changes and iterate on fixes.
 
+## The root
+
+The caller supplies the **root** — the ref the change under review is measured from — on `diff-root`'s consumer contract. Apply that contract here, halt included. Every `--base` command below resolves the merge base in its own block, as that skill's per-command conversion requires.
+
 ## Core commands
 
 ### Review branch diff against base
 
 ```bash
-codex exec review --base <branch> -o <output-file> </dev/null
+mb=$(git merge-base <root> HEAD)
+test -n "$mb" || { echo "no merge base for <root>"; exit 1; }
+codex exec review --base "$mb" -o <output-file> </dev/null
 ```
 
 This runs `git diff <base-SHA>` internally and reviews the entire diff. The review covers all committed changes on the current branch relative to the base — both the original work and any subsequent fix commits.
@@ -21,7 +27,6 @@ This runs `git diff <base-SHA>` internally and reviews the entire diff. The revi
 
 | Command | Scope |
 | -- | -- |
-| `codex exec review --base main </dev/null` | All commits since branching from main |
 | `codex exec review --uncommitted </dev/null` | Staged + unstaged + untracked changes |
 | `codex exec review --commit <SHA> </dev/null` | A single commit's diff |
 | `codex exec "<inline prompt>" </dev/null` | Free-form prompt with inline context (see "Switching to `exec` with inline context" below) |
@@ -50,13 +55,13 @@ If any of the above is yes, skip `codex exec review` and use `codex exec "<inlin
 
 **Inline prompt template** — the prompt should tell codex to:
 
-1. Run `git log <base>..HEAD --oneline` and `git show <sha>` to read the commits.
+1. Run `git log <root>..HEAD --oneline` and `git show <sha>` to read the commits.
 2. Read the tracking Issue (`gh issue view <n>`) and the relevant ADRs (pass absolute paths so codex doesn't have to search).
 3. Enumerate explicitly which states are intentional (sentinel values, scoped-off paths, deferred behaviors) and must NOT be flagged as regressions.
 4. List what the review should focus on (forwarding correctness, default / expert contract consistency, docstring drift, missed call sites, etc. — project-specific).
 5. List what to ignore — the enumerated intentional states from step 3.
 
-**For non-phased self-contained changes**, keep using vanilla `codex exec review --base main`. The inline-context workaround is only needed when judgement criteria live outside the diff.
+**For non-phased self-contained changes**, keep using vanilla `codex exec review --base ...` in the form Core commands gives. The inline-context workaround is only needed when judgement criteria live outside the diff.
 
 ## Triaging review output
 
@@ -84,7 +89,9 @@ Each iteration runs a full, unbiased review of the entire diff against base. Do 
 1. **Run review**
 
    ```bash
-   codex exec review --base main -o /tmp/codex-review.md </dev/null
+   mb=$(git merge-base <root> HEAD)
+   test -n "$mb" || { echo "no merge base for <root>"; exit 1; }
+   codex exec review --base "$mb" -o /tmp/codex-review.md </dev/null
    ```
 
 2. **Triage the output** using the process above. Present classified findings to the user.

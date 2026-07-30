@@ -66,7 +66,7 @@ Step-by-step:
 1. **Detect signature changes in the diff.** Grep for changed function declarations:
 
    ```sh
-   git diff <base>..HEAD -- '*.h' '*.hpp' '*.cpp' | rg '^[+-].*\binline\b|^[+-].*\)\s*[{;]' | rg -B1 -A1 '^[+-]'
+   git diff <root>...HEAD -- '*.h' '*.hpp' '*.cpp' | rg '^[+-].*\binline\b|^[+-].*\)\s*[{;]' | rg -B1 -A1 '^[+-]'
    ```
 
    Or more reliably, eyeball each header-file hunk for parameter-list changes.
@@ -135,7 +135,7 @@ The first comparison guarantees `shape - begin` is well-defined (no wrap), so th
 Grep new and modified diff lines for unsigned-typed `a + b` appearing on the left side of a `>` / `>=` / `<` / `<=` comparator inside an `if` / loop condition where any operand is a user-supplied parameter:
 
 ```sh
-git diff <base>..HEAD -- '*.h' '*.hpp' '*.cpp' \
+git diff <root>...HEAD -- '*.h' '*.hpp' '*.cpp' \
   | rg '^[+].*\b(if|while|assert)\b.*\w+\s*\+\s*\w+\s*(>|>=|<|<=)'
 ```
 
@@ -168,9 +168,9 @@ Both triggers realize the base item's build-ran-clean condition for the case whe
 1. Collect the `std::` symbols (and `assert`) added on `+` lines of the diff, keeping file identity — step 3's owning-header check is per file, so a globally deduplicated symbol list cannot drive it:
 
    ```sh
-   git diff --name-only <base>..HEAD -- '*.h' '*.hpp' '*.hh' '*.cc' '*.cpp' '*.cxx' | while IFS= read -r f; do
+   git diff --name-only <root>...HEAD -- '*.h' '*.hpp' '*.hh' '*.cc' '*.cpp' '*.cxx' | while IFS= read -r f; do
      echo "== $f"
-     git diff <base>..HEAD -- "$f" | rg '^\+' | rg -o 'std::[A-Za-z_][A-Za-z0-9_:]*|\bassert\s*\(' | sort -u
+     git diff <root>...HEAD -- "$f" | rg '^\+' | rg -o 'std::[A-Za-z_][A-Za-z0-9_:]*|\bassert\s*\(' | sort -u
    done
    ```
 
@@ -183,7 +183,7 @@ Both triggers realize the base item's build-ran-clean condition for the case whe
 For the genericity break, grep the diff's added lines for a two-argument braced element-type literal whose second argument is a literal zero, inside or beside a template that aliases the element type:
 
 ```sh
-git diff <base>..HEAD -- '*.h' '*.hpp' '*.hh' '*.cc' '*.cpp' '*.cxx' | rg '^\+' | rg 'elem_t(<[^>]*>)?\s*\{[^},]+,\s*-?0(\.0*)?[fFlL]?\s*\}'
+git diff <root>...HEAD -- '*.h' '*.hpp' '*.hh' '*.cc' '*.cpp' '*.cxx' | rg '^\+' | rg 'elem_t(<[^>]*>)?\s*\{[^},]+,\s*-?0(\.0*)?[fFlL]?\s*\}'
 ```
 
 The regex is a helper with known false negatives; the rule is the trigger's predicate — the template must stay well-formed for every element type it is meant to support — with the *literally-zero imaginary part* as the recurring instance the regex hunts. Cases that satisfy the predicate while escaping the pattern: zero spellings it does not reach (`.0`, `0e0`, `00`), a first argument containing a comma or brace (`elem_t{f(a, b), 0.0}`), and the raw-scalar-`T` variant of the trigger — the pattern hardcodes the `elem_t` alias, so adapt it to the project's element-type alias name. A literal with a genuinely non-zero imaginary part (`elem_t{0.5, -0.5}`, `elem_t{0.0, 1.0}`) is outside the pattern by design: an inherently complex coefficient makes the template complex-only by construction, and the two-argument form is correct there. Each hit is a candidate defect, not a confirmed one — the regex cannot see whether the enclosing template admits a real element type, so before flagging, confirm that a real element type is a supported instantiation. **False positive to exclude:** a template whose element type is fixed to `std::complex` (the alias never resolves to a real scalar) is complex-only by the same reasoning.
