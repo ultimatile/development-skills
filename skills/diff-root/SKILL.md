@@ -21,11 +21,11 @@ The root is one ref, not a range. Each step converts it to what its own command 
 
 ## Where the root comes from
 
-The caller supplies it, **per gate invocation**, and the two kinds of gate take different values.
+The caller supplies it **per gate invocation**, and states which of two kinds that invocation is. The kind belongs to the invocation, not to the skill invoked — the same skill is one kind in one flow and the other elsewhere — and the caller is the only party that knows which.
 
-A **PR-scope gate** — the audit that closes the work, the code-review gate, the pre-open codex review, the reviewer on the open PR — takes the **branch the change merges into**. That is the PR's base, whether or not the PR exists yet. Anything else makes the gate review something other than what merges, in one of two directions: a root ahead of the base drops commits the branch inherited without authoring, and those land unreviewed; a root behind it pulls in work other branches already merged and reviewed, which cannot be fixed here and yields findings indefinitely.
+A **coverage** invocation must hold everything the change will merge, so that no defect inside its range reaches the merge unseen. Its root is therefore the **branch the change merges into**: the PR's base, whether or not the PR exists yet. Anything else reviews something other than what merges, in one of two directions. A root ahead of the base drops commits the branch inherited without authoring, and those land unreviewed. A root behind it pulls in work other branches already merged and reviewed, which cannot be fixed from here and yields findings indefinitely.
 
-An **incremental gate** — a per-unit review, a per-commit audit during implementation — takes the last approved point instead, and deliberately reviews less. Incremental gates exist for early feedback and establish no coverage: every commit that lands must fall inside some PR-scope gate's range.
+An **incremental** invocation reviews only what is new since a point some coverage invocation already held, for early feedback on that increment. Its root is that point — usually the last approved commit, named as a SHA because a branch ref moves off it. It establishes no coverage of its own, so every commit that lands must still fall inside some coverage invocation's range.
 
 A caller that does not know the merge target **asks the user**. Do not substitute a guess — not the repository default branch, not the ref the branch was cut from, not a fork point. The cut-from ref is the sharpest of those traps: a branch is routinely cut from a local ref that is ahead of or behind what it will merge into, and nothing in the repository records the merge target at all.
 
@@ -39,6 +39,8 @@ Two metavariables keep the uses apart, and every rule below and in every consume
 
 - `<root>` — the root as supplied.
 - `<root-rev>` — its revision spelling. For a branch root that is `origin/<root>`; for a commit root the two are the same string.
+
+`<root-rev>` is a local cache of a branch that lives on the forge, so **refresh it before building a range**: `git fetch origin <root>`. Without that the range measures from wherever the cache last stood, which goes stale exactly where it matters most — a long-lived integration branch advances on the forge every time one of its pull requests merges.
 
 **Revision arguments take `<root-rev>`** — `git log`, `git diff`, `git merge-base`, and anything else resolving a ref. A bare branch name there resolves to the local branch, which is routinely ahead of or behind the remote one the work merges into, so writing `<root>` where `<root-rev>` belongs reintroduces exactly the wrong-scope review this contract exists to prevent.
 
