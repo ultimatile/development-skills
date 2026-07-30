@@ -42,6 +42,6 @@ Listed in canonical reading order. Reference items by slug (e.g., `behavior-cove
 - [public-doc-durability](items/public-doc-durability.md) — mechanical
 - [public-api-surface](items/public-api-surface.md) — mechanical
 
-Where an item body or addendum spells a detection command over the change under audit, `<root>` in it is the root the runner was given, and the range form is `diff-root`'s per-command conversion. A runner with no root does not run those commands: use the item's working-tree form where it offers one, and otherwise judge the item from the sources the run does have. Never substitute a range.
+Where an item body or addendum spells a detection command over the change under audit, `<root-rev>` in it is the revision form `diff-root` derives from the root the runner was given, and the range form is that skill's per-command conversion. Substitute the derived form, never the supplied one. A runner with no root does not run those commands: use the item's working-tree form where it offers one, and otherwise judge the item from the sources the run does have. Never substitute a range.
 
 Language-specific addenda live alongside this file as `lang-<language>.md` and supplement specific items with triggers and mitigation idioms (current examples: `lang-cpp.md`, `lang-rust.md`). An addendum section **realizes** an item concretely; it never **bounds** the item: its triggers and N/A criteria scope only that realization, and a diff outside the realization's constructs remains subject to the base item's conditions.

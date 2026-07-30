@@ -75,9 +75,10 @@ Forward-looking preflight against the planned change. Item definitions live in `
    <SKILLS_DIR>/quality-list/items/<slug>.md in full.
 
    Where an item body or addendum spells a detection command
-   containing `<root>`, substitute the root given below. When no
-   root is given, that command does not run — follow the rule in
-   <SKILLS_DIR>/quality-list/SKILL.md.
+   containing `<root-rev>`, substitute the revision form
+   `diff-root` derives from the root given below, not the root
+   itself. When no root is given, that command does not run —
+   follow the rule in <SKILLS_DIR>/quality-list/SKILL.md.
 
    The language(s) Step 0 detected are stated below; load each
    corresponding addendum at

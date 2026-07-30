@@ -22,8 +22,8 @@ A five-gate review cadence for landing a large change that does not fit a single
 
 The Baseline column is the authority on what each gate measures from, and the workflow steps below are what pass each cell to its gate. The cells split by `diff-root`'s two kinds of gate:
 
-- **PR-scope** — per-commit, pre-open code-review, per-PR-open, per-PR-review. Their baseline is the branch the PR merges into, which is also the PR's own base: `integration/<issue#>-<slug>` for every per-PR PR, the default branch for the final one. One value per PR, fixed for its whole life, so each of these gates re-covers everything the PR will merge. Coverage is theirs.
-- **Incremental** — the per-unit review. Its baseline advances to the last approved SHA after each unit, so it reviews less on purpose: it exists for early feedback on the design surface of one unit and establishes no coverage. The final integration → main section runs its per-commit audit incrementally too, for the reason stated there.
+- **PR-scope** — per-commit, pre-open code-review, per-PR-open. Their baseline is the branch the PR merges into, which is also the PR's own base: `integration/<issue#>-<slug>` for every per-PR PR. One value per PR, fixed for its whole life, so each of these gates re-covers everything the PR will merge. Coverage is theirs. The per-PR-review row is PR-scope as well but takes no baseline from this skill: its reviewer reads the open PR, whose base GitHub already holds.
+- **Incremental** — the per-unit review. Its baseline advances to the last approved SHA after each unit, so it reviews less on purpose: it exists for early feedback on the design surface of one unit and establishes no coverage. The final integration → main section runs its per-commit audit incrementally too, against a captured SHA rather than the default branch, for the reason stated there.
 
 Do not make the per-commit audit advance with the work. Re-covering the accumulated PR diff at every commit is what makes it a coverage gate; an advancing baseline would leave each earlier commit covered only by the per-PR-open gate, and a PR that never reaches that gate uncovered entirely.
 
@@ -79,7 +79,7 @@ For PR `k` in the sequence (each PR is one or more units):
 
    **Committing past a workspace-wide pre-commit hook.** A hook that lints the whole workspace (e.g. a project-wide type/lint check) will fail by design on a `pr<k>/...` branch — downstream components scheduled for a later PR are still on the old API. Skip only that one workspace-coherence hook (e.g. `SKIP=<workspace-lint-hook> git commit ...`) after confirming the per-component test and lint gates both pass, and note the skip rationale in the commit body. Do NOT use `--no-verify`; it also drops formatting and line-count hooks, which remain binding.
 
-3. **Open the PR against the integration branch.** Run `/review-pipeline` from Phase 0.5 forward (code-review gate, then codex-review, then copilot-review), supplying `integration/<issue#>-<slug>` as its root — the pipeline opens the PR against that same branch. Do not open the PR here: the pipeline's Phase 2 owns PR creation, and `/copilot-review` rejects a PR created separately.
+3. **Open the PR against the integration branch.** Run `/review-pipeline` from Phase 0.5 forward (code-review gate, then codex-review, then copilot-review), supplying `integration/<issue#>-<slug>` as its root — the pipeline opens the PR against that same branch. Do not open the PR here: the pipeline's Phase 2 owns PR creation, and opening it separately leaves `/copilot-review` to recover through its poll-only mode instead of running its normal one.
 
 4. **Merge into the integration branch when reviews are clean.** Workspace builds may be temporarily broken on it between PRs — the per-component gate is what binds intermediate.
 

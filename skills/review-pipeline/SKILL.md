@@ -52,7 +52,7 @@ When that diff received a valid gate review (i.e. the gate was not waived), attr
 ## Phase 2: Copilot review
 
 1. Run `/file-pullreq` in **gate mode**, passing the base — drafts the PR title + body following `gh-body-conventions` and the standard body skeleton, discharges its evidence claims, runs the laundering pass, and gets the user's approval. The skill stops at approval and emits the approved title + body for the next step. It does NOT create the PR itself.
-2. Run `/copilot-review` in its PR-open mode, passing the approved title + body **and the base** — this creates the PR with `--reviewer @copilot` and polls until the review arrives. Omitting the base opens the PR against the repository default branch, and every gate above measured from the branch this run was told it merges into, so the two would then disagree.
+2. Run `/copilot-review` in its normal mode, passing the approved title + body **and the base** — this creates the PR with `--reviewer @copilot` and polls until the review arrives. Omitting the base opens the PR against the repository default branch, and every gate above measured from the branch this run was told it merges into, so the two would then disagree.
 3. Triage the review — filter to the latest review's comments only (by `pull_request_review_id`)
 4. Reply to each inline comment individually via `gh-post reply-inline <owner>/<repo> <PR> < /tmp/replies.jsonl`. Build the JSONL with one `{"id": <comment-id>, "body": "<reply>"}` per line; the wrapper validates every body through the hardwrap detector before any send (halt-before-send) and prints un-sent indices on a mid-batch API failure.
 5. If actionable findings exist, apply the **fix-loop substeps** (see Rules), replacing the re-review step with `${CLAUDE_SKILL_DIR}/../copilot-review/scripts/pr-with-copilot-review.sh --re-review <PR_URL>`. Triage only new comments. Repeat until no actionable findings remain.
@@ -165,7 +165,7 @@ Runs only after the user has merged.
   test "$(git symbolic-ref --short HEAD)" != "$default"
   ```
 
-  Halt and surface to the user if the branches are equal, or if the default branch does not resolve. Both checks are load-bearing and both must run in this one block: an unset default is the empty string, which compares unequal to every branch name, so a form that drops the `test -n` passes exactly on the default branch — the one condition this gate exists to catch. The `sed` is likewise required, since the read prints `origin/<default>` while `git symbolic-ref --short HEAD` prints the bare name.
+  The first two lines are `diff-root`'s default-branch read, spelled out because this check runs it; that skill states why each is load-bearing. Halt and surface to the user if the branches are equal, or if the default branch does not resolve.
 
 - **Reply to Copilot comments individually**, not as a single PR comment. Use `gh-post reply-inline <owner>/<repo> <PR> < /tmp/replies.jsonl`. JSONL shape: one `{"id": <comment-id>, "body": "<reply>"}` per line.
 

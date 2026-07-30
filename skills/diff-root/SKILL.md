@@ -23,7 +23,7 @@ The root is one ref, not a range. Each step converts it to what its own command 
 
 The caller supplies it, **per gate invocation**, and the two kinds of gate take different values.
 
-A **PR-scope gate** — the audit that closes the work, the code-review gate, the pre-open codex review, the reviewer on the open PR — takes the **branch the change merges into**, spelled as its remote-tracking ref. That is the PR's base, whether or not the PR exists yet. Anything else makes the gate review something other than what merges, in one of two directions: a root ahead of the base drops commits the branch inherited without authoring, and those land unreviewed; a root behind it pulls in work other branches already merged and reviewed, which cannot be fixed here and yields findings indefinitely.
+A **PR-scope gate** — the audit that closes the work, the code-review gate, the pre-open codex review, the reviewer on the open PR — takes the **branch the change merges into**. That is the PR's base, whether or not the PR exists yet. Anything else makes the gate review something other than what merges, in one of two directions: a root ahead of the base drops commits the branch inherited without authoring, and those land unreviewed; a root behind it pulls in work other branches already merged and reviewed, which cannot be fixed here and yields findings indefinitely.
 
 An **incremental gate** — a per-unit review, a per-commit audit during implementation — takes the last approved point instead, and deliberately reviews less. Incremental gates exist for early feedback and establish no coverage: every commit that lands must fall inside some PR-scope gate's range.
 
@@ -48,7 +48,14 @@ One input spelling is what keeps this decidable. A rule accepting either could n
 
 **One repository.** These rules assume `origin` is the repository the work merges into — the one the branch is pushed to and the PR opens in. A cross-fork arrangement, where `origin` is a fork and the PR targets a different repository, is outside them: a bare branch name cannot name a repository, so a root supplied there would send the gates to the fork's branch while the PR targets the other one's. Nothing else in this skill set carries a target remote either — the pipeline's branch guard, the PR-base derivation, and the push all read `origin`. In that arrangement, halt and surface it rather than stretching these rules over it.
 
-Where a rule needs the repository default branch, read it with `git symbolic-ref --short refs/remotes/origin/HEAD`, which prints `origin/<default>`. Empty output or a nonzero exit means remote HEAD was never fetched: run `git remote set-head origin -a`, and halt if that still resolves nothing. Never treat the unset result as a value — an empty string compares unequal to every branch name, so a guard built on one passes exactly when it should fire.
+Where a rule needs the repository default branch, read it bare, in one block:
+
+```bash
+default=$(git symbolic-ref --short refs/remotes/origin/HEAD | sed 's@^origin/@@')
+test -n "$default" || { echo "remote HEAD unset — run: git remote set-head origin -a"; exit 1; }
+```
+
+Both lines are load-bearing. The `sed` is what makes the result comparable with `<root>`, which carries no prefix, since the ref prints as `origin/<default>`. Empty output or a nonzero exit means remote HEAD was never fetched; the check catches that, because an unset value is the empty string, which compares unequal to every branch name — a guard built on one passes exactly when it should fire. Never treat that result as a value: run `git remote set-head origin -a`, and halt if it still resolves nothing.
 
 ## Per-command conversion
 

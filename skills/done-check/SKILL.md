@@ -67,7 +67,9 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
    done-check for the detection rule).
 
    Where an item body or addendum spells a detection command
-   containing `<root>`, substitute the root given below.
+   containing `<root-rev>`, substitute the revision form
+   `diff-root` derives from the root given below, not the root
+   itself.
 
    Return one verdict per item, from the three defined in Step 4 of
    <SKILLS_DIR>/done-check/SKILL.md; read that step's verdict

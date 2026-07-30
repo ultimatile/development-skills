@@ -14,7 +14,7 @@ End-to-end wrapper. Runs `research` (Phase 1) and `implement` (Phase 2) in seque
 Before research begins, settle the working branch and the root the change will be measured from.
 
 1. Check current branch: `git branch --show-current`
-2. Determine the default branch as `diff-root` directs, then strip the `origin/` prefix for the branch comparison in step 3.
+2. Determine the default branch as `diff-root` directs; step 3 compares the current branch against it.
 3. **Decision gate**:
    - On default branch → pick a conventional `<type>/<issue#>-<slug>` (`feat/195-dmrg-envs`, `fix/187-arpack-info`, `chore/<slug>`), create it, and proceed. Do not poll the user for the name — branch names are throwaway closed-PR metadata. Announce the chosen name in one line so the user can intervene if they object, then continue without waiting.
    - On a non-default branch → treat it as the intended branch and proceed. Only stop if the branch name plainly contradicts the issue (e.g., on `feat/100-foo` while working #200) — in that case announce the mismatch and ask.
