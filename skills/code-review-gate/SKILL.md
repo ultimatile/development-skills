@@ -22,7 +22,7 @@ A genuine `/code-review` run engages with the diff and returns one of two things
 
 ## Lane chain
 
-**The root selects the chain.** Read the default branch as `diff-root` directs, and take both its name and the root's by `diff-root`'s spelling rule. The chain is Lanes 1, 2, 3 when the names are equal **and** the root and the remote-tracking default branch resolve to the same commit; otherwise the chain is Lane 3 alone, and Lanes 1 and 2 are not in it, so they are neither entered nor abandoned. Both conditions are equality tests; do not substitute an ancestry test for either.
+**The root selects the chain.** Read the default branch as `diff-root` directs, and take its name and the root's by `diff-root`'s spelling rule. The chain is Lanes 1, 2, 3 when the two names are equal; otherwise the chain is Lane 3 alone, and Lanes 1 and 2 are not in it, so they are neither entered nor abandoned. Test names for equality; do not substitute an ancestry test.
 
 Use the first lane in the chain that produces a valid review. On lane failure, retry the same lane once — a bare retry only helps a cause that clears on its own (network blip, cold start). When the failure names a reset condition an immediate retry cannot satisfy (a session or model-usage limit with a reset time, an announced outage), skip the retry. After the failed retry or the skip, abandon the lane for the rest of this PR's iterations and advance to the next lane.
 

@@ -14,7 +14,7 @@ A five-gate review cadence for landing a large change that does not fit a single
 
 | Gate | Trigger | Action | Baseline |
 | -- | -- | -- | -- |
-| per-commit | each `git commit` | `/done-check` (preflight `/todo-check`) | last approved point on this branch |
+| per-commit | each `git commit` | `/done-check` (preflight `/todo-check`) | the PR's base |
 | per-unit | unit / design-boundary completion | `codex exec review --base <last-approved-SHA>` | last unit-approved SHA |
 | pre-open code-review | per PR, before the per-PR-open gate | `/code-review-gate`, via `/review-pipeline` Phase 0.5 | integration branch |
 | per-PR-open | PR creation | `/codex-review` against PR diff | PR base (integration branch) |
@@ -22,8 +22,10 @@ A five-gate review cadence for landing a large change that does not fit a single
 
 The Baseline column is the authority on what each gate measures from, and the workflow steps below are what pass each cell to its gate. The cells split by `diff-root`'s two kinds of gate:
 
-- **PR-scope** — pre-open code-review, per-PR-open, per-PR-review. Their baseline is the branch the PR merges into: `integration/<issue#>-<slug>` for every per-PR PR, the default branch for the final one. These are what establish coverage, so their baseline is also the PR's own base.
-- **Incremental** — per-unit, and the per-commit audit during implementation. Their baseline is the last approved point, which reviews less on purpose. They give early feedback and establish no coverage: a commit is covered when a PR-scope gate's range holds it, and the per-PR-open gate is what holds every commit on the branch.
+- **PR-scope** — per-commit, pre-open code-review, per-PR-open, per-PR-review. Their baseline is the branch the PR merges into, which is also the PR's own base: `integration/<issue#>-<slug>` for every per-PR PR, the default branch for the final one. One value per PR, fixed for its whole life, so each of these gates re-covers everything the PR will merge. Coverage is theirs.
+- **Incremental** — the per-unit review. Its baseline advances to the last approved SHA after each unit, so it reviews less on purpose: it exists for early feedback on the design surface of one unit and establishes no coverage. The final integration → main section runs its per-commit audit incrementally too, for the reason stated there.
+
+Do not make the per-commit audit advance with the work. Re-covering the accumulated PR diff at every commit is what makes it a coverage gate; an advancing baseline would leave each earlier commit covered only by the per-PR-open gate, and a PR that never reaches that gate uncovered entirely.
 
 Trigger the cadence off commits, units, and PRs only. Do NOT add a per-session gate — session boundaries are human time, not design boundaries.
 
@@ -67,7 +69,7 @@ For PR `k` in the sequence (each PR is one or more units):
    git checkout -b pr<k>/<scope>
    ```
 
-2. **Implement units inside the branch.** Run `/implement` with `integration/<issue#>-<slug>` as the root: its `/todo-check` preflight and per-commit `/done-check` are incremental gates, and the branch this PR merges into is where their range starts when PR `k` begins. Each commit goes through per-commit `/done-check`. At each unit boundary, run per-unit codex review against the last approved SHA:
+2. **Implement units inside the branch.** Run `/implement` with `integration/<issue#>-<slug>` as the root, once for the whole PR: its `/todo-check` preflight and per-commit `/done-check` are coverage gates, so that root stays fixed and each audit re-covers the PR's accumulated diff. Each commit goes through per-commit `/done-check`. At each unit boundary, run per-unit codex review against the last approved SHA:
 
    ```bash
    codex exec review --base <last-unit-approve-SHA> -o /tmp/codex-unit-<k>.<u>.md

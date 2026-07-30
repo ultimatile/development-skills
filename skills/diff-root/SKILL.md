@@ -31,13 +31,14 @@ A caller that does not know the merge target **asks the user**. Do not substitut
 
 ## Spelling
 
-A root is either a **branch** or a **commit**. A commit root — a SHA or tag, which an incremental gate uses to fix a point that a moving branch ref cannot name — is already a revision: use it unchanged, and note that it never reaches a forge argument, since no PR opens against a SHA.
+A root is either a **branch** or a **commit**. A commit root — a SHA or tag, which an incremental gate uses to fix a point a moving branch ref cannot name — is a revision already: use it unchanged, and note it never reaches a forge argument, since no PR opens against a SHA.
 
-A branch root has three spellings, and each argument takes a different one. Callers supply whichever they hold; the step derives the rest.
+A branch root is supplied as a **bare branch name**, and that is the only spelling a caller may pass. Two uses follow from it:
 
-- **A revision argument** — `git log`, `git diff`, `git merge-base` — takes the **remote-tracking** spelling. Prefix with `origin/` unless the first path segment is already a configured remote (`git remote`), which is what makes `upstream/main` remote-tracking as it stands.
-- **A branch name on the forge** — `gh pr create --base`, `gh pr edit --base` — takes the **bare** spelling. Strip a leading configured-remote segment, whichever remote it is: both `origin/main` and `upstream/main` give `main`, while `integration/x` keeps what it has because `integration` is no remote.
-- **A comparison against this repository's default branch** strips a leading `origin/` and only that. Here a non-`origin` prefix is load-bearing rather than noise: `upstream/main` is a different repository's branch, so it must not compare equal to this one's default.
+- **A revision argument** — `git log`, `git diff`, `git merge-base` — takes `origin/<root>`. The bare name would resolve to the local branch, which is routinely ahead of or behind the remote one the work merges into.
+- **A branch name on the forge** (`gh pr create --base`, `gh pr edit --base`) and **a comparison against this repository's default branch** take the root as supplied.
+
+One input spelling is what keeps this decidable. A rule accepting either could not tell a remote-tracking ref from a branch whose own first segment happens to match a remote's name — `upstream/release` under an `upstream` remote is both readings at once, and picking wrong selects a different history and a different PR base.
 
 Where a rule needs the repository default branch, read it with `git symbolic-ref --short refs/remotes/origin/HEAD`, which prints `origin/<default>`. Empty output or a nonzero exit means remote HEAD was never fetched: run `git remote set-head origin -a`, and halt if that still resolves nothing. Never treat the unset result as a value — an empty string compares unequal to every branch name, so a guard built on one passes exactly when it should fire.
 
