@@ -21,11 +21,11 @@ Forward-looking preflight against the planned change. Item definitions live in `
 
 1. **Describe the planned change.** State in plain terms what the change will do: the files / modules it will touch, the behavior it will change, the public symbols / schemas / contracts it will move, and the invariants it introduces or modifies. Capture what is already decided; leave the rest unstated — an unsettled fact surfaces as a `? unknown` row below, not a guess. State the language(s) Step 0 detected here too, so the subagent applies the same addenda the contextual lane does rather than re-deriving them from a scope description that may name modules without file extensions. **Do not pre-classify the change against individual items** — the subagent (Step 2) and the contextual pass (Step 3) read each item's body and decide applicability themselves; the scope description is a plain account of the change, not a per-item trigger checklist.
 
-   `todo-check` also runs mid-implementation. When earlier units are already materialized on disk, name their inspectable revision range in the scope description too, so the subagent reads the real code instead of treating the tree as unwritten:
+   `todo-check` also runs mid-implementation. When earlier units are already materialized on disk, name their inspectable revision range in the scope description too, so the subagent reads the real code instead of treating the tree as unwritten. Name a **committed** range only when earlier units are already committed; it takes a **root** on `diff-root`'s consumer contract, halt included, and that skill's per-command conversion. A run with no committed units names no such range and so needs no root — a preflight runs against work that does not exist yet, and its scope description, not the repository, is what says how much of it is written. `done-check` has no equivalent case: it audits work that exists, and whether that work includes commits is what a root decides rather than something the audit may assume. The working-tree commands below still apply in that case.
 
    ```bash
-   git log --oneline @{upstream}..HEAD      # committed units
-   git diff @{upstream}..HEAD               # committed content
+   git log --oneline <root-rev>..HEAD           # committed units
+   git diff <root-rev>...HEAD                   # committed content
    git diff --cached                        # staged
    git diff                                 # unstaged
    git ls-files --others --exclude-standard # untracked paths
@@ -74,6 +74,12 @@ Forward-looking preflight against the planned change. Item definitions live in `
    check sees it). Read each selected item's
    <SKILLS_DIR>/quality-list/items/<slug>.md in full.
 
+   Where an item body or addendum spells a detection command
+   containing `<root-rev>`, substitute the revision form
+   `diff-root` derives from the root given below, not the root
+   itself. When no root is given, that command does not run —
+   follow the rule in <SKILLS_DIR>/quality-list/SKILL.md.
+
    The language(s) Step 0 detected are stated below; load each
    corresponding addendum at
    <SKILLS_DIR>/quality-list/lang-<lang>.md that exists,
@@ -102,7 +108,7 @@ Forward-looking preflight against the planned change. Item definitions live in `
    the scope description and what you read in the codebase.
    ```
 
-   Embed the scope description (Step 1), the language(s) Step 0 detected, and the two resolved paths. **Do not embed item body text** — the subagent reads the item files itself.
+   Embed the scope description (Step 1), the language(s) Step 0 detected, the root when Step 1 named a range, and the two resolved paths. The root is what an item body's or addendum's detection command needs to name a range. **Do not embed item body text** — the subagent reads the item files itself.
 
    Start Step 3 immediately rather than waiting; the two run in parallel. Block on the subagent's return once you reach Step 4.
 

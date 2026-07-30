@@ -9,9 +9,17 @@ Orchestrate the full flow from local changes through PR review, user merge, post
 
 The pipeline crosses a **user-controlled merge gate** (Phase 4a → 4b): the user, not Claude, merges the PR. Phases before the gate run on the PR branch; phases after run on `main` and tracking issues. Claude pauses at the `## ← user merges PR ←` section.
 
+## Pipeline entry
+
+This pipeline takes two inputs, stated before the first phase the run executes. A run entering at Phase 4a or 4b takes neither: from Phase 4a on, no step commits, uses a root, or opens a PR — 4a reads the sub-issue and edits the PR body, and 4b runs on `main` after the merge.
+
+- **Root** — the branch this change merges into, as a bare branch name, supplied by the caller on `diff-root`'s terms. Every gate here is a coverage invocation in that skill's sense, so all of them take this one value: every `/done-check` invocation (Phase 0, Phase 0.5's delta run, and the fix-loop substep), Phase 0.5's `/code-review-gate`, Phase 1's `/codex-review`, and — when the run reads fix commits rather than working from review findings alone — Phase 3's `/bug-to-contract` and `/finding-to-audit`. Phase 2 opens the PR against that same branch. This pipeline resolves no root: with none supplied, ask.
+
+- **Branch guard** — run the default-branch check in Rules. This entry check is in addition to the per-`/stage-commit-push` checks, not a replacement for them.
+
 ## Phase 0: Done-check loop
 
-1. Run `/done-check` against the current diff (committed + staged + unstaged + untracked).
+1. Run `/done-check` against the current diff (committed + staged + unstaged + untracked), passing the root stated at pipeline entry.
 2. Triage what it returned — both the `⚠` rows of the audit table and the cross-cutting concerns reported under it.
 3. If done-check's step 5 gate is not yet satisfied over everything it returned:
    - Fix the code
@@ -19,30 +27,32 @@ The pipeline crosses a **user-controlled merge gate** (Phase 4a → 4b): the use
    - Re-triage
 4. Repeat until done-check's step 5 gate is satisfied over both domains — its rows and its cross-cutting concerns. That gate owns which dispositions close each; do not restate them here.
 
-Done-check runs **before** any commit.
+What binds this phase is that the audit closing it saw the diff that proceeds — step 3 secures that by re-running the audit after every fix.
 
 ## Phase 0.5: Claude code-review gate
 
-Runs after the done-check loop and **before anything is committed**.
+Runs after the done-check loop.
 
-1. Run `/code-review-gate` against the current diff, passing `high` for a large or risky diff and `medium` otherwise. The gate skill owns effort semantics, the lane chain, lane-failure handling, and exhaustion.
+1. Run `/code-review-gate` against the current diff, passing the root stated at pipeline entry and `high` for a large or risky diff, `medium` otherwise. The gate skill owns effort semantics, the lane chain, lane-failure handling, and exhaustion.
 2. Triage the output — classify each finding under the `finding-triage` SSOT dispositions.
-3. If actionable findings exist: fix, run `/done-check` in delta mode against the previous audit's rows and concerns, then re-run `/code-review-gate` at the same effort (fresh, full review — no bias from the previous iteration). If the same conceptual topic recurs across 2+ iterations, stop and follow the escalation order in Rules.
+3. If actionable findings exist: fix, run `/done-check` in delta mode against the previous audit's rows and concerns with the same root, then re-run `/code-review-gate` at the same effort and root (fresh, full review — no bias from the previous iteration). If the same conceptual topic recurs across 2+ iterations, stop and follow the escalation order in Rules.
 4. Repeat until no actionable findings remain.
 
-From Phase 1 onward, when the final pre-commit diff received a valid gate review (i.e. the gate was not waived), every reviewer finding is by construction a penetration of this gate — note that provenance in each triage presentation.
+Step 3 gives this gate the same property Phase 0 has: the review closing it saw the diff that proceeds.
+
+When that diff received a valid gate review (i.e. the gate was not waived), attribute each **Phase 1 and Phase 2** reviewer finding to one of two provenances, and note it in the triage presentation. A finding already present in the diff this gate reviewed is by construction a penetration of it. A finding introduced by a Phase 1 or Phase 2 fix is not: those fix loops run the audit, commit, and re-run the current reviewer, never this gate, so the defect did not exist when this gate ran.
 
 ## Phase 1: Codex review loop
 
-1. Run `/stage-commit-push` to stage, commit, and push local changes
-2. Run `/codex-review` to review the branch diff against main
+1. Ensure the diff Phase 0.5 reviewed is committed and pushed, which is the state `/codex-review`'s `--base` mode is defined over. Run `/stage-commit-push`, which routes on what is actually outstanding — commit and push, push only, or nothing — so an entry arriving already committed and pushed passes through it without action.
+2. Run `/codex-review` to review the branch diff, passing the root stated at pipeline entry
 3. Triage the output — classify each finding under the `finding-triage` SSOT dispositions
 4. If actionable findings exist, apply the **fix-loop substeps** (see Rules) and repeat until no actionable findings remain.
 
 ## Phase 2: Copilot review
 
 1. Run `/file-pullreq` in **gate mode** — drafts the PR title + body following `gh-body-conventions` and the standard body skeleton, discharges its evidence claims, runs the laundering pass, and gets the user's approval. The skill stops at approval and emits the approved title + body for the next step. It does NOT create the PR itself.
-2. Run `/copilot-review`, passing the approved title + body — this creates the PR with `--reviewer @copilot` and polls until the review arrives.
+2. Run `/copilot-review` in its normal mode, passing the approved title + body and **the root as this pipeline's `--base`** — this creates the PR with `--reviewer @copilot` and polls until the review arrives. The root is a branch name, which is what that flag takes; `/codex-review`'s `--base` one phase earlier is a different value, a merge base derived from the same root. Omitting it opens the PR against the repository default branch, and every gate above measured from the branch this run was told it merges into, so the two would then disagree.
 3. Triage the review — filter to the latest review's comments only (by `pull_request_review_id`)
 4. Reply to each inline comment individually via `gh-post reply-inline <owner>/<repo> <PR> < /tmp/replies.jsonl`. Build the JSONL with one `{"id": <comment-id>, "body": "<reply>"}` per line; the wrapper validates every body through the hardwrap detector before any send (halt-before-send) and prints un-sent indices on a mid-batch API failure.
 5. If actionable findings exist, apply the **fix-loop substeps** (see Rules), replacing the re-review step with `${CLAUDE_SKILL_DIR}/../copilot-review/scripts/pr-with-copilot-review.sh --re-review <PR_URL>`. Triage only new comments. Repeat until no actionable findings remain.
@@ -124,7 +134,7 @@ Runs only after the user has merged.
 
   1. **Oscillation check (iteration N ≥ 2).** Compare current actionable topics against the previous iteration's preserved topics. If any conceptual topic recurs, halt and follow the escalation order below — do NOT fix or done-check.
   2. Fix the code.
-  3. Run `/done-check` in delta mode, against the previous audit's rows and concerns.
+  3. Run `/done-check` in delta mode, against the previous audit's rows and concerns, with the root stated at pipeline entry.
   4. Run `/stage-commit-push`.
   5. Re-run the review (fresh, full review — no bias from previous iteration). Phase 2 uses `--re-review` instead.
   6. Preserve actionable topic classifications for the next iteration's oscillation check.
@@ -147,13 +157,15 @@ Runs only after the user has merged.
 
 - **Every commit goes through `/stage-commit-push`.** Do not manually run git add/commit/push during the pipeline.
 
-- **Pre-commit branch gate.** Before each `/stage-commit-push`, verify the current branch is not the repo's default branch:
+- **Pre-commit branch gate.** Before each `/stage-commit-push`, and at pipeline entry on the terms Pipeline entry states, verify the current branch is not the repo's default branch:
 
   ```
-  test "$(git symbolic-ref --short HEAD)" != "$(git symbolic-ref --short refs/remotes/origin/HEAD | sed 's@^origin/@@')"
+  default=$(git symbolic-ref --short refs/remotes/origin/HEAD | sed 's@^origin/@@')
+  test -n "$default" || { echo "remote HEAD unset — run: git remote set-head origin -a"; exit 1; }
+  test "$(git symbolic-ref --short HEAD)" != "$default"
   ```
 
-  Halt and surface to user if equal.
+  The first two lines are `diff-root`'s default-branch read, spelled out because this check runs it; that skill states why each is load-bearing. Halt and surface to the user if the branches are equal, or if the default branch does not resolve.
 
 - **Reply to Copilot comments individually**, not as a single PR comment. Use `gh-post reply-inline <owner>/<repo> <PR> < /tmp/replies.jsonl`. JSONL shape: one `{"id": <comment-id>, "body": "<reply>"}` per line.
 

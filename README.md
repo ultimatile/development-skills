@@ -11,7 +11,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | `research` | Hypothesis-driven investigation under the four-state decision discipline (confirmed / rejected / inconclusive / deferred). Classifies hypotheses as empirical (subagent-verified) vs derivational (deduced in main context); posts the resulting plan to the issue body (umbrella-spawned sub-issue) or comment (single-scope issue). Depends on [haru0416-dev/quaere](https://github.com/haru0416-dev/quaere) (`quaere-evidence`, `quaere-semantic`) |
 | `codex-plan-review` | Review the implementation plan with Codex against the actual codebase before coding |
 | `implement` | Execute a plan via the quaere-execution discipline (Plan → Do → Study → Act) with drift surfacing and done-check before completion. Reads the plan from the sub-issue body (umbrella-spawned) or comments (single-scope). Depends on [haru0416-dev/quaere](https://github.com/haru0416-dev/quaere) (`quaere-execution`) |
-| `research-and-implement` | End-to-end wrapper that runs `research` (Phase 1) then `implement` (Phase 2), with a branch baseline gate up front. Depends on [haru0416-dev/quaere](https://github.com/haru0416-dev/quaere) (`quaere-evidence` + `quaere-execution`) |
+| `research-and-implement` | End-to-end wrapper that runs `research` (Phase 1) then `implement` (Phase 2), with a branch and root baseline gate up front. Depends on [haru0416-dev/quaere](https://github.com/haru0416-dev/quaere) (`quaere-evidence` + `quaere-execution`) |
 
 ### Issue & PR drafting
 
@@ -35,6 +35,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | -- | -- |
 | `stage-commit-push` | Stage, generate conventional commit message, commit, and push |
 | `finding-triage` | Single source of truth for per-finding review-triage dispositions (actionable / false-positive / uncertain-validity / opens-a-question → research / invariant-premise-check / defer), referenced by the review and audit skills instead of each restating the taxonomy. Definition file, not a procedure |
+| `diff-root` | Single source of truth for the diff root — the ref a change is measured from. Holds the consumer contract, where the root comes from, and the per-command range conversion. Definition file, not a procedure |
 | `codex-review` | Run OpenAI Codex review with triage before PR creation |
 | `copilot-review` | Create PR with GitHub Copilot review, poll for results, triage |
 | `code-review-gate` | Run the built-in `/code-review` through a fallback lane chain when the Skill tool cannot invoke it directly; used by `review-pipeline` at Phase 0.5 |
@@ -45,7 +46,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | Skill | Description |
 | -- | -- |
 | `reimre` | Full end-to-end wrapper — runs `research-and-implement` then `review-pipeline` back to back, with an automatic seam rule that skips the duplicate `done-check` at the boundary. Stops at the user-controlled merge gate inherited from `review-pipeline`. |
-| `land-via-integration-branch` | Land a large change too big for one PR as a sequence of PRs merging into a long-lived integration branch, under a four-gate cadence (per-commit done-check, per-unit codex review, per-PR-open codex review, per-PR-review Copilot); a final PR merges the branch into main via `review-pipeline`. Use when one PR would exceed a reviewer's diff-size limit or when multiple component APIs must migrate together. |
+| `land-via-integration-branch` | Land a large change too big for one PR as a sequence of PRs merging into a long-lived integration branch, under a five-gate cadence (per-commit done-check, per-unit codex review, pre-open code-review gate, per-PR-open codex review, per-PR-review Copilot); a final PR merges the branch into main via `review-pipeline`. Use when one PR would exceed a reviewer's diff-size limit or when multiple component APIs must migrate together. |
 
 ### Quality Gates
 

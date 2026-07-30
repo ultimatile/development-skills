@@ -19,14 +19,16 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
 
    Detect language from `<TARGET_ROOT>/CLAUDE.md`'s `Language:` declaration — the target's, never one found beside the rule files; otherwise auto-detect from diff file extensions (`.rs` → rust, `.cpp`/`.cc`/`.cxx`/`.h`/`.hpp` → cpp, `.py` → python, `.ts`/`.tsx` → typescript, `.go` → go, etc.). Multi-language projects detect every present language; each matching addendum applies. Missing addendum → base rules only for that language (not a concern). Step 0 only **detects** the language(s); it routes nothing. Each consumer that applies `quality-list` — the Step 2 mechanical subagent and the Step 3 contextual pass — loads every matching addendum file itself.
 
-1. **Identify the diff under audit.** Cover all four sources so recently-added implementation files are not missed:
+1. **Identify the diff under audit.** The caller supplies the **root** on `diff-root`'s consumer contract; apply it here, halt included, and build the committed half by that skill's per-command conversion.
+
+   Cover all four sources so recently-added implementation files are not missed:
 
    ```bash
-   git log --oneline @{upstream}..HEAD                       # committed
-   git diff @{upstream}..HEAD                                # committed content
-   git diff --cached                                         # staged
-   git diff                                                  # unstaged
-   git ls-files --others --exclude-standard                  # untracked paths
+   git log --oneline <root-rev>..HEAD           # committed
+   git diff <root-rev>...HEAD                   # committed content
+   git diff --cached                        # staged
+   git diff                                 # unstaged
+   git ls-files --others --exclude-standard # untracked paths
    ```
 
    Read the contents of any untracked file relevant to the audit (paths alone do not let you check anything).
@@ -64,6 +66,11 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
    present language, and you must load them all (see Step 0 of
    done-check for the detection rule).
 
+   Where an item body or addendum spells a detection command
+   containing `<root-rev>`, substitute the revision form
+   `diff-root` derives from the root given below, not the root
+   itself.
+
    Return one verdict per item, from the three defined in Step 4 of
    <SKILLS_DIR>/done-check/SKILL.md; read that step's verdict
    sentence, which states what backs each of the three. On a concern,
@@ -100,7 +107,7 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
      items
    ```
 
-   Embed only the diff and the two resolved absolute paths in the prompt. The diff is all four sources Step 1 identified — committed, staged, unstaged, and the contents of every relevant untracked file. **Do not embed item body text** — the subagent reads the item files itself, keeping the main context free of the rule text.
+   Embed only the diff, the root Step 1 was given, and the two resolved absolute paths in the prompt. The diff is all four sources Step 1 identified — committed, staged, unstaged, and the contents of every relevant untracked file. The root is what an item body's or addendum's detection command needs to name a range. **Do not embed item body text** — the subagent reads the item files itself, keeping the main context free of the rule text.
 
    **Firing rule for auditor 2.** Dispatch the authoritative-text auditor when any path in the diff could be text an agent executes as instructions — markdown paths are the usual case. **Dispatch when unsure.**
 
