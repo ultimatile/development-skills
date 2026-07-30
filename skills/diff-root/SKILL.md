@@ -40,8 +40,6 @@ Two metavariables keep the uses apart, and every rule below and in every consume
 - `<root>` — the root as supplied.
 - `<root-rev>` — its revision spelling. For a branch root that is `origin/<root>`; for a commit root the two are the same string.
 
-`<root-rev>` is a local cache of a branch that lives on the forge, so **refresh it before building a range**: `git fetch origin <root>`. Without that the range measures from wherever the cache last stood, which goes stale exactly where it matters most — a long-lived integration branch advances on the forge every time one of its pull requests merges.
-
 **Revision arguments take `<root-rev>`** — `git log`, `git diff`, `git merge-base`, and anything else resolving a ref. A bare branch name there resolves to the local branch, which is routinely ahead of or behind the remote one the work merges into, so writing `<root>` where `<root-rev>` belongs reintroduces exactly the wrong-scope review this contract exists to prevent.
 
 **A branch name on the forge takes `<root>`** — `gh pr create --base`, `gh pr edit --base`. So does a comparison against this repository's default branch, which is read prefixed and must have that prefix stripped before comparing, since `<root>` carries none.
@@ -60,6 +58,8 @@ test -n "$default" || { echo "remote HEAD unset — run: git remote set-head ori
 Both lines are load-bearing. The `sed` is what makes the result comparable with `<root>`, which carries no prefix, since the ref prints as `origin/<default>`. Empty output or a nonzero exit means remote HEAD was never fetched; the check catches that, because an unset value is the empty string, which compares unequal to every branch name — a guard built on one passes exactly when it should fire. Never treat that result as a value: run `git remote set-head origin -a`, and halt if it still resolves nothing.
 
 ## Per-command conversion
+
+Every conversion below starts with a refresh. For a branch root, `<root-rev>` is a local cache of a branch that lives on the forge, so run `git fetch origin <root>` before building any range from it. Skip that and the range measures from wherever the cache last stood, which goes stale exactly where it matters most: a long-lived integration branch advances on the forge every time one of its pull requests merges. A commit root is immutable and needs no refresh.
 
 | Command | Form | Why this form |
 | -- | -- | -- |
