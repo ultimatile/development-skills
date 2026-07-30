@@ -102,7 +102,7 @@ Each iteration runs a full, unbiased review of the entire diff against base. Do 
 
 5. **Re-triage** — a finding dismissed as false positive in iteration N may become relevant in iteration N+1 if the fix changed the surrounding code. Don't carry over dismissals blindly.
 
-6. **Repeat** until no actionable findings remain or the user is satisfied.
+6. **Repeat** until no actionable findings remain, or the user explicitly waives the remainder with reasoning — a waived finding no longer stands as an open actionable finding, in this loop and in any loop wrapping it.
 
 ### What "clean" means
 
