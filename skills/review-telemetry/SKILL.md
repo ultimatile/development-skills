@@ -110,7 +110,7 @@ chflags uappnd <log>
 Aggregation one-liners for later analysis sessions. One derivation is prohibited; see the `injected_at_gate` normalization rule.
 
 ```bash
-# Instance-level penetration: new defects each gate added
+# Instance-level penetration: new actionable defects each gate added
 jq -r '.gates[] | .gate as $g | .findings[] | select(.disposition == "actionable" and .duplicate_of_gate == null) | $g' \
   ~/.claude/review-telemetry/runs.jsonl | sort | uniq -c
 
@@ -133,13 +133,13 @@ jq -r '.gates[] | .gate as $g | .findings[] | select(.disposition == "false-posi
 jq -c 'select(any(.gates[] | select(.gate | test("-pr$")) | .findings[]; .duplicate_of_gate == null))' \
   ~/.claude/review-telemetry/runs.jsonl
 
-# Fix-induced regressions per injecting gate (the regeneration signal)
+# Actionable fix-induced regressions per injecting gate (the regeneration signal)
 jq -r 'select(.schema >= 3) | .gates[].findings[]
   | select(.disposition == "actionable" and .injected_at_gate != null and .duplicate_of_gate == null)
   | .injected_at_gate' \
   ~/.claude/review-telemetry/runs.jsonl | sort | uniq -c | sort -rn
 
-# Fix-loop-sourced plan drift, by injecting and surfacing gate; a recurring pair is the signal
+# Actionable fix-loop-sourced plan drift, by injecting and surfacing gate; a recurring pair is the signal
 # to add a plan-conformance recheck after the fix loops
 jq -r 'select(.schema >= 3) | .gates[] | .gate as $g | .findings[]
   | select(.disposition == "actionable" and .topic == "plan-actual-drift"
