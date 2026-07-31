@@ -34,7 +34,7 @@ Each finding receives exactly one disposition. A finding may be *re-triaged* to 
 
 - **defer** — the finding is valid and its fix is understood, but it is **out of scope** for the current task. File a **follow-up issue** for it, with the user's approval, and do not fix now. Distinct from `opens-a-question`: here the resolution is known and local; in `opens-a-question` the resolution itself is unknown.
 
-- **waive** — the finding is valid and its fix is understood, the fix is not made in this run, and the user directs that **nothing be carried past this run**: no follow-up issue is filed. Only the user may waive. The waiver carries the reasoning, which states what the fix would cost. The finding is closed once that reasoning is recorded with this run's other dispositions.
+- **waive** — the finding is valid and its fix is understood, the fix is not made in this run, and the user directs that **nothing be carried past this run**: no follow-up issue is filed. Only the user may waive. The waiver carries the reasoning, which states what the fix would cost and, where the finding is `critical`, why shipping the specified behavior wrong on the happy path is acceptable. The finding is closed once that reasoning is recorded with this run's other dispositions.
 
 **Precedence across the three local-fix branches.** `actionable`, `defer` and `waive` all take a valid finding whose fix is understood and local, so a rule is needed to keep them single-valued. Decide first whether the fix is made in this run. Made → `actionable`. Not made → `defer` where the user directs that the finding be carried past this run, `waive` where the user declines to. Both branches are the user's, and what selects between them is that decision, which the run witnesses rather than predicts. What *discharges* each is a later act, stated under **Closure**: filing the follow-up issue for `defer`, recording the reasoning for `waive`. Keeping the two apart is what stops a finding from being classified by an artifact that does not exist yet.
 
@@ -67,7 +67,7 @@ An `actionable` disposition settles validity; it does not settle the edit. Selec
 - **Drift between copies of one rule** — the same rule stated in more than one place, whether or not the drift affects behavior → `deduplicate` when load-bearing is true (the collapsed statement carries the corrected content); `delete` when it is false. Rewriting the divergent copies in place is not an outcome: it opens new consistency surfaces, and drift between N copies costs N comparisons to detect while a broken reference costs one grep.
 - **Otherwise** (a statement misdescribes the behavior it annotates, a wrong action, a typo) → `fix-in-place`: correct it, when load-bearing is true; `delete` when it is false.
 
-The selected edit is applied in the current run; a re-triage out of `actionable` exits instead. Declining the fix is one such re-triage, and which disposition it lands on is the precedence above, not a choice made here — a `critical` finding does not ordinarily survive the bar the reasoning there has to meet.
+The selected edit is applied in the current run; a re-triage out of `actionable` exits instead. Declining the fix is one such re-triage, and which disposition it lands on is the precedence above, not a choice made here — the finding's severity belongs in the reasoning that decision carries, which is where `waive` states what a `critical` one has to account for.
 
 The regeneration signal — whether the target sentence was written to answer a prior finding — is iteration history, out of scope here per **Scope: stateless, per-finding**.
 
@@ -80,13 +80,13 @@ A gate whose exit condition is stated as its findings being **closed** closes ea
 - `defer` — the follow-up issue is filed, with the user's approval; filing it is what closes the finding.
 - `waive` — the user waives it, and only the user may; the reasoning is recorded.
 
-The other three are **transient** and close nothing. `uncertain-validity`, `invariant-premise-check` and `opens-a-question` each name an investigation that must return first, after which the finding re-triages to a terminal disposition. Such a gate reached with a finding still holding one of these has no closure available for it, and must resolve it rather than proceed.
+The other three are **transient** and close nothing. `uncertain-validity`, `invariant-premise-check` and `opens-a-question` each name an investigation that must return first, after which the finding re-triages to a terminal disposition. Such a gate reached with a finding still holding one of these has no closure available for it, and must resolve it rather than proceed. Where the investigation cannot return at all — the authoritative implementation is unavailable, the rule text the row would be judged against is missing — only the user may let the gate proceed with the finding still open. That is a decision about the gate, not a disposition of the finding, and it leaves the finding transient.
 
 A dismissal's or a waiver's reasoning is recorded wherever the gate already records that finding's disposition — an audit row's note, a review thread's reply, a check's returned report. Naming that surface is the gate's only closure-side statement; what closes a disposition, and who may close it, is stated here.
 
 ## Pre-existing instances do not license dismissal
 
-A finding is not downgraded to `false-positive`, `defer` or `waive` merely because the surrounding code already exhibits the same flaw. Pre-existing instances of a problem are unextracted debt, not a convention that licenses adding another — "matches the surrounding code" describes the debt, it does not dismiss the finding. Dismissal still requires the disposition's own bar: for `false-positive`, context that makes *this* finding wrong; for `defer`, a filed follow-up issue; for `waive`, the user's reasoning. The mere presence of prior offenders meets none of them.
+A finding is not downgraded to `false-positive`, `defer` or `waive` merely because the surrounding code already exhibits the same flaw. Pre-existing instances of a problem are unextracted debt, not a convention that licenses adding another — "matches the surrounding code" describes the debt, it does not dismiss the finding. Dismissal still requires the disposition's own bar: for `false-positive`, context that makes *this* finding wrong; for `defer`, the user's direction to carry it past this run; for `waive`, the user's reasoned decision not to. The mere presence of prior offenders meets none of them.
 
 ## opens-a-question vs uncertain-validity
 
