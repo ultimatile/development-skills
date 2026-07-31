@@ -191,7 +191,7 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
    Decide a disposition under the `finding-triage` SSOT, applying each per its definition there, for every concern this audit produced — each ⚠ row, whether a subagent's or step 3's, and each cross-cutting concern below. A fresh-context audit concern most often lands on one of two:
 
    - **`actionable`** — fix before proceeding (same as a main-context ⚠).
-   - **`false-positive` due to missing context** — note explicitly why (e.g., "the identifier the row calls undefined is a standard library symbol"); the subagent's literal interpretation is wrong because it lacked context.
+   - **`false-positive`** — note explicitly why (e.g., "the identifier the row calls undefined is a standard library symbol").
 
    Any other disposition applies on its own terms. A concern that re-triages to a transient one is not closed by that re-triage — step 5 closes each concern by whichever disposition it then holds.
 

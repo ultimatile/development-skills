@@ -81,10 +81,10 @@ Common leak shapes the cold reader will surface (illustrative, not exhaustive �
 
 ### 4. Merge and gate
 
-Combine the rg hit (if any) and the cold-reader report into a single status. A math-scan ⚠ closes one way only — fix the body — since step 2 already judged it against a deterministic convention, and its one exemption is the ⊘ N/A that step grants. For each cold-reader ⚠, decide a disposition in main context under the `finding-triage` SSOT, applying each per its definition there. Such a concern most often lands on one of two:
+Combine the rg hit (if any) and the cold-reader report into a single status. A math-scan hit step 2 judged ⊘ N/A is not a finding; one it judged ⚠ takes a disposition like any other, though `defer` is excluded by its own terms — the body being drafted is the current task, not a later one. Decide a disposition in main context under the `finding-triage` SSOT, applying each per its definition there, for every ⚠ this check produced. A cold-reader concern most often lands on one of two:
 
 - **`actionable`** — fix before proceeding.
-- **`false-positive` due to missing context** — record explicitly why (e.g., the cold reader did not recognize a public external reference, or the term is a standard library identifier the reader was unfamiliar with).
+- **`false-positive`** — record explicitly why (e.g., the cold reader did not recognize a public external reference, or the term is a standard library identifier the reader was unfamiliar with).
 
 Any other disposition applies on its own terms, and closes — or fails to close — the ⚠ on `finding-triage`'s **Closure** terms.
 
