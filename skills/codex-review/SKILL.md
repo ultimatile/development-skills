@@ -106,7 +106,7 @@ Each iteration runs a full, unbiased review of the entire diff against base. Do 
 
 ### What "clean" means
 
-No actionable findings after triage. A review with only false positives counts as clean; a valid but minor finding keeps whichever SSOT disposition it earns — minor-ness alone never makes it clean.
+No open actionable findings after triage. A review with only false positives counts as clean; a valid but minor finding keeps whichever SSOT disposition it earns — minor-ness alone never makes it clean.
 
 ## Important constraints
 
