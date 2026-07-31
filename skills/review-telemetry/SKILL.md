@@ -59,7 +59,7 @@ Reconstruct from the current conversation's triage records, and from `git` / `gh
 }
 ```
 
-Schema 1 records lack `topic_opened_by`; gate every query reading that field with `select(.schema >= 2)`. Schema ≤2 records lack `injected_at_gate`; gate every query reading that field with `select(.schema >= 3)`. Schema ≤3 records predate `waive`, so they offered no slug for a finding closed unfixed with no follow-up; whichever slug such a finding took there, no query can separate it from that slug's schema-4 meaning. That is a property of the range, not an instruction: the queries below are aggregates over dispositions and are left ungated, since gating them on `select(.schema >= 4)` would discard every earlier run rather than correct it. A version therefore marks a widened value domain as much as an added field — the boundary a query needs is the same either way.
+Schema 1 records lack `topic_opened_by`; gate every query reading that field with `select(.schema >= 2)`. Schema ≤2 records lack `injected_at_gate`; gate every query reading that field with `select(.schema >= 3)`. Schema ≤3 records predate `waive`, so they offered no slug for a finding closed unfixed with no follow-up; whichever slug such a finding took there, no query can separate it from that slug's schema-4 meaning. That is a property of the range, not an instruction: no query below gates on it, since gating the disposition aggregates on `select(.schema >= 4)` would discard every earlier run rather than correct it. A version therefore marks a widened value domain as much as an added field — the boundary a query needs is the same either way.
 
 Normalization rules:
 

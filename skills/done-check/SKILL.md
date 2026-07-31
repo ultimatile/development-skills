@@ -201,7 +201,7 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
 
    **Cross-cutting concerns.** Each auditor also returns concerns spanning several items. They are not rows and do not enter the row domain, but they take a disposition like any other concern, and step 5 binds them exactly as it binds a ⚠ row: you close each one there before proceeding. Report them under the table.
 
-5. Close every concern before proceeding, on `finding-triage`'s **Closure** terms — which disposition closes, and who may close it, is stated there. A row left holding a transient disposition cannot close, step 4's clause-less row among them: its re-dispatch was the investigation, and a second return without a clause means none can come back. Closure states what happens then — only the user lets this gate proceed with such a row open.
+5. Close every concern before proceeding, on `finding-triage`'s **Closure** terms — which disposition closes, and who may close it, is stated there. A row left holding a transient disposition cannot close, step 4's clause-less row among them: its re-dispatch was the investigation, and a second return without a clause means none can come back. Closure states what happens then — only the user lets this gate proceed with a row whose investigation cannot come back.
 
    This audit's surface for the reasoning a closure carries is the row's Note, or — for a cross-cutting concern, which is not a row — the triage reported beside it in step 6.
 
