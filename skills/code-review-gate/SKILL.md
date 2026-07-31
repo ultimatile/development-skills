@@ -32,7 +32,7 @@ Use the first lane in the chain that produces a valid review. On lane failure, r
 
 ## Exhaustion
 
-If every lane in the chain is abandoned without a valid review of the current diff, **halt and surface the state to the user** — never proceed toward a commit with an unreviewed diff. Only the user may waive. A waiver does not delete telemetry: iterations that produced a valid review are still recorded with their data; the waived, unreviewed final diff is named in the gate's `gaps`. Omit the gate entirely only when no iteration ever produced a valid review.
+If every lane in the chain is abandoned without a valid review of the current diff, **halt and surface the state to the user** — never proceed toward a commit with an unreviewed diff. Only the user may waive, and what is waived here is this gate, not any individual finding — a finding takes a `finding-triage` disposition instead. A waiver does not delete telemetry: iterations that produced a valid review are still recorded with their data; the waived, unreviewed final diff is named in the gate's `gaps`. Omit the gate entirely only when no iteration ever produced a valid review.
 
 ## Telemetry notes
 

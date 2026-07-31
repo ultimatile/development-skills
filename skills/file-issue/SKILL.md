@@ -83,7 +83,7 @@ Editing the body here is expected; the laundering pass runs on the result.
 
 Run `gh-body-check` against the drafted body. The check runs a Unicode-math regex scan and a cold-reader subagent that judges whether every referent in the body resolves from the target repo's public state alone — the author has just drafted the text and is primed to read what they meant rather than what they wrote, which has repeatedly let private-context tokens slip past a self-administered cold re-read.
 
-Pass artifact kind `issue`, the target repo, and the target language. The check returns a ✅ / ⚠ status. Mandatory before every `gh-post issue create` / `gh-post issue comment`. Any ⚠ blocks step 5; revise the draft, re-discharge its evidence claims, and re-run until no unresolved ⚠ remains, or explicitly waive a finding with a one-line justification.
+Pass artifact kind `issue`, the target repo, and the target language. The check returns a ✅ / ⚠ status. Mandatory before every `gh-post issue create` / `gh-post issue comment`. A ⚠ that is not closed blocks step 5; revise the draft, re-discharge its evidence claims, and re-run until every ⚠ is closed in the sense `finding-triage`'s **Closure** defines.
 
 See `gh-body-check/SKILL.md` for the procedure.
 

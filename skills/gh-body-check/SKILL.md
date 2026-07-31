@@ -1,6 +1,6 @@
 ---
 name: gh-body-check
-description: Audit a drafted or filed GitHub issue / PR body against gh-body-conventions via a fresh-context subagent. Any unresolved ⚠ blocks the caller.
+description: Audit a drafted or filed GitHub issue / PR body against gh-body-conventions via a fresh-context subagent. A ⚠ that is not closed blocks the caller.
 allowed-tools: Bash(*/gh-body-check/body-math-scan.sh:*)
 ---
 
@@ -81,12 +81,14 @@ Common leak shapes the cold reader will surface (illustrative, not exhaustive �
 
 ### 4. Merge and gate
 
-Combine the rg hit (if any) and the cold-reader report into a single status. For each cold-reader ⚠, judge in main context — the `finding-triage` SSOT's `actionable` / `false-positive` split applied to a cold-reader concern:
+Combine the rg hit (if any) and the cold-reader report into a single status. A math-scan ⚠ closes one way only — fix the body — since step 2 already judged it against a deterministic convention, and its one exemption is the ⊘ N/A that step grants. For each cold-reader ⚠, decide a disposition in main context under the `finding-triage` SSOT, applying each per its definition there. Such a concern most often lands on one of two:
 
-- **True positive** (`actionable`) — fix before proceeding.
-- **False positive due to missing context** — record explicitly why (e.g., the cold reader did not recognize a public external reference, or the term is a standard library identifier the reader was unfamiliar with). Per `finding-triage`, false-positive classification is itself a triage step the user can challenge; do not silently override.
+- **`actionable`** — fix before proceeding.
+- **`false-positive` due to missing context** — record explicitly why (e.g., the cold reader did not recognize a public external reference, or the term is a standard library identifier the reader was unfamiliar with).
 
-Any unresolved ⚠ blocks the caller's next step. Return the report; the caller revises the draft, re-discharges its evidence claims, and re-runs `gh-body-check`. Iterate until clean, or each remaining ⚠ has an inline waiver with a one-line justification.
+Any other disposition applies on its own terms, and closes — or fails to close — the ⚠ on `finding-triage`'s **Closure** terms.
+
+A ⚠ that is not closed blocks the caller's next step. Return the report; the caller revises the draft, re-discharges its evidence claims, and re-runs `gh-body-check`. Iterate until every ⚠ is closed on those terms. This check's surface for the reasoning a closure carries is the returned report, against the ⚠ it closes.
 
 ## What this skill does NOT do
 

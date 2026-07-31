@@ -25,7 +25,7 @@ This pipeline takes two inputs, stated before the first phase the run executes. 
    - Fix the code
    - Run `/done-check` again (fresh, full audit — do not bias the next pass with the previous concerns list)
    - Re-triage
-4. Repeat until done-check's step 5 gate is satisfied over both domains — its rows and its cross-cutting concerns. That gate owns which dispositions close each; do not restate them here.
+4. Repeat until done-check's step 5 gate is satisfied over both domains — its rows and its cross-cutting concerns. That gate applies `finding-triage`'s **Closure** rules to both; do not restate them here.
 
 What binds this phase is that the audit closing it saw the diff that proceeds — step 3 secures that by re-running the audit after every fix.
 
@@ -103,7 +103,7 @@ Skip when the work is not tied to an umbrella tracking issue. Trigger only when 
 
    Discharge the appended section's evidence claims per `gh-body-conventions` § Evidence claims before running the check below, and re-check any completeness claim already in the body — work done since the body was last discharged can have falsified one without its text changing.
 
-   Before invoking `gh-post pr edit`, run `/gh-body-check` against the **final body** (existing PR body concatenated with the appended delta section). Paragraph boundaries and reference patterns can cross the section seam, so auditing only the appended section would miss them. Pass artifact kind `pr` and the target language. Any unresolved ⚠ blocks `gh-post pr edit` — revise the appended section, re-discharge its evidence claims, and re-run until clean.
+   Before invoking `gh-post pr edit`, run `/gh-body-check` against the **final body** (existing PR body concatenated with the appended delta section). Paragraph boundaries and reference patterns can cross the section seam, so auditing only the appended section would miss them. Pass artifact kind `pr` and the target language. A ⚠ that is not yet closed blocks `gh-post pr edit` — revise the appended section, re-discharge its evidence claims, and re-run until every ⚠ is closed in the sense `finding-triage`'s **Closure** defines.
 
    Write the final body to a temp file and invoke `gh-post pr edit <N> --repo <owner>/<repo> --body-file /tmp/<descriptive-name>.md`. Do not run `gh pr edit ... --body*` directly; route the body through `gh-post`.
 

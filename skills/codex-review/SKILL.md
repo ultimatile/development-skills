@@ -102,11 +102,11 @@ Each iteration runs a full, unbiased review of the entire diff against base. Do 
 
 5. **Re-triage** — a finding dismissed as false positive in iteration N may become relevant in iteration N+1 if the fix changed the surrounding code. Don't carry over dismissals blindly.
 
-6. **Repeat** until no actionable findings remain, or the user explicitly waives the remainder with reasoning — a waived finding no longer stands as an open actionable finding, in this loop and in any loop wrapping it.
+6. **Repeat** until no actionable findings remain. A finding the user declines to fix leaves this disposition by re-triage on `finding-triage`'s terms, so it no longer counts here or in any loop wrapping this one. Present that re-triage, carrying the reasoning its new disposition requires, to the user at the point the decline happens.
 
 ### What "clean" means
 
-No open actionable findings after triage. A review with only false positives counts as clean; a valid but minor finding keeps whichever SSOT disposition it earns — minor-ness alone never makes it clean.
+Step 6's exit condition, and nothing weaker. A review with only false positives counts as clean; a valid but minor finding keeps whichever SSOT disposition it earns — minor-ness alone never makes it clean.
 
 ## Important constraints
 

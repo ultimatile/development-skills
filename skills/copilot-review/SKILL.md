@@ -60,7 +60,11 @@ For each finding:
 
 ## Respond to review
 
-Each Copilot finding lives on an inline thread; that thread is the unit of response. After triaging, reply within each thread via `gh-post reply-inline` — every reply body is validated (hardwrap detector + halt-before-send) and a single batch covers the full review:
+Each Copilot finding lives on an inline thread; that thread is the unit of response.
+
+**What a reply says.** One or two sentences, stating how the finding was handled in words a reader holding only the pull request can check: fixed, naming which kind of edit; dismissed as wrong, naming the context the reviewer lacked; deferred, linking the record; waived by the user, stating the reasoning; or still under investigation, naming what is outstanding. These are `finding-triage`'s dispositions rendered for an outward-facing thread — do not print its slugs there. This skill's surface for the reasoning a closure carries is the thread reply, so writing the reply is what discharges a disposition whose closure is that its reasoning be recorded.
+
+After triaging, reply within each thread via `gh-post reply-inline` — every reply body is validated (hardwrap detector + halt-before-send) and a single batch covers the full review:
 
 ```bash
 # 1. Collect target threads — by default this filters to Copilot-authored heads
@@ -68,9 +72,8 @@ Each Copilot finding lives on an inline thread; that thread is the unit of respo
 #    Use --unresolved --unreplied to narrow to threads that actually need a reply.
 ${CLAUDE_SKILL_DIR}/scripts/list-pr-threads.sh {owner}/{repo} {number} --unresolved --unreplied
 
-# 2. Build a JSONL file: one {"id": <head-comment-id>, "body": "<reply text>"} per line.
-#    Each reply should be concise — state the classification (fixed, false positive,
-#    acknowledged) and the reasoning in 1-2 sentences.
+# 2. Build a JSONL file: one {"id": <head-comment-id>, "body": "<reply text>"} per line,
+#    each body written per "What a reply says" above.
 
 # 3. Send the batch. The wrapper validates every body BEFORE any send; on a body
 #    failure no replies post. On a mid-batch API failure it prints un-sent indices

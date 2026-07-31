@@ -102,7 +102,6 @@ Codex evaluates the plan against the code it reads, but lacks project context (d
 
 - **`actionable`**: a real design flaw that would cause bugs or incorrect behavior
 - **`false-positive`**: a concern that doesn't apply given project constraints (e.g., suggesting generalization when only one case exists)
-- **`defer`**: valid but out of scope for the current task
 
 A finding whose resolution opens a design question the plan did not settle is `opens-a-question` → fold it back into the research that produced the plan rather than spot-patching the plan text.
 

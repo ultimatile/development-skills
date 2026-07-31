@@ -117,4 +117,4 @@ Record at minimum, and include the per-unit codex review step explicitly in the 
 - Latest unit-approved SHA (baseline for the next per-unit review).
 - Integration branch tip SHA captured on entering the final integration → main section (root for that section's per-commit audits).
 - PR sequence with per-PR status (planned / in-progress / merged-to-integration / pending-final).
-- Open codex findings carried over (per-unit P1 / P2 deferred with rationale).
+- Open codex findings carried over, each with the `finding-triage` disposition it holds.
