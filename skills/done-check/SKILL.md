@@ -205,7 +205,7 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
 
    This audit's surface for the reasoning a closure carries is the row's Note, or — for a cross-cutting concern, which is not a row — the triage reported beside it in step 6.
 
-   A closure moves the row's verdict only when the defect is gone. `actionable` leaves the row ✅ once its edit lands. `false-positive` leaves it ✅, with the basis of the dismissal in Evidence — the context the subagent lacked, checked — and, in the Note, its reasoning together with the text the row had cited, which delta mode's carry-forward keys on. `defer` and `waive` leave the defect in place, so the row stays ⚠ with the closure recorded in its Note.
+   A closure moves the row's verdict only when the defect is gone, and then to whichever verdict the item's own criterion gives against what the diff now holds — ✅ where the rule is satisfied, ⊘ N/A where the item no longer applies at all. `actionable` reaches that point once its edit lands; `false-positive` reaches it at the dismissal, whose basis goes in Evidence — the context the subagent lacked, checked — and whose reasoning goes in the Note together with the text the row had cited, which delta mode's carry-forward keys on. `defer` and `waive` leave the defect in place, so the row stays ⚠ with the closure recorded in its Note.
 
 6. Report the audit table, followed by any cross-cutting concerns and their triage. Only a run that reaches this step emits a table at all: every halt above — a rule set that is not under `<SKILLS_DIR>`, a coverage check still unmatched after its re-dispatch — ends the run without one, however many such halts the steps above come to hold. Delta mode narrows this report rather than removing it (below).
 

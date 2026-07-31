@@ -88,7 +88,7 @@ Combine the rg hit (if any) and the cold-reader report into a single status. A m
 
 Any other disposition applies on its own terms, and closes — or fails to close — the ⚠ on `finding-triage`'s **Closure** terms.
 
-A ⚠ that is not closed blocks the caller's next step, on the terms **Closure** states — the user's leave to proceed with one whose investigation cannot return included. Return the report; the caller revises the draft, re-discharges its evidence claims, and re-runs `gh-body-check`. Iterate until every ⚠ is closed on those terms. This check's surface for the reasoning a closure carries is the returned report, against the ⚠ it closes.
+A ⚠ that is not closed blocks the caller's next step, on the terms **Closure** states — the user's leave to proceed with one whose investigation cannot return included. Return the report, and put any dismissal's reasoning in front of the user, which that disposition requires of whoever dismisses. The caller then revises the draft, re-discharges its evidence claims, and re-runs `gh-body-check`. Iterate until every ⚠ is closed on those terms. This check's surface for the reasoning a closure carries is the returned report, against the ⚠ it closes.
 
 ## What this skill does NOT do
 
