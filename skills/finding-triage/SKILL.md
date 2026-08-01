@@ -1,11 +1,11 @@
 ---
 name: finding-triage
-description: Single source of truth for per-finding review-triage dispositions — actionable / false-positive / uncertain-validity / opens-a-question / invariant-premise-check / defer / wontfix — and response selection for actionable findings. Definition file, not a procedure.
+description: Single source of truth for per-finding review-triage dispositions and response selection for actionable findings, which the review and audit skills apply by reference.
 ---
 
 # Finding Triage (SSOT)
 
-This skill is **a definition file, not a runnable procedure**. Skills that triage review findings apply these dispositions by reference. Do not copy the class definitions into them; point at them by name.
+Skills that triage review findings apply these dispositions by reference; do not copy the class definitions into them, point at them by name.
 
 A reviewer (Codex, Copilot, a fresh-context auditor) produces findings without the project context you hold — test results, design intent, scope constraints, conversation history. Triage is the step that converts a raw finding into a disposition. This file is the catalogue of dispositions and the response-selection rules for actionable findings; neither varies by reviewer, so both live in one place.
 

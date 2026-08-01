@@ -34,7 +34,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | Skill | Description |
 | -- | -- |
 | `stage-commit-push` | Stage, generate conventional commit message, commit, and push |
-| `finding-triage` | Single source of truth for per-finding review-triage dispositions (actionable / false-positive / uncertain-validity / opens-a-question / invariant-premise-check / defer / wontfix) and for selecting the response to an actionable finding, referenced by the review and audit skills instead of each restating the taxonomy. Definition file, not a procedure |
+| `finding-triage` | Single source of truth for per-finding review-triage dispositions and for selecting the response to an actionable finding, which the review and audit skills apply by reference |
 | `diff-root` | Single source of truth for the diff root — the ref a change is measured from. Holds the consumer contract, where the root comes from, and the per-command range conversion. Definition file, not a procedure |
 | `codex-review` | Run OpenAI Codex review with triage before PR creation |
 | `copilot-review` | Create PR with GitHub Copilot review, poll for results, triage |
