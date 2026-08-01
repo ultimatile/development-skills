@@ -62,7 +62,7 @@ For each finding:
 
 Each Copilot finding lives on an inline thread; that thread is the unit of response.
 
-**What a reply says.** One or two sentences, stating how the finding was handled in words a reader holding only the pull request can check: fixed, naming which kind of edit; dismissed as wrong, naming the context the reviewer lacked; deferred, linking the follow-up issue; waived by the user, stating the reasoning; or still under investigation, naming what is outstanding. These are `finding-triage`'s dispositions rendered for an outward-facing thread — do not print its slugs there. This skill's surface for the reasoning a closure carries is the thread reply, so writing the reply is what discharges a disposition whose closure is that its reasoning be recorded.
+**What a reply says.** One or two sentences, stating how the finding was handled in words a reader holding only the pull request can check: fixed, naming which kind of edit; dismissed as wrong, naming the context the reviewer lacked; deferred, linking the follow-up issue; waived by the user, stating the reasoning; or still under investigation, naming what is outstanding. These are `finding-triage`'s dispositions rendered for an outward-facing thread — do not print its slugs there. This skill's surface for the reasoning a closure carries is the thread reply: where a disposition closes on its reasoning being recorded, the reply is where that recording lands, and whoever the disposition names still makes the decision.
 
 After triaging, reply within each thread via `gh-post reply-inline` — every reply body is validated (hardwrap detector + halt-before-send) and a single batch covers the full review:
 

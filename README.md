@@ -21,7 +21,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | `file-adr` | Draft an Architecture Decision Record (a timeless decision, distinct from an implementation schedule) and write the file under the project's ADR directory. Enforces classification against `file-issue` and a frozen-after-Acceptance discipline |
 | `file-pullreq` | Draft and file a GitHub PR following the PR body skeleton, routed through the `gh-post` wrapper. Supports a gate mode that stops at user approval before posting |
 | `gh-body-conventions` | Single source of truth for GitHub issue / PR body conventions — semantic line breaks, LaTeX-safe math, reference / exclusion policies, language defaults. Definition file referenced by the drafting and check skills, not a procedure |
-| `gh-body-check` | Audit a drafted or filed GitHub issue / PR body against `gh-body-conventions` via a fresh-context subagent; a ⚠ that is not closed blocks the caller |
+| `gh-body-check` | Audit a drafted or filed GitHub issue / PR body against `gh-body-conventions` via a fresh-context subagent; a ⚠ blocks the caller until it is closed or the user waives it |
 
 ### Documentation
 

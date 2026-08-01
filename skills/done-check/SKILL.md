@@ -193,7 +193,7 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
    - **`actionable`** — fix before proceeding (same as a main-context ⚠).
    - **`false-positive`** — note explicitly why (e.g., "the identifier the row calls undefined is a standard library symbol").
 
-   Any other disposition applies on its own terms. A concern that re-triages to a transient one is not closed by that re-triage — step 5 closes each concern by whichever disposition it then holds.
+   Any other disposition applies on its own terms. A concern that re-triages to a transient one is not closed by that re-triage — step 5 binds each concern by whichever disposition it then holds.
 
    The rule clause a subagent row quotes is what main context judges the ⚠ against, and in step 5 what it fixes against, for every row whose body step 2's prohibition keeps closed to main. `ported-code-attribution` falls outside that: step 3 opens its body here. A row that needs a quoted clause and carries none can be neither triaged nor fixed — main cannot open the body it would be judged against. Re-dispatch that auditor once with its prompt unchanged; its return replaces the first, as an unmatched coverage check's does. If the replacing return raises the same ⚠ and still quotes no clause, leave the row ⚠ with that noted. Such a row holds `uncertain-validity`: the re-dispatch was that disposition's investigation, and a second unquoted return means it cannot come back. Close it through step 5 like any other.
 
@@ -201,7 +201,7 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
 
    **Cross-cutting concerns.** Each auditor also returns concerns spanning several items. They are not rows and do not enter the row domain, but they take a disposition like any other concern, and step 5 binds them exactly as it binds a ⚠ row: you close each one there before proceeding. Report them under the table.
 
-5. Close every concern before proceeding, on `finding-triage`'s **Closure** terms — which disposition closes, and who may close it, is stated there. A row left holding a transient disposition cannot close; resolve it, or — for a row **Closure** cannot close — let the user waive it with a stated reason. That waiver closes no disposition; it is this gate's own. The row stays ⚠ with the waiver recorded in its Note.
+5. Close every concern before proceeding, on `finding-triage`'s **Closure** terms — which disposition closes, and who may close it, is stated there. A row left holding a transient disposition cannot close; resolve it, or — for a row whose investigation cannot return — let the user waive it with a stated reason. That waiver closes no disposition; it is this gate's own. The row stays ⚠ with the waiver recorded in its Note.
 
    This audit's surface for the reasoning a closure carries is the row's Note, or — for a cross-cutting concern, which is not a row — the triage reported beside it in step 6.
 
