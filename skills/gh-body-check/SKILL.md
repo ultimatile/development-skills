@@ -81,14 +81,14 @@ Common leak shapes the cold reader will surface (illustrative, not exhaustive �
 
 ### 4. Merge and gate
 
-Combine the math-scan hit (if any) and the cold-reader report into a single status. A math-scan hit step 2 judged ⊘ N/A is not a finding; one it judged ⚠ takes a disposition like any other. Decide a disposition in main context under the `finding-triage` SSOT, applying each per its definition there, for every ⚠ this check produced. A cold-reader concern most often lands on one of two:
+Combine the math-scan hit (if any) and the cold-reader report into a single status. A math-scan hit judged ⊘ N/A under step 2's rules is not a finding; one judged ⚠ takes a disposition like any other. Decide a disposition in main context under the `finding-triage` SSOT, applying each per its definition there, for every ⚠ this check produced. A cold-reader concern most often lands on one of two:
 
 - **`actionable`** — fix before proceeding.
 - **`false-positive`** — record explicitly why (e.g., the cold reader did not recognize a public external reference, or the term is a standard library identifier the reader was unfamiliar with).
 
 Any other disposition applies on its own terms, and closes — or fails to close — the ⚠ on `finding-triage`'s **Closure** terms.
 
-A ⚠ that is not closed blocks the caller's next step, on the terms **Closure** states. Return the report, and put any dismissal's reasoning in front of the user, which that disposition requires of whoever dismisses. The caller then revises the draft, re-discharges its evidence claims, and re-runs `gh-body-check`. Iterate until every ⚠ is closed on those terms, or — for a ⚠ **Closure** cannot close — the user waives it with a one-line justification. That waiver closes no disposition; it is this gate's own, and **Closure** does not reach it. This check's surface for the reasoning a closure carries is the returned report, against the ⚠ it closes.
+A ⚠ that is not closed blocks the caller's next step, on the terms **Closure** states. Return the report, and put any dismissal's reasoning in front of the user, which that disposition requires of whoever dismisses. The caller then revises the draft, re-discharges its evidence claims, and re-runs `gh-body-check`. Iterate until every ⚠ is closed on those terms, or — for a ⚠ **Closure** cannot close — the user waives it with a one-line justification. That waiver closes no disposition; it is this gate's own. This check's surface for the reasoning a closure carries is the returned report, against the ⚠ it closes.
 
 ## What this skill does NOT do
 
