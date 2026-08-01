@@ -34,7 +34,7 @@ Each finding receives exactly one disposition. A finding may be *re-triaged* to 
 
 - **defer** — the finding is valid and its fix is understood, but it is **out of scope** for the current task. Record it (follow-up issue, note) and do not fix now. Distinct from `opens-a-question`: here the resolution is known and local, only the *timing* is deferred; in `opens-a-question` the resolution itself is unknown.
 
-- **wontfix** — the finding is valid and its fix is understood, and the user directs that it be closed within this run: no fix made, and no record carried past it. The decision is the user's alone; the run records it, and the reasoning states what the fix would have cost. Both a reason to postpone and a reason to abandon can hold of one finding; the user's direction, not the reason, selects — carried past this run as a record is `defer`, closed within it is `wontfix`.
+- **wontfix** — the finding is valid and its fix is understood, and the user directs that it be closed within this run: no fix made, and no follow-up filed to carry it past. The decision is the user's alone; the run records the disposition and the user's reasoning, which states what the fix would have cost. Both a reason to postpone and a reason to abandon can hold of one finding; the user's direction, not the reason, selects — carried past this run is `defer`, closed within it is `wontfix`.
 
 ## Response selection (actionable findings)
 
