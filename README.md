@@ -21,7 +21,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | `file-adr` | Draft an Architecture Decision Record (a timeless decision, distinct from an implementation schedule) and write the file under the project's ADR directory. Enforces classification against `file-issue` and a frozen-after-Acceptance discipline |
 | `file-pullreq` | Draft and file a GitHub PR following the PR body skeleton, routed through the `gh-post` wrapper. Supports a gate mode that stops at user approval before posting |
 | `gh-body-conventions` | Single source of truth for GitHub issue / PR body conventions — semantic line breaks, LaTeX-safe math, reference / exclusion policies, language defaults. Definition file referenced by the drafting and check skills, not a procedure |
-| `gh-body-check` | Audit a drafted or filed GitHub issue / PR body against `gh-body-conventions` via a fresh-context subagent; any unresolved ⚠ blocks the caller |
+| `gh-body-check` | Audit a drafted or filed GitHub issue / PR body against `gh-body-conventions` via a fresh-context subagent; a ⚠ blocks the caller until it is closed or the user waives it |
 
 ### Documentation
 
@@ -34,7 +34,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | Skill | Description |
 | -- | -- |
 | `stage-commit-push` | Stage, generate conventional commit message, commit, and push |
-| `finding-triage` | Single source of truth for per-finding review-triage dispositions (actionable / false-positive / uncertain-validity / opens-a-question → research / invariant-premise-check / defer) and for selecting the response to an actionable finding, referenced by the review and audit skills instead of each restating the taxonomy. Definition file, not a procedure |
+| `finding-triage` | Single source of truth for per-finding review-triage dispositions (actionable / false-positive / uncertain-validity / opens-a-question → research / invariant-premise-check / defer / waive), for what closes each, and for selecting the response to an actionable finding, referenced by the review and audit skills instead of each restating the taxonomy. Definition file, not a procedure |
 | `diff-root` | Single source of truth for the diff root — the ref a change is measured from. Holds the consumer contract, where the root comes from, and the per-command range conversion. Definition file, not a procedure |
 | `codex-review` | Run OpenAI Codex review with triage before PR creation |
 | `copilot-review` | Create PR with GitHub Copilot review, poll for results, triage |

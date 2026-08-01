@@ -1,13 +1,13 @@
 ---
 name: finding-triage
-description: Single source of truth for per-finding review-triage dispositions — actionable / false-positive / uncertain-validity / opens-a-question → research / invariant-premise-check / defer — and response selection for actionable findings. Definition file, not a procedure.
+description: Single source of truth for per-finding review-triage dispositions — actionable / false-positive / uncertain-validity / opens-a-question → research / invariant-premise-check / defer / waive — what closes each, and response selection for actionable findings. Definition file, not a procedure.
 ---
 
 # Finding Triage (SSOT)
 
 This skill is **a definition file, not a runnable procedure**. Skills that triage review findings apply these dispositions by reference. Do not copy the class definitions into them; point at them by name.
 
-A reviewer (Codex, Copilot, a fresh-context auditor) produces findings without the project context you hold — test results, design intent, scope constraints, conversation history. Triage is the step that converts a raw finding into a disposition. This file is the catalogue of dispositions and the response-selection rules for actionable findings; neither varies by reviewer, so both live in one place.
+A reviewer (Codex, Copilot, a fresh-context auditor) produces findings without the project context you hold — test results, design intent, scope constraints, conversation history. Triage is the step that converts a raw finding into a disposition. This file is the catalogue of dispositions, the rules for closing them, and the response-selection rules for actionable findings; none of the three varies by reviewer, so all live in one place.
 
 ## Scope: stateless, per-finding
 
@@ -23,7 +23,7 @@ Each finding receives exactly one disposition. A finding may be *re-triaged* to 
 
 - **uncertain-validity** — you cannot yet tell whether the finding is real. The open question is **validity**. Investigate — read code, run a targeted probe — until it resolves to `actionable` or `false-positive`. When the targeted probe judges an external-system-behavior claim, verify it per **Verifying external-system claims** below. Do not carry an unresolved `uncertain-validity` past the point where a fix would be committed.
 
-- **opens-a-question → research** — the finding **is real**, but its resolution is **non-local**: it needs investigation, a design choice, or a scope judgment beyond a local edit. Both default responses are wrong here:
+- **opens-a-question → research** — the finding **is real**, but its resolution is **non-local**, which is the criterion: it reaches beyond a local edit, whether because it needs investigation, a design choice, or a scope judgment. Every finding whose fix is not local lands here, including one whose fix is exactly understood. Both default responses are wrong here:
 
   - "fix in place" is wrong — the fix is not local.
   - "escalate to the user" is wrong — the resolution is probe-able.
@@ -32,7 +32,11 @@ Each finding receives exactly one disposition. A finding may be *re-triaged* to 
 
 - **invariant-premise-check** — the finding's *conclusion* may be correct, but its *premise* may be wrong. Applies to claims about mathematical properties, semantic validity, or precondition necessity. Before committing a fix, **verify the premise** — check whether the invariant the finding assumes actually holds, by reading code and tests and running targeted experiments. When the premise is an external-system-behavior claim, verify it per **Verifying external-system claims** below. Resolves to `actionable` (premise holds → fix it) or `false-positive` (premise fails → the finding's conclusion does not follow). The mechanism for verifying the premise is the caller's; this SSOT owns only the class.
 
-- **defer** — the finding is valid and its fix is understood, but it is **out of scope** for the current task. Record it (follow-up issue, note) and do not fix now. Distinct from `opens-a-question`: here the resolution is known and local, only the *timing* is deferred; in `opens-a-question` the resolution itself is unknown.
+- **defer** — the finding is valid and its fix is understood and local, this run is not to make it, and the user directs that it be **carried past this run**: a follow-up issue is filed for it, with the user's approval. Being out of scope for the current task is the usual reason to carry a finding rather than fix it. Distinct from `opens-a-question`: locality is what separates them — here the fix is local, there it is not.
+
+- **waive** — the finding is valid and its fix is understood and local, this run is not to make it, and the user directs that **nothing be carried past this run**: no follow-up issue is filed. Only the user may waive. The waiver carries the reasoning, which states what the fix would cost and, where the finding is `critical`, why shipping the specified behavior wrong on the happy path is acceptable. Stating the cost is a disclosure, not a threshold the disposition tests: what a thin waiver buys is visible in its own reasoning.
+
+**Precedence across the three local-fix branches.** `actionable`, `defer` and `waive` all take a valid finding whose fix is understood and local, so a rule is needed to keep them single-valued. A valid finding whose fix is understood and local starts at `actionable`, which is what puts the fix in front of the user in the first place. It stays there where this run makes the fix. Where the user declines it, that decline re-triages the finding: onto `defer` where the user directs that it be carried past this run, `waive` where the user directs that nothing be. A decline that says neither is an incomplete answer, not a third branch: it re-triages nothing, and the finding stays `actionable` until the user supplies the missing half. Every branch turns on a decision the run holds at triage time, never on the act that decision leads to: the edit, the filed issue and the recorded reasoning all land afterwards, and what each discharges is stated under **Closure**. A finding classified by an artifact that does not exist yet would hold no disposition until it did.
 
 ## Response selection (actionable findings)
 
@@ -46,7 +50,7 @@ An `actionable` disposition settles validity; it does not settle the edit. Selec
 
 **Axes**:
 
-- **severity** — exclusive tiers; take the first that applies. `critical`: the specified behavior is wrong on the happy path. `may-fail`: a failure mode exists. `consistency-only`: behavior is identical under every admissible reading; only descriptions can drift. Severity does not choose the edit — the selection below is severity-independent; its consumer is the waiver decision delegated at the end of this section.
+- **severity** — exclusive tiers; take the first that applies. `critical`: the specified behavior is wrong on the happy path. `may-fail`: a failure mode exists. `consistency-only`: behavior is identical under every admissible reading; only descriptions can drift. Severity does not choose the edit — the selection below is severity-independent; its consumer is the `waive` decision, whose reasoning the severity belongs in.
 - **case-space** — `bounded` / `unbounded`; defined whenever the finding is a coverage-gap claim — the rule's domain may be stated as an enumeration, stated as a prose predicate, or left implicit (`n-a` for findings that claim no coverage gap). A domain not shown bounded (finite, closed membership) is classified `unbounded`; an implicit domain is never shown bounded.
 
 **Response kinds**:
@@ -63,20 +67,33 @@ An `actionable` disposition settles validity; it does not settle the edit. Selec
 - **Drift between copies of one rule** — the same rule stated in more than one place, whether or not the drift affects behavior → `deduplicate` when load-bearing is true (the collapsed statement carries the corrected content); `delete` when it is false. Rewriting the divergent copies in place is not an outcome: it opens new consistency surfaces, and drift between N copies costs N comparisons to detect while a broken reference costs one grep.
 - **Otherwise** (a statement misdescribes the behavior it annotates, a wrong action, a typo) → `fix-in-place`: correct it, when load-bearing is true; `delete` when it is false.
 
-The selected edit is applied in the current run; a re-triage out of `actionable` exits instead. Waiving an in-scope finding on cost grounds is not selected here — where the invoking skill's gate defines an explicit user waiver with reasoning, that decision is the gate's, and the finding's severity belongs in the reasoning that waiver requires (a `critical` finding does not ordinarily survive that bar).
+The selected edit is applied in the current run; a re-triage out of `actionable` exits instead. Declining the fix is one such re-triage, and which disposition it lands on is the precedence above, not a choice made here — where that decision is `waive`, the finding's severity belongs in the reasoning it carries, which is where a `critical` one has to be accounted for.
 
 The regeneration signal — whether the target sentence was written to answer a prior finding — is iteration history, out of scope here per **Scope: stateless, per-finding**.
 
+## Closure
+
+A gate whose exit condition is stated as its findings being **closed** closes each one by its disposition; a loop that exits on a count of `actionable` findings is stating a different condition, and this section does not reach it. Four dispositions are **terminal**, and each closes once its own discharge has happened:
+
+- `actionable` — the run applies the response selected above.
+- `false-positive` — the run dismisses the finding, on that disposition's own terms.
+- `defer` — the follow-up issue is filed, with the user's approval; filing it is what closes the finding.
+- `waive` — the user waives it, and only the user may; the reasoning is recorded.
+
+The other three are **transient** and close nothing. `uncertain-validity`, `invariant-premise-check` and `opens-a-question` each name an investigation that must return first, after which the finding re-triages to a terminal disposition. Such a gate reached with a finding still holding one of these has no closure available for it, and must resolve it rather than proceed. Where the investigation cannot return at all, this section states no closure either, and what the gate may do with such a finding is the gate's own to state.
+
+A dismissal's or a waiver's reasoning is recorded wherever the gate already records that finding's disposition — an audit row's note, a review thread's reply, a check's returned report. Naming that surface is the gate's only closure-side statement; what closes a disposition, and who may close it, is stated here.
+
 ## Pre-existing instances do not license dismissal
 
-A finding is not downgraded to `false-positive` (or `defer`) merely because the surrounding code already exhibits the same flaw. Pre-existing instances of a problem are unextracted debt, not a convention that licenses adding another — "matches the surrounding code" describes the debt, it does not dismiss the finding. Dismissal still requires the disposition's own bar: for `false-positive`, context that makes *this* finding wrong; for `defer`, an explicit out-of-scope decision. The mere presence of prior offenders meets neither.
+A finding is not downgraded to `false-positive`, `defer` or `waive` merely because the surrounding code already exhibits the same flaw. Pre-existing instances of a problem are unextracted debt, not a convention that licenses adding another — "matches the surrounding code" describes the debt, it does not dismiss the finding. Dismissal still requires the disposition's own bar: for `false-positive`, context that makes *this* finding wrong; for `defer`, the user's direction to carry it past this run; for `waive`, the user's reasoned decision not to. The mere presence of prior offenders meets none of them.
 
 ## opens-a-question vs uncertain-validity
 
-The two name **different unknowns**:
+The two name **different obstacles**:
 
-- `uncertain-validity` — "**is the finding real?**" Validity unknown; resolution (if real) presumed local.
-- `opens-a-question` — "the finding **is** real, but its **resolution is non-local**." Validity known; resolution unknown.
+- `uncertain-validity` — "**is the finding real?**" Validity unknown; the fix, if the finding is real, presumed local.
+- `opens-a-question` — "the finding **is** real, but its **resolution is non-local**." Validity known; the fix not local.
 
 A finding can pass through both in sequence: resolve validity first (`uncertain-validity` → real), then, if the fix turns out non-local, re-triage to `opens-a-question`.
 

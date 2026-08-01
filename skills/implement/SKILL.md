@@ -123,7 +123,7 @@ Substantive rules for guards, fixtures, docstring consistency, textual drift, na
 
 ## Step 4 — Run done-check
 
-Invoke the `done-check` skill against the diff, passing the root stated at Step 3. Do not proceed until `done-check`'s step 5 gate is satisfied over both domains — the audit table's `⚠` rows and the cross-cutting concerns reported under it. That gate owns which dispositions close each, the deferral path for a concern that cannot be resolved within the current scope included; do not restate them here. An audit that halts emits no table at all. It has surfaced something to the user, and this step does not complete.
+Invoke the `done-check` skill against the diff, passing the root stated at Step 3. Do not proceed until `done-check`'s step 5 gate is satisfied over both domains — the audit table's `⚠` rows and the cross-cutting concerns reported under it. That gate applies `finding-triage`'s **Closure** rules to both; do not restate them here. An audit that halts emits no table at all. It has surfaced something to the user, and this step does not complete.
 
 ## Step 5 — Final output
 

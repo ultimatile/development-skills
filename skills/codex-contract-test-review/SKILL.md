@@ -140,7 +140,6 @@ Classify each finding under the `finding-triage` SSOT dispositions. The cases th
 
 - **`actionable`**: a real contract-expression flaw or critical bug that would let the original bug class through
 - **`false-positive`**: a concern that doesn't apply given project context the reviewer can't see
-- **`defer`**: out of scope for the current contract test (e.g., expanding to a different contract)
 
 Present the triage to the user, not the raw output.
 

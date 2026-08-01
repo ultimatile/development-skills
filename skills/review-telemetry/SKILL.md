@@ -32,7 +32,7 @@ Reconstruct from the current conversation's triage records, and from `git` / `gh
 
 ```json
 {
-  "schema": 3,
+  "schema": 4,
   "recorded_at": "<ISO8601 UTC>",
   "repo": "owner/name",
   "pr": 123,
@@ -59,13 +59,13 @@ Reconstruct from the current conversation's triage records, and from `git` / `gh
 }
 ```
 
-Schema 1 records lack `topic_opened_by`; gate every query reading that field with `select(.schema >= 2)`. Schema ≤2 records lack `injected_at_gate`; gate every query reading that field with `select(.schema >= 3)`.
+Schema 1 records lack `topic_opened_by`; gate every query reading that field with `select(.schema >= 2)`. Schema ≤2 records lack `injected_at_gate`; gate every query reading that field with `select(.schema >= 3)`. Schema ≤3 records predate `waive`, so they offered no slug for a finding closed unfixed with no follow-up; whichever slug such a finding took there, no query can separate it from that slug's schema-4 meaning. That is a property of the range, not an instruction: no query below gates on it, since gating the disposition aggregates on `select(.schema >= 4)` would discard every earlier run rather than correct it. A version therefore marks a widened value domain as much as an added field — the boundary a query needs is the same either way.
 
 Normalization rules:
 
 - `gates[].gate` slugs: `done-check`, `code-review`, `codex-review`, `copilot-pr`. One entry per gate, however many times it ran.
 - Records predating the CodeRabbit lane's retirement carry values from it: the gate slug `coderabbit-pr`, and the `pipeline` values `review-pipeline-coderabbit` and `coderabbit-review`. They are history — read them, never write them. `coderabbit-pr`'s counts end at the retirement; a reader who takes that ending for a gate that went quiet misreads it.
-- `findings[].disposition` uses the `finding-triage` SSOT slugs verbatim (`actionable`, `false-positive`, `uncertain-validity`, `opens-a-question`, `invariant-premise-check`, `defer`).
+- `findings[].disposition` uses the `finding-triage` SSOT slugs verbatim; read the set from that file rather than from a copy here, taking each disposition's own name and not the `→ research` routing one of them carries. `waive` was added to that catalogue after this log began; schema 4 marks the boundary, per the compatibility rule above.
 - `findings[].topic` is a short kebab-case slug at **class level**, reused across gates and runs for grouping; per-variant detail goes in the one-sentence `summary`. Splitting one class into per-variant slugs breaks every topic aggregation.
 - `duplicate_of_gate` and `topic_opened_by` are written per their definitions in **Collect the run's facts**. Never encode class recurrence in `duplicate_of_gate` — that conflation is exactly what the two fields exist to prevent.
 - `injected_at_gate` is written per its definition in **Collect the run's facts**. `plan-actual-drift` is the reserved class-level `topic` for a finding where the implementation diverged from the research plan. **Do not derive an escape-distance — how many gates had the defect in front of them and missed it — from this record.**
