@@ -88,7 +88,7 @@ An `opens-a-question` finding often first reads as a **user gate** — "ask the 
 
 ## Verifying external-system claims
 
-Three dispositions can rest a committed verdict on a claim about an **external system's behavior** (a markdown renderer, parser, compiler, ABI, API, runtime): `false-positive` (the system rules out the input), `uncertain-validity` (a targeted probe judges the claim), and `invariant-premise-check` (the premise is an external-system fact) — including when the verdict is `actionable` and ships a fix.
+What follows binds a verdict that rests on a claim about an **external system's behavior** (a markdown renderer, parser, compiler, ABI, API, runtime), whichever disposition that verdict carries.
 
 **Requirement.** Before committing a verdict that rests on such a claim, run the finding's input through that system's **authoritative implementation** (`gh api /markdown` for GitHub rendering; the actual compiler / parser / runtime otherwise). A local proxy (a regex standing in for a renderer, a reimplemented parser) or a hand-derivation is built from your own mental model of how the system behaves — the same model that produced your reading — so it can only confirm that reading; only the authoritative implementation can test whether the reading holds.
 
