@@ -69,14 +69,14 @@ Each Copilot finding lives on an inline thread; that thread is the unit of respo
 ${CLAUDE_SKILL_DIR}/scripts/list-pr-threads.sh {owner}/{repo} {number} --unresolved --unreplied
 
 # 2. Build a JSONL file: one {"id": <head-comment-id>, "body": "<reply text>"} per line.
-#    Each reply should be concise — state the classification (fixed, false positive,
-#    acknowledged) and the reasoning in 1-2 sentences.
 
 # 3. Send the batch. The wrapper validates every body BEFORE any send; on a body
 #    failure no replies post. On a mid-batch API failure it prints un-sent indices
 #    and exits non-zero.
 gh-post reply-inline {owner}/{repo} {number} < /tmp/replies.jsonl
 ```
+
+Each reply names the disposition the triage step gave that finding, by its `finding-triage` slug, and states the reasoning in one or two sentences.
 
 If `list-pr-threads.sh --unresolved --unreplied` returns zero lines: every Copilot thread is already resolved or already has a reply — do NOT post additional replies. Surface this to the user and ask before doing anything else. Stacking a duplicate "addressed in …" reply on a closed thread is the failure mode this wrapper exists to prevent.
 
