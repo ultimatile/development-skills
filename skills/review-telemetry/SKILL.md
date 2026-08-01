@@ -65,7 +65,7 @@ Normalization rules:
 
 - `gates[].gate` slugs: `done-check`, `code-review`, `codex-review`, `copilot-pr`. One entry per gate, however many times it ran.
 - Records predating the CodeRabbit lane's retirement carry values from it: the gate slug `coderabbit-pr`, and the `pipeline` values `review-pipeline-coderabbit` and `coderabbit-review`. They are history — read them, never write them. `coderabbit-pr`'s counts end at the retirement; a reader who takes that ending for a gate that went quiet misreads it.
-- `findings[].disposition` uses the `finding-triage` SSOT slugs verbatim (`actionable`, `false-positive`, `uncertain-validity`, `opens-a-question`, `invariant-premise-check`, `defer`).
+- `findings[].disposition` uses the `finding-triage` SSOT slugs verbatim; that file's catalogue is the value set.
 - `findings[].topic` is a short kebab-case slug at **class level**, reused across gates and runs for grouping; per-variant detail goes in the one-sentence `summary`. Splitting one class into per-variant slugs breaks every topic aggregation.
 - `duplicate_of_gate` and `topic_opened_by` are written per their definitions in **Collect the run's facts**. Never encode class recurrence in `duplicate_of_gate` — that conflation is exactly what the two fields exist to prevent.
 - `injected_at_gate` is written per its definition in **Collect the run's facts**. `plan-actual-drift` is the reserved class-level `topic` for a finding where the implementation diverged from the research plan. **Do not derive an escape-distance — how many gates had the defect in front of them and missed it — from this record.**

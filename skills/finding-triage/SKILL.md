@@ -1,6 +1,6 @@
 ---
 name: finding-triage
-description: Single source of truth for per-finding review-triage dispositions — actionable / false-positive / uncertain-validity / opens-a-question → research / invariant-premise-check / defer — and response selection for actionable findings. Definition file, not a procedure.
+description: Single source of truth for per-finding review-triage dispositions — actionable / false-positive / uncertain-validity / opens-a-question → research / invariant-premise-check / defer / wontfix — and response selection for actionable findings. Definition file, not a procedure.
 ---
 
 # Finding Triage (SSOT)
@@ -34,6 +34,8 @@ Each finding receives exactly one disposition. A finding may be *re-triaged* to 
 
 - **defer** — the finding is valid and its fix is understood, but it is **out of scope** for the current task. Record it (follow-up issue, note) and do not fix now. Distinct from `opens-a-question`: here the resolution is known and local, only the *timing* is deferred; in `opens-a-question` the resolution itself is unknown.
 
+- **wontfix** — the finding is valid and its fix is understood, and the user directs that it be closed within this run: no fix made, and no record carried past it. The decision is the user's alone; the run records it, and the reasoning states what the fix would have cost. Both a reason to postpone and a reason to abandon can hold of one finding; the user's direction, not the reason, selects — carried past this run as a record is `defer`, closed within it is `wontfix`.
+
 ## Response selection (actionable findings)
 
 An `actionable` disposition settles validity; it does not settle the edit. Select the edit with the rules below — per-finding and stateless, like every disposition above — and apply it in the current run.
@@ -46,7 +48,7 @@ An `actionable` disposition settles validity; it does not settle the edit. Selec
 
 **Axes**:
 
-- **severity** — exclusive tiers; take the first that applies. `critical`: the specified behavior is wrong on the happy path. `may-fail`: a failure mode exists. `consistency-only`: behavior is identical under every admissible reading; only descriptions can drift. Severity does not choose the edit — the selection below is severity-independent; its consumer is the waiver decision delegated at the end of this section.
+- **severity** — exclusive tiers; take the first that applies. `critical`: the specified behavior is wrong on the happy path. `may-fail`: a failure mode exists. `consistency-only`: behavior is identical under every admissible reading; only descriptions can drift. Severity does not choose the edit — the selection below is severity-independent; its consumer is the `wontfix` decision, whose reasoning carries it.
 - **case-space** — `bounded` / `unbounded`; defined whenever the finding is a coverage-gap claim — the rule's domain may be stated as an enumeration, stated as a prose predicate, or left implicit (`n-a` for findings that claim no coverage gap). A domain not shown bounded (finite, closed membership) is classified `unbounded`; an implicit domain is never shown bounded.
 
 **Response kinds**:
@@ -63,13 +65,13 @@ An `actionable` disposition settles validity; it does not settle the edit. Selec
 - **Drift between copies of one rule** — the same rule stated in more than one place, whether or not the drift affects behavior → `deduplicate` when load-bearing is true (the collapsed statement carries the corrected content); `delete` when it is false. Rewriting the divergent copies in place is not an outcome: it opens new consistency surfaces, and drift between N copies costs N comparisons to detect while a broken reference costs one grep.
 - **Otherwise** (a statement misdescribes the behavior it annotates, a wrong action, a typo) → `fix-in-place`: correct it, when load-bearing is true; `delete` when it is false.
 
-The selected edit is applied in the current run; a re-triage out of `actionable` exits instead. Waiving an in-scope finding on cost grounds is not selected here — where the invoking skill's gate defines an explicit user waiver with reasoning, that decision is the gate's, and the finding's severity belongs in the reasoning that waiver requires (a `critical` finding does not ordinarily survive that bar).
+The selected edit is applied in the current run; a re-triage out of `actionable` exits instead. Declining the fix is one such re-triage; `defer` and `wontfix` state between them which of the two it lands on, and it is not selected here. Where it lands on `wontfix`, the finding's severity belongs in the reasoning that entry requires, and a finding at `critical` does not ordinarily warrant one.
 
 The regeneration signal — whether the target sentence was written to answer a prior finding — is iteration history, out of scope here per **Scope: stateless, per-finding**.
 
 ## Pre-existing instances do not license dismissal
 
-A finding is not downgraded to `false-positive` (or `defer`) merely because the surrounding code already exhibits the same flaw. Pre-existing instances of a problem are unextracted debt, not a convention that licenses adding another — "matches the surrounding code" describes the debt, it does not dismiss the finding. Dismissal still requires the disposition's own bar: for `false-positive`, context that makes *this* finding wrong; for `defer`, an explicit out-of-scope decision. The mere presence of prior offenders meets neither.
+A finding is not downgraded to `false-positive`, `defer` or `wontfix` merely because the surrounding code already exhibits the same flaw. Pre-existing instances of a problem are unextracted debt, not a convention that licenses adding another — "matches the surrounding code" describes the debt, it does not dismiss the finding. Dismissal still requires the disposition's own bar: for `false-positive`, context that makes *this* finding wrong; for `defer`, an explicit out-of-scope decision; for `wontfix`, the user's direction to close it, with the cost of the fix stated. The mere presence of prior offenders meets none of them.
 
 ## opens-a-question vs uncertain-validity
 
