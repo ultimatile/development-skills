@@ -60,7 +60,9 @@ For each finding:
 
 ## Respond to review
 
-Each Copilot finding lives on an inline thread; that thread is the unit of response. After triaging, reply within each thread via `gh-post reply-inline` — every reply body is validated (hardwrap detector + halt-before-send) and a single batch covers the full review:
+Each Copilot finding lives on an inline thread; that thread is the unit of response. Each reply names the disposition the triage step gave that finding, by its `finding-triage` slug, and states in one or two sentences the reasoning and what the run will do about the finding.
+
+After triaging, reply within each thread via `gh-post reply-inline` — every reply body is validated (hardwrap detector + halt-before-send) and a single batch covers the full review:
 
 ```bash
 # 1. Collect target threads — by default this filters to Copilot-authored heads
@@ -75,8 +77,6 @@ ${CLAUDE_SKILL_DIR}/scripts/list-pr-threads.sh {owner}/{repo} {number} --unresol
 #    and exits non-zero.
 gh-post reply-inline {owner}/{repo} {number} < /tmp/replies.jsonl
 ```
-
-Each reply names the disposition the triage step gave that finding, by its `finding-triage` slug, and states in one or two sentences the reasoning and what the run will do about the finding.
 
 If `list-pr-threads.sh --unresolved --unreplied` returns zero lines: every Copilot thread is already resolved or already has a reply — do NOT post additional replies. Surface this to the user and ask before doing anything else. Stacking a duplicate "addressed in …" reply on a closed thread is the failure mode this wrapper exists to prevent.
 
