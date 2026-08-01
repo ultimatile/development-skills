@@ -1,6 +1,6 @@
 ---
 name: finding-triage
-description: Single source of truth for per-finding review-triage dispositions — actionable / false-positive / uncertain-validity / opens-a-question → research / invariant-premise-check / defer / wontfix — and response selection for actionable findings. Definition file, not a procedure.
+description: Single source of truth for per-finding review-triage dispositions — actionable / false-positive / uncertain-validity / opens-a-question / invariant-premise-check / defer / wontfix — and response selection for actionable findings. Definition file, not a procedure.
 ---
 
 # Finding Triage (SSOT)
@@ -23,7 +23,7 @@ Each finding receives exactly one disposition. A finding may be *re-triaged* to 
 
 - **uncertain-validity** — you cannot yet tell whether the finding is real. The open question is **validity**. Investigate — read code, run a targeted probe — until it resolves to `actionable` or `false-positive`. When the targeted probe judges an external-system-behavior claim, verify it per **Verifying external-system claims** below. Do not carry an unresolved `uncertain-validity` past the point where a fix would be committed.
 
-- **opens-a-question → research** — the finding **is real**, but its resolution is **non-local**: it needs investigation, a design choice, or a scope judgment beyond a local edit. Both default responses are wrong here:
+- **opens-a-question** — the finding **is real**, but its resolution is **non-local**: it needs investigation, a design choice, or a scope judgment beyond a local edit. Both default responses are wrong here:
 
   - "fix in place" is wrong — the fix is not local.
   - "escalate to the user" is wrong — the resolution is probe-able.
