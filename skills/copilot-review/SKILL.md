@@ -76,7 +76,7 @@ ${CLAUDE_SKILL_DIR}/scripts/list-pr-threads.sh {owner}/{repo} {number} --unresol
 gh-post reply-inline {owner}/{repo} {number} < /tmp/replies.jsonl
 ```
 
-Each reply names the disposition the triage step gave that finding, by its `finding-triage` slug, and states the reasoning in one or two sentences.
+Each reply names the disposition the triage step gave that finding, by its `finding-triage` slug, and states in one or two sentences the reasoning and what the run will do about the finding.
 
 If `list-pr-threads.sh --unresolved --unreplied` returns zero lines: every Copilot thread is already resolved or already has a reply — do NOT post additional replies. Surface this to the user and ask before doing anything else. Stacking a duplicate "addressed in …" reply on a closed thread is the failure mode this wrapper exists to prevent.
 
