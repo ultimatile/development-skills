@@ -102,7 +102,7 @@ Each iteration runs a full, unbiased review of the entire diff against base. Do 
 
 5. **Re-triage** — a finding dismissed as false positive in iteration N may become relevant in iteration N+1 if the fix changed the surrounding code. Don't carry over dismissals blindly.
 
-6. **Repeat** until no actionable findings remain. A finding the user declines to fix leaves this disposition by re-triage on `finding-triage`'s terms, so it no longer counts here or in any loop wrapping this one. Present that re-triage, carrying the reasoning its new disposition requires, to the user at the point the decline happens.
+6. **Repeat** until no actionable findings remain. A finding the user declines to fix re-triages on `finding-triage`'s terms; where that lands it outside `actionable`, it no longer counts here or in any loop wrapping this one, and where the decline is incomplete those terms keep it `actionable`. Present that re-triage, carrying the reasoning its new disposition requires, to the user at the point the decline happens.
 
 ### What "clean" means
 
