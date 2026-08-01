@@ -65,7 +65,7 @@ An `actionable` disposition settles validity; it does not settle the edit. Selec
 - **Drift between copies of one rule** — the same rule stated in more than one place, whether or not the drift affects behavior → `deduplicate` when load-bearing is true (the collapsed statement carries the corrected content); `delete` when it is false. Rewriting the divergent copies in place is not an outcome: it opens new consistency surfaces, and drift between N copies costs N comparisons to detect while a broken reference costs one grep.
 - **Otherwise** (a statement misdescribes the behavior it annotates, a wrong action, a typo) → `fix-in-place`: correct it, when load-bearing is true; `delete` when it is false.
 
-The selected edit is applied in the current run; a re-triage out of `actionable` exits instead. Declining the fix is one such re-triage, and which entry it lands on is settled by those entries' own conditions rather than here. Where it lands on `wontfix`, the finding's severity belongs in the reasoning that entry requires, and a finding at `critical` does not ordinarily warrant one.
+The selected edit is applied in the current run; a re-triage out of `actionable` exits instead. Declining the fix is such an exit; this section does not settle which disposition a declined finding takes, and the entry conditions in **The dispositions** above govern that question. Where a declined finding lands on `wontfix`, the finding's severity belongs in the reasoning that entry requires, and a finding at `critical` does not ordinarily warrant `wontfix`.
 
 The regeneration signal — whether the target sentence was written to answer a prior finding — is iteration history, out of scope here per **Scope: stateless, per-finding**.
 
