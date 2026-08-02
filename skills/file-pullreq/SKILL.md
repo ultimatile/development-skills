@@ -29,8 +29,8 @@ A single descriptive line under ~70 characters. Use a conventional commit prefix
 Before drafting, identify:
 
 - **Target repo and base branch.** `gh repo view` and `git symbolic-ref --short refs/remotes/origin/HEAD` if unclear.
-- **Linked issue.** Read the issue body and comments — especially the `research` plan (in the sub-issue body for umbrella-spawned leaves, or in a comment for single-scope issues), if the work passed through `/research-and-implement`. The plan is the source of truth for Changes / Impact / Test plan.
-- **Whether the work went through `research`.** If yes, fold the plan's reader-facing content (Changes / Impact / Test plan) into the body skeleton. If no, derive the same content from the local diff and commits. Either way, do not transcribe the plan's process bookkeeping — see the reader-facing note below the skeleton.
+- **Linked issue.** Read the issue body and comments — especially any `research` plan they carry.
+- **Whether the work went through `research`.** If yes: fold the plan's `Impact list` into Impact when that section is kept; rewrite its `Checklist of changes` into Changes per § Changes entries below; and report Verification against its `Test plan` rather than folding that in. If no, derive Changes and Impact from the local diff and commits, and let Verification report the checks this run made. Either way, do not transcribe the plan's process bookkeeping — see the reader-facing note below the skeleton.
 
 ### 2. Draft
 
@@ -46,19 +46,19 @@ Produce a title and body following the conventions above and the skeleton below.
 
 ## Changes
 
-<compressed plan checklist: file path + one-line description per unit>
-<for repos that prefer prose: a few sentences covering the same ground>
+<entries — see § Changes entries below>
 
 ## Impact
 
-<callers / public APIs affected; reference plan's Impact list compressed>
+<callers / public APIs affected>
 <omit when the change is genuinely local (single private function, etc.)>
 
-## Test plan
+## Verification
 
 <invariants verified, tests added/modified, cross-API coverage>
 <contract tests added during review, if any>
 <verification results: cargo test / pytest / etc. — pass/fail summary>
+<any check run against the tree, suite or not, backing a claim made in another section>
 
 ## Notes  (optional)
 
@@ -71,11 +71,16 @@ The PR body is **reader-facing**: it documents the merged artifact for a future 
 
 The `## Plan-vs-actual delta` section is appended later by the caller; do not pre-create an empty delta section here.
 
-Section headings are optional for trivial PRs — a 5-line body covering Summary + Test plan often needs no headings.
+Section headings are optional for trivial PRs — a 5-line body covering Summary + Verification often needs no headings.
+
+#### Changes entries
+
+An entry states what is now true, not what was done to make it true.
+Before the body is posted, read every entry back as it then stands and restate any that describes the editing.
 
 ### 3. Discharge evidence claims
 
-Discharge every evidence claim in the draft, as `gh-body-conventions` § Evidence claims defines one — across all sections, not only `## Test plan`.
+Discharge every evidence claim in the draft, as `gh-body-conventions` § Evidence claims defines one — across all sections, not only `## Verification`.
 Run this in main context: the record the rule compares against is the drafting session's own, which a subagent does not have.
 
 Editing the body here is expected; the laundering pass runs on the result.
