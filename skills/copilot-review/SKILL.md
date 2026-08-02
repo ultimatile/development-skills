@@ -60,7 +60,9 @@ For each finding:
 
 ## Respond to review
 
-Each Copilot finding lives on an inline thread; that thread is the unit of response. After triaging, reply within each thread via `gh-post reply-inline` — every reply body is validated (hardwrap detector + halt-before-send) and a single batch covers the full review:
+Each Copilot finding lives on an inline thread; that thread is the unit of response. Each reply names the disposition the triage step gave that finding, by its `finding-triage` slug, and states in one or two sentences the reasoning and what the run will do about the finding.
+
+After triaging, reply within each thread via `gh-post reply-inline` — every reply body is validated (hardwrap detector + halt-before-send) and a single batch covers the full review:
 
 ```bash
 # 1. Collect target threads — by default this filters to Copilot-authored heads
@@ -69,8 +71,6 @@ Each Copilot finding lives on an inline thread; that thread is the unit of respo
 ${CLAUDE_SKILL_DIR}/scripts/list-pr-threads.sh {owner}/{repo} {number} --unresolved --unreplied
 
 # 2. Build a JSONL file: one {"id": <head-comment-id>, "body": "<reply text>"} per line.
-#    Each reply should be concise — state the classification (fixed, false positive,
-#    acknowledged) and the reasoning in 1-2 sentences.
 
 # 3. Send the batch. The wrapper validates every body BEFORE any send; on a body
 #    failure no replies post. On a mid-batch API failure it prints un-sent indices

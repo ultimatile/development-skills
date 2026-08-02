@@ -1,11 +1,11 @@
 ---
 name: finding-triage
-description: Single source of truth for per-finding review-triage dispositions — actionable / false-positive / uncertain-validity / opens-a-question → research / invariant-premise-check / defer — and response selection for actionable findings. Definition file, not a procedure.
+description: Single source of truth for per-finding review-triage dispositions and response selection for actionable findings, which the review and audit skills apply by reference.
 ---
 
 # Finding Triage (SSOT)
 
-This skill is **a definition file, not a runnable procedure**. Skills that triage review findings apply these dispositions by reference. Do not copy the class definitions into them; point at them by name.
+Skills that triage review findings apply these dispositions by reference; do not copy the class definitions into them, point at them by name.
 
 A reviewer (Codex, Copilot, a fresh-context auditor) produces findings without the project context you hold — test results, design intent, scope constraints, conversation history. Triage is the step that converts a raw finding into a disposition. This file is the catalogue of dispositions and the response-selection rules for actionable findings; neither varies by reviewer, so both live in one place.
 
@@ -23,16 +23,18 @@ Each finding receives exactly one disposition. A finding may be *re-triaged* to 
 
 - **uncertain-validity** — you cannot yet tell whether the finding is real. The open question is **validity**. Investigate — read code, run a targeted probe — until it resolves to `actionable` or `false-positive`. When the targeted probe judges an external-system-behavior claim, verify it per **Verifying external-system claims** below. Do not carry an unresolved `uncertain-validity` past the point where a fix would be committed.
 
-- **opens-a-question → research** — the finding **is real**, but its resolution is **non-local**: it needs investigation, a design choice, or a scope judgment beyond a local edit. Both default responses are wrong here:
+- **opens-a-question** — the finding **is real**, but its resolution is **non-local**: it needs investigation, a design choice, or a scope judgment beyond a local edit. Both default responses are wrong here:
 
   - "fix in place" is wrong — the fix is not local.
   - "escalate to the user" is wrong — the resolution is probe-able.
 
-  The correct disposition is to **re-enter `research`** with the finding as the task, then escalate only the genuinely user-owned residue (scope authority, taste, an external constraint).
+  The correct handling is to **re-enter `research`** with the finding as the task, then escalate only the genuinely user-owned residue (scope authority, taste, an external constraint).
 
 - **invariant-premise-check** — the finding's *conclusion* may be correct, but its *premise* may be wrong. Applies to claims about mathematical properties, semantic validity, or precondition necessity. Before committing a fix, **verify the premise** — check whether the invariant the finding assumes actually holds, by reading code and tests and running targeted experiments. When the premise is an external-system-behavior claim, verify it per **Verifying external-system claims** below. Resolves to `actionable` (premise holds → fix it) or `false-positive` (premise fails → the finding's conclusion does not follow). The mechanism for verifying the premise is the caller's; this SSOT owns only the class.
 
-- **defer** — the finding is valid and its fix is understood, but it is **out of scope** for the current task. Record it (follow-up issue, note) and do not fix now. Distinct from `opens-a-question`: here the resolution is known and local, only the *timing* is deferred; in `opens-a-question` the resolution itself is unknown.
+- **defer** — the finding is valid and its fix is understood, but it is **out of scope** for the current task. Record it (follow-up issue, note) and do not fix now. Distinct from `opens-a-question`: here the resolution is known and local, only the *timing* is deferred; in `opens-a-question` the resolution itself is unknown. Distinct from `wontfix`: there the user directs that nothing be carried past this run.
+
+- **wontfix** — the finding is valid and its fix is understood, and the user directs that it be closed within this run: no fix made, and no follow-up filed to carry it past. The decision is the user's alone; the run records the disposition and the user's reasoning, which states what the fix would have cost. Both a reason to postpone and a reason to abandon can hold of one finding; where they do, the user's direction, not the reason, selects.
 
 ## Response selection (actionable findings)
 
@@ -46,7 +48,7 @@ An `actionable` disposition settles validity; it does not settle the edit. Selec
 
 **Axes**:
 
-- **severity** — exclusive tiers; take the first that applies. `critical`: the specified behavior is wrong on the happy path. `may-fail`: a failure mode exists. `consistency-only`: behavior is identical under every admissible reading; only descriptions can drift. Severity does not choose the edit — the selection below is severity-independent; its consumer is the waiver decision delegated at the end of this section.
+- **severity** — exclusive tiers; take the first that applies. `critical`: the specified behavior is wrong on the happy path. `may-fail`: a failure mode exists. `consistency-only`: behavior is identical under every admissible reading; only descriptions can drift. Severity does not choose the edit — the selection below is severity-independent. Severity bears instead on declining the fix: a finding at `critical` does not ordinarily warrant `wontfix`.
 - **case-space** — `bounded` / `unbounded`; defined whenever the finding is a coverage-gap claim — the rule's domain may be stated as an enumeration, stated as a prose predicate, or left implicit (`n-a` for findings that claim no coverage gap). A domain not shown bounded (finite, closed membership) is classified `unbounded`; an implicit domain is never shown bounded.
 
 **Response kinds**:
@@ -63,13 +65,13 @@ An `actionable` disposition settles validity; it does not settle the edit. Selec
 - **Drift between copies of one rule** — the same rule stated in more than one place, whether or not the drift affects behavior → `deduplicate` when load-bearing is true (the collapsed statement carries the corrected content); `delete` when it is false. Rewriting the divergent copies in place is not an outcome: it opens new consistency surfaces, and drift between N copies costs N comparisons to detect while a broken reference costs one grep.
 - **Otherwise** (a statement misdescribes the behavior it annotates, a wrong action, a typo) → `fix-in-place`: correct it, when load-bearing is true; `delete` when it is false.
 
-The selected edit is applied in the current run; a re-triage out of `actionable` exits instead. Waiving an in-scope finding on cost grounds is not selected here — where the invoking skill's gate defines an explicit user waiver with reasoning, that decision is the gate's, and the finding's severity belongs in the reasoning that waiver requires (a `critical` finding does not ordinarily survive that bar).
+The selected edit is applied in the current run; a re-triage out of `actionable` exits instead. Declining the fix is such an exit; this section does not settle which disposition a declined finding takes, and the entry conditions in **The dispositions** above govern that question.
 
 The regeneration signal — whether the target sentence was written to answer a prior finding — is iteration history, out of scope here per **Scope: stateless, per-finding**.
 
 ## Pre-existing instances do not license dismissal
 
-A finding is not downgraded to `false-positive` (or `defer`) merely because the surrounding code already exhibits the same flaw. Pre-existing instances of a problem are unextracted debt, not a convention that licenses adding another — "matches the surrounding code" describes the debt, it does not dismiss the finding. Dismissal still requires the disposition's own bar: for `false-positive`, context that makes *this* finding wrong; for `defer`, an explicit out-of-scope decision. The mere presence of prior offenders meets neither.
+A finding is not downgraded to `false-positive`, `defer` or `wontfix` merely because the surrounding code already exhibits the same flaw. Pre-existing instances of a problem are unextracted debt, not a convention that licenses adding another — "matches the surrounding code" describes the debt, it does not dismiss the finding. Dismissal still requires the disposition's own bar: for `false-positive`, context that makes *this* finding wrong; for `defer`, an explicit out-of-scope decision; for `wontfix`, the user's direction to close it, with the cost of the fix stated. The mere presence of prior offenders meets none of them.
 
 ## opens-a-question vs uncertain-validity
 
@@ -86,7 +88,7 @@ An `opens-a-question` finding often first reads as a **user gate** — "ask the 
 
 ## Verifying external-system claims
 
-Three dispositions can rest a committed verdict on a claim about an **external system's behavior** (a markdown renderer, parser, compiler, ABI, API, runtime): `false-positive` (the system rules out the input), `uncertain-validity` (a targeted probe judges the claim), and `invariant-premise-check` (the premise is an external-system fact) — including when the verdict is `actionable` and ships a fix.
+What follows binds a verdict that rests on a claim about an **external system's behavior** (a markdown renderer, parser, compiler, ABI, API, runtime), whichever disposition that verdict carries.
 
 **Requirement.** Before committing a verdict that rests on such a claim, run the finding's input through that system's **authoritative implementation** (`gh api /markdown` for GitHub rendering; the actual compiler / parser / runtime otherwise). A local proxy (a regex standing in for a renderer, a reimplemented parser) or a hand-derivation is built from your own mental model of how the system behaves — the same model that produced your reading — so it can only confirm that reading; only the authoritative implementation can test whether the reading holds.
 
