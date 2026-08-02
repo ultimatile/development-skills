@@ -30,7 +30,7 @@ Before drafting, identify:
 
 - **Target repo and base branch.** `gh repo view` and `git symbolic-ref --short refs/remotes/origin/HEAD` if unclear.
 - **Linked issue.** Read the issue body and comments — especially any `research` plan they carry.
-- **Whether the work went through `research`.** If yes: fold the plan's `Impact list` into Impact when that section is kept; rewrite its `Checklist of changes` into Changes per § Changes entries below; and report Verification against its `Test plan` rather than folding that in. If no, derive Changes and Impact from the local diff and commits, and let Verification report the checks this run made. Either way, do not transcribe the plan's process bookkeeping — see the reader-facing note below the skeleton.
+- **Whether the work went through `research`.** If yes: fold the plan's `Impact list` into `## Impact` when that section is kept; rewrite its `Checklist of changes` into `## Changes` entries per § Changes entries below; and report `## Verification` against its `Test plan` rather than folding that in. If no, derive `## Changes` and `## Impact` from the local diff and commits, and let `## Verification` report the checks this run made. Either way, do not transcribe the plan's process bookkeeping — see the reader-facing note below the skeleton.
 
 ### 2. Draft
 
