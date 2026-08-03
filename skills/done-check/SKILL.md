@@ -35,7 +35,7 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
 
 2. **Spawn the fresh-context auditors.** Authors read intent; a fresh-context subagent reads literal text — removes the doc-vs-code drift blindspot. One auditor always runs, for `quality-list`'s mechanical / literal items. A second runs conditionally, for `authoritative-text-rules`, per the firing rule at the end of this step.
 
-   **Main context MUST NOT load a purely-mechanical `quality-list` item body, and MUST NOT load any `authoritative-text-rules` item body.** Each subagent reads its own SSOT's index and the bodies it needs in its own fresh context, deriving its item set from that index; main only composes the prompts (diff + resolved paths) and dispatches. Main reads the contextual-lane `quality-list` bodies it audits in Step 3, and may read either SSOT's index — that is how Step 3 selects contextual items and how Step 4 predicts each auditor's row set.
+   **This audit MUST NOT load a purely-mechanical `quality-list` item body into main context, and MUST NOT load any `authoritative-text-rules` item body there** — whether or not an earlier phase of the same session already did. Each subagent reads its own SSOT's index and the bodies it needs in its own fresh context, deriving its item set from that index; main only composes the prompts (diff + resolved paths) and dispatches. Main reads the contextual-lane `quality-list` bodies it audits in Step 3, and may read either SSOT's index — that is how Step 3 selects contextual items and how Step 4 predicts each auditor's row set.
 
    Both prompts below carry the two absolute paths Step 0 resolved; a subagent needs both.
 
@@ -144,9 +144,7 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
    <SKILLS_DIR>/done-check/SKILL.md; read that step's verdict
    sentence, which states what backs each of the three. On a concern,
    add one thing that sentence does not ask for: the clause of the
-   item you are applying, quoted. Whoever triages your rows cannot
-   open these item bodies, so an unquoted rule leaves the concern
-   unjudgeable.
+   item you are applying, quoted.
 
    Each item's Sweep is a procedure, not a description: run it and
    report what it turned up. Where an item states a tie-break against
@@ -193,7 +191,7 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
    - **True positive** (`actionable`) — fix before proceeding (same as a main-context ⚠).
    - **False positive due to missing context** — note explicitly why (e.g., "user explicitly approved the boundary deferral in conversation"); the subagent's literal interpretation is wrong because it lacked context, but this should be rare and worth paper-trailing. Per `finding-triage`, do NOT silently override — false-positive classification is itself a triage step that the user can challenge.
 
-   The rule clause a subagent row quotes is what main context judges the ⚠ against, and in step 5 what it fixes against, for every row whose body step 2's prohibition keeps closed to main. `ported-code-attribution` falls outside that: step 3 opens its body here. A row that needs a quoted clause and carries none can be neither triaged nor fixed — main cannot open the body it would be judged against. Re-dispatch that auditor once with its prompt unchanged; its return replaces the first, as an unmatched coverage check's does. If the replacing return raises the same ⚠ and still quotes no clause, leave the row ⚠ with that noted, and close it through step 5 like any other.
+   The rule clause a subagent row quotes is what main context judges the ⚠ against, and in step 5 what it fixes against, for every row whose body step 2 forbids this audit to load into main context. `ported-code-attribution` falls outside that: step 3 opens its body here. When a row that needs a quoted clause carries none, re-dispatch that auditor once with its prompt unchanged; its return replaces the first, as an unmatched coverage check's does. If the replacing return raises the same ⚠ and still quotes no clause, leave the row ⚠ with that noted, and close it through step 5 like any other.
 
    **The verdicts.** Every result, whatever its source, is exactly one of **✅ pass** (concrete evidence that the rule is satisfied), **⚠ concern** (the location and the literal text that violates the rule), or **⊘ N/A** (the item's own N/A criterion as stated). This sentence is the only definition; Step 2's prompts send subagents here rather than restating it. Evidence cell records the basis (command run, manual check, `file:line`, or `not run: <reason>`).
 
