@@ -26,6 +26,9 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
 
    - **Test baseline**: build and run existing tests. Record pre-existing failures so later regressions can be distinguished.
    - **Memory recall baseline**: read `MEMORY.md` (index only); for each entry whose one-line description plausibly intersects the work, open and read it. A hypothesis that contradicts an active memory rule is rejected at formation.
+   - **Rule-set baseline**: invoke the `authoritative-text-rules` skill and read its Scope section and Items index in main context; a rule set that does not resolve halts `research`, naming what was looked for. Then read every item body that index lists, deriving the set from the index as that skill directs — skipping that read, and only that read, when the issue and the layout skim above positively establish that every surface the change could touch is excluded by that Scope section. A surface the skim left unenumerated establishes nothing, and the absence of a stated reason to touch a qualifying surface is not an exclusion. A hypothesis that contradicts a loaded item is rejected at formation.
+
+   Whenever a surface the change could touch is found to qualify under that Scope section and the item-body read was skipped, re-run that baseline and return to hypothesis formation, because the hypothesis set was formed without the items. Every other movement on this axis calls for nothing: where a qualifying surface drops out instead, the loaded items constrained hypotheses the drop removes, so none formed under them survives to be wrong.
 
 4. Form hypotheses across three aspects:
 
@@ -47,7 +50,7 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
 
 7. **Specific-example claim sweep (REQUIRED when applicable).** If the plan attaches deductive properties to a concrete example ("this example is symmetric / non-degenerate / exercises the multi-X path"), each property MUST be a separate `derivational` hypothesis — "obvious" is not an exemption. Form: "Example E has property P, derivable from E's defining equations / specification."
 
-8. **Present hypotheses to the user for approval before spawning subagents.** Show the `kind` tag for each. The user can narrow scope, split into sub-issues, or correct mis-classifications.
+8. **Present hypotheses to the user for approval before spawning subagents.** Show the `kind` tag for each. The user can narrow or widen scope, split into sub-issues, or correct mis-classifications.
 
 ## Step 2 — Verify hypotheses
 

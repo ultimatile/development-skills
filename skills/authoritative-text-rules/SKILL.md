@@ -28,7 +28,7 @@ A statement left stranded by a qualification the diff introduces — a caveat th
 
 ## Items
 
-Items carry no lane tag: every judgment below is available from the literal text of the audited files and the files they reference, so a runner splitting work between a fresh-context subagent and main context sends all of them to the subagent. A runner selects **every** item in this index whenever the rule set is active.
+Items carry no lane tag: every judgment below is available from the literal text of the audited files and the files they reference, so a runner splitting work between a fresh-context subagent and main context may send any item to either. A runner selects **every** item in this index whenever the rule set is active.
 
 - [case-space-totality](items/case-space-totality.md)
 - [single-reading](items/single-reading.md)
