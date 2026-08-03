@@ -44,8 +44,8 @@ Examples that fit this skill:
 
 | Concern | Host |
 | -- | -- |
-| Universal code quality | `quality-list` (add or extend an item; `done-check` and `todo-check` pick it up from the index) |
-| Quality of text the agent executes as instructions | `authoritative-text-rules` (add or extend an item; `done-check` picks it up from the index) |
+| Universal code quality | `quality-list` |
+| Quality of text the agent executes as instructions | `authoritative-text-rules` |
 | FFI safe-wrapper rules | `rust-ffi-rule` (or language-specific equivalent) |
 | Other domain-specific audit | The matching skill |
 
