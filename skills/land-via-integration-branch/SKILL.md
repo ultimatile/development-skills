@@ -1,11 +1,11 @@
 ---
 name: land-via-integration-branch
 description: >-
-  Land a large change too big for one PR as a sequence of PRs merging into a
-  long-lived integration branch, then a final PR into main. Use when one PR
-  would exceed a reviewer's diff-size limit, or when multiple components' APIs
-  must migrate together (cross-component migration, large refactor, multi-PR
-  feature).
+  Land a change too big for one PR as a sequence of PRs merging into a
+  long-lived integration branch, then a final PR into main. Use when the
+  intermediate PRs intentionally break the project-wide build and therefore
+  cannot land on main — typically a cross-component API migration where several
+  components must move together.
 ---
 
 # Land via Integration Branch
@@ -28,16 +28,6 @@ The Baseline column is the authority on what each gate measures from, and the wo
 Do not make the per-commit audit advance with the work. Re-covering the accumulated PR diff at every commit is what makes it a coverage gate; an advancing baseline would leave each earlier commit covered only by the per-PR-open gate, and a PR that never reaches that gate uncovered entirely.
 
 Trigger the cadence off commits, units, and PRs only. Do NOT add a per-session gate — session boundaries are human time, not design boundaries.
-
-## When to invoke
-
-- A change that does not fit one PR (diff exceeds a reviewer's size limit, or multiple component APIs must change together).
-- The intermediate PRs intentionally break the project-wide build: the per-component test gate is binding intermediate, the full project CI gate runs at the final PR only.
-
-Do NOT use for:
-
-- Single-PR work — `/review-pipeline` covers that directly.
-- Changes that compile in every intermediate state — one PR, no integration branch needed.
 
 ## Setup procedure
 
