@@ -20,10 +20,23 @@ One line per pipeline run. Create the directory on first use (`mkdir -p ~/.claud
 Reconstruct from the current conversation's triage records, from `git` / `gh` for repo facts, and from the recording session itself for the model and effort it runs under:
 
 - repo, PR number, pipeline skill name, diff stats (`gh pr view <N> --json additions,deletions,changedFiles`)
+
 - `skills_version` — the development-skills state the gates ran under, attested by the recording session: `git -C ~/.claude/skills/review-telemetry describe --tags --always --dirty`, recorded verbatim. Run-level. Ask the user when you cannot vouch that what came back names the state the gates ran under.
-- `fixer_model` and `fixer_effort` — the model and reasoning effort the run's triage and fix loops ran under, run-level. The session attests both: the model id verbatim as the harness names it, variant marker included, and the effort from `$CLAUDE_EFFORT`. Ask the user for whichever of the two you cannot vouch for.
+
+- `fixer_model` and `fixer_effort` — the model and reasoning effort the run's triage and fix loops ran under, run-level. The recording session's transcript records both on every message it produced; read the pair from it:
+
+  ```bash
+  jq -r 'select(.message.model != null and .message.model != "<synthetic>")
+         | [.message.model, .effort] | @tsv' \
+    ~/.claude/projects/$(pwd | tr './' '--')/$CLAUDE_CODE_SESSION_ID.jsonl | sort -u
+  ```
+
+  Each field is settled from its own column, independently of the other. A column holding one value throughout gives the field that value; a column holding two or more, or any empty cell, gives `null` with `gaps` naming what the column held. An effort column is empty for a session the harness recorded without one, which is why the columns are read apart: the same run can settle its model and not its effort. The transcript writes the model id without the harness's context-variant marker, so the bare id is what lands here. Ask the user when the transcript is not readable.
+
 - per gate: iterations run, config that varied (e.g. `/code-review` effort), the reviewer model per the normalization rules below, and every triaged finding with its disposition. `iterations` and per-gate false-positive count are the cost proxies. Do not record wall-clock — gate elapsed time is reconstructed after the run, so a duration nobody clocked at execution time is unrecoverable, and it conflates compute with external-service poll-wait (Copilot arrives async) and human approval-wait, which say nothing about the gate's own cost.
+
 - per finding, three distinct gate relations:
+
   - `duplicate_of_gate` — strictly an **instance re-report**: the same defect (same location, same fix) a gate already surfaced earlier in the run. `null` means the defect itself is new — the instance-level penetration signal.
   - `topic_opened_by` — the gate that **first surfaced this topic** in the run (the gate's own slug when it opened the topic). A new instance of an earlier gate's topic is `duplicate_of_gate: null` + `topic_opened_by: <earlier gate>` — value added, but no topic novelty.
   - `injected_at_gate` — the in-run gate whose **fix loop introduced** this defect (its slug), or `null` for the default: the defect was present in the original diff. Most findings are `null`. A non-null value marks a **fix-induced regression**.
@@ -40,13 +53,13 @@ Reconstruct from the current conversation's triage records, from `git` / `gh` fo
   "pr": 123,
   "pipeline": "review-pipeline",
   "skills_version": "2026.8.4-4-g7c1d9ab-dirty",
-  "fixer_model": "claude-opus-5[1m]",
+  "fixer_model": "claude-opus-5",
   "fixer_effort": "high",
   "diff": {"files": 6, "additions": 964, "deletions": 0},
   "gates": [
     {
       "gate": "done-check",
-      "reviewer_model": "claude-opus-5[1m]",
+      "reviewer_model": "claude-opus-5",
       "iterations": 1,
       "findings": []
     },
