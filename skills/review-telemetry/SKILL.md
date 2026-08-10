@@ -26,10 +26,13 @@ Reconstruct from the current conversation's triage records, from `git` / `gh` fo
 - `fixer_model` and `fixer_effort` — the model and reasoning effort the run's triage and fix loops ran under, run-level. The recording session's transcript records them per message; read the pair of columns from it:
 
   ```bash
-  jq -r 'select(.message.model != null and .message.model != "<synthetic>")
+  jq -r 'select(.message.model != null and .message.model != "<synthetic>"
+                and .timestamp >= "<first gate's timestamp, in the transcript's own ISO8601 UTC form>")
          | [.message.model, .effort] | @tsv' \
     ~/.claude/projects/$(pwd | tr './' '--')/$CLAUDE_CODE_SESSION_ID.jsonl | sort -u
   ```
+
+  The timestamp bound is what makes the answer the run's rather than the session's: a session that reached the gates through earlier phases carries their messages too, and a model change before the first gate says nothing about the run these fields describe. Take the bound from the transcript line where the run invoked its first gate, and write it in the spelling that line uses — the comparison is lexicographic, so an offset form denoting the same instant selects a different set of rows without failing. Drop the clause only when the session began at that gate.
 
   Each field is settled from its own column, independently of the other. A column holding one value throughout gives the field that value; a column holding two or more, or any empty cell, gives `null` with `gaps` naming what the column held. An effort column is empty for a session the harness recorded without one, which is why the columns are read apart: the same run can settle its model and not its effort. The transcript writes the model id without the harness's context-variant marker, so the bare id is what lands here. Ask the user when the transcript is not readable.
 
