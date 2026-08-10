@@ -33,7 +33,7 @@ Reconstruct from the current conversation's triage records, from `git` / `gh` fo
 
   Each field is settled from its own column, independently of the other. A column holding one value throughout gives the field that value; a column holding two or more, or any empty cell, gives `null` with `gaps` naming what the column held. An effort column is empty for a session the harness recorded without one, which is why the columns are read apart: the same run can settle its model and not its effort. The transcript writes the model id without the harness's context-variant marker, so the bare id is what lands here. Ask the user when the transcript is not readable.
 
-  The read covers one session, so it settles these fields only for a run whose loops all ran in it. A run carried across sessions — a pipeline resumed after the merge gate, a gate the user ran in their own session — has loops this transcript never saw, and a single-valued column says nothing about them: there the fields are `null` with `gaps` naming which loops fell outside. Judge that from the run's own history, which the recording session has.
+  The read covers one session, so it settles these fields only for a run whose loops all ran in it. A run resumed in a later session — the loops that answered an earlier gate ran before this transcript begins — has loops it never saw, and a single-valued column says nothing about them: there the fields are `null` with `gaps` naming which loops fell outside. A gate that ran elsewhere does not put the loops outside, since the triage and fixes answering it still run here. Judge that from the run's own history, which the recording session has.
 
 - per gate: iterations run, config that varied (e.g. `/code-review` effort), the reviewer model per the normalization rules below, and every triaged finding with its disposition. `iterations` and per-gate false-positive count are the cost proxies. Do not record wall-clock — gate elapsed time is reconstructed after the run, so a duration nobody clocked at execution time is unrecoverable, and it conflates compute with external-service poll-wait (Copilot arrives async) and human approval-wait, which say nothing about the gate's own cost.
 
@@ -94,7 +94,7 @@ Reconstruct from the current conversation's triage records, from `git` / `gh` fo
       "findings": []
     }
   ],
-  "gaps": ["code-review ran in the user's own session; reviewing model not stated"]
+  "gaps": ["code-review iteration 1 was run by the user, who did not state the reviewing model"]
 }
 ```
 
