@@ -17,31 +17,58 @@ One line per pipeline run. Create the directory on first use (`mkdir -p ~/.claud
 
 ## Collect the run's facts
 
-Reconstruct from the current conversation's triage records, and from `git` / `gh` for repo facts:
+Reconstruct from the current conversation's triage records, from `git` / `gh` for repo facts, and from the recording session itself for the model and effort it runs under:
 
 - repo, PR number, pipeline skill name, diff stats (`gh pr view <N> --json additions,deletions,changedFiles`)
-- per gate: iterations run, config that varied (e.g. `/code-review` effort), and every triaged finding with its disposition. `iterations` and per-gate false-positive count are the cost proxies. Do not record wall-clock — gate elapsed time is reconstructed after the run, so a duration nobody clocked at execution time is unrecoverable, and it conflates compute with external-service poll-wait (Copilot arrives async) and human approval-wait, which say nothing about the gate's own cost.
+
+- `skills_version` — the development-skills state the gates ran under, attested by the recording session: `git -C ~/.claude/skills/review-telemetry describe --tags --always --dirty`, recorded verbatim. Run-level. Ask the user when you cannot vouch that what came back names the state the gates ran under.
+
+- `fixer_model` and `fixer_effort` — the model and reasoning effort the run's triage and fix loops ran under, run-level. The recording session's transcript records them per message; read the pair of columns from it:
+
+  ```bash
+  jq -r 'select(.message.model != null and .message.model != "<synthetic>")
+         | [.message.model, .effort] | @tsv' \
+    ~/.claude/projects/$(pwd | tr './' '--')/$CLAUDE_CODE_SESSION_ID.jsonl | sort -u
+  ```
+
+  Each field is settled from its own column, independently of the other. A column holding one value throughout gives the field that value; a column holding two or more, or any empty cell, gives `null` with `gaps` naming what the column held. An effort column is empty for a session the harness recorded without one, which is why the columns are read apart: the same run can settle its model and not its effort. The transcript writes the model id without the harness's context-variant marker, so the bare id is what lands here. Ask the user when the transcript is not readable.
+
+  The read covers one session, so it settles these fields only for a run whose loops all ran in it. A run resumed in a later session — the loops that answered an earlier gate ran before this transcript begins — has loops it never saw, and a single-valued column says nothing about them: there the fields are `null` with `gaps` naming which loops fell outside. A gate that ran elsewhere does not put the loops outside, since the triage and fixes answering it still run here. Judge that from the run's own history, which the recording session has.
+
+- per gate: iterations run, config that varied (e.g. `/code-review` effort), the reviewer model per the normalization rules below, and every triaged finding with its disposition. `iterations` and per-gate false-positive count are the cost proxies. Do not record wall-clock — gate elapsed time is reconstructed after the run, so a duration nobody clocked at execution time is unrecoverable, and it conflates compute with external-service poll-wait (Copilot arrives async) and human approval-wait, which say nothing about the gate's own cost.
+
 - per finding, three distinct gate relations:
+
   - `duplicate_of_gate` — strictly an **instance re-report**: the same defect (same location, same fix) a gate already surfaced earlier in the run. `null` means the defect itself is new — the instance-level penetration signal.
   - `topic_opened_by` — the gate that **first surfaced this topic** in the run (the gate's own slug when it opened the topic). A new instance of an earlier gate's topic is `duplicate_of_gate: null` + `topic_opened_by: <earlier gate>` — value added, but no topic novelty.
   - `injected_at_gate` — the in-run gate whose **fix loop introduced** this defect (its slug), or `null` for the default: the defect was present in the original diff. Most findings are `null`. A non-null value marks a **fix-induced regression**.
 
-**Do not fabricate.** Any value the conversation does not evidence (an iteration count lost to compaction, a config value you cannot reconstruct) is `null`, and the gap is named in the `gaps` array. A wrong number is worse than a hole — the log exists to be aggregated.
+**Do not fabricate.** A value neither the session nor the user can vouch for, and any value the conversation does not evidence (an iteration count lost to compaction, a config value you cannot reconstruct) is `null`, and the gap is named in the `gaps` array. Where the field's own normalization rule names a value other than `null` for that case, that value is written instead and this paragraph's `gaps` entry is not owed — the named value already says what the hole would have said. That waiver reaches only the entry this paragraph asks for; a `gaps` entry another rule asks for is still owed. A wrong number is worse than a hole — the log exists to be aggregated.
 
 ## Record shape
 
 ```json
 {
-  "schema": 3,
+  "schema": 4,
   "recorded_at": "<ISO8601 UTC>",
   "repo": "owner/name",
   "pr": 123,
   "pipeline": "review-pipeline",
+  "skills_version": "2026.8.4-4-g7c1d9ab-dirty",
+  "fixer_model": "claude-opus-5",
+  "fixer_effort": "high",
   "diff": {"files": 6, "additions": 964, "deletions": 0},
   "gates": [
     {
+      "gate": "done-check",
+      "reviewer_model": "claude-opus-5",
+      "iterations": 1,
+      "findings": []
+    },
+    {
       "gate": "code-review",
       "config": {"effort": "medium"},
+      "reviewer_model": null,
       "iterations": 1,
       "findings": [
         {
@@ -53,13 +80,25 @@ Reconstruct from the current conversation's triage records, and from `git` / `gh
           "injected_at_gate": null
         }
       ]
+    },
+    {
+      "gate": "codex-review",
+      "reviewer_model": "gpt-5-codex",
+      "iterations": 1,
+      "findings": []
+    },
+    {
+      "gate": "copilot-pr",
+      "reviewer_model": "unobservable",
+      "iterations": 1,
+      "findings": []
     }
   ],
-  "gaps": ["copilot-pr gate skipped per user request"]
+  "gaps": ["code-review iteration 1 was run by the user, who did not state the reviewing model"]
 }
 ```
 
-Schema 1 records lack `topic_opened_by`; gate every query reading that field with `select(.schema >= 2)`. Schema ≤2 records lack `injected_at_gate`; gate every query reading that field with `select(.schema >= 3)`.
+Schema 1 records lack `topic_opened_by`; gate every query reading that field with `select(.schema >= 2)`. Schema ≤2 records lack `injected_at_gate`; gate every query reading that field with `select(.schema >= 3)`. Schema ≤3 records lack `skills_version`, `fixer_model`, `fixer_effort`, and `gates[].reviewer_model`; gate every query reading any of them with `select(.schema >= 4)`.
 
 Normalization rules:
 
@@ -70,6 +109,9 @@ Normalization rules:
 - `duplicate_of_gate` and `topic_opened_by` are written per their definitions in **Collect the run's facts**. Never encode class recurrence in `duplicate_of_gate` — that conflation is exactly what the two fields exist to prevent.
 - `injected_at_gate` is written per its definition in **Collect the run's facts**. `plan-actual-drift` is the reserved class-level `topic` for a finding where the implementation diverged from the research plan. **Do not derive an escape-distance — how many gates had the defect in front of them and missed it — from this record.**
 - A gate that ran and found nothing gets `"findings": []` — that zero is data. A gate that was skipped is omitted from the array and named in `gaps`.
+- `fixer_model` and `fixer_effort` are written per their definitions in **Collect the run's facts**. Neither is `config.effort`, a gate's own review-depth argument that stays in `config` — same word, different quantity.
+- Each iteration's reviewing model comes from the first of these that yields one: the reviewer's own output names it; the invocation pinned one, recorded as written — an alias stays an alias and is its own token, never folded into `fixer_model`; the session ran it, including through a subagent inheriting its model, which makes it `fixer_model`, and none when that is itself `null`; or a person who ran it states it. An iteration matching none has no known model.
+- `gates[].reviewer_model` is always written, and its value space is bounded: one model token, `"unobservable"`, or `null` — never a set encoded into a string. It takes the first branch that applies. **`"unobservable"`** — some iteration ran under a reviewer that exposes its model to nobody, `copilot-pr` being the case that reaches it. **`null`** — otherwise the gate is not attributable to one model, because some iteration's model is not known or the iterations did not all run under the same one. **A model token** — otherwise every iteration ran under that one model. Whatever the branch, `gaps` names every iteration whose model was knowable and went uncaptured.
 
 ## Append
 
