@@ -23,7 +23,7 @@ Reconstruct from the current conversation's triage records, from `git` / `gh` fo
 
 - `skills_version` — the development-skills state the gates ran under, attested by the recording session: `git -C ~/.claude/skills/review-telemetry describe --tags --always --dirty`, recorded verbatim. Run-level. Ask the user when you cannot vouch that what came back names the state the gates ran under.
 
-- `fixer_model` and `fixer_effort` — the model and reasoning effort the run's triage and fix loops ran under, run-level. The recording session's transcript records both on every message it produced; read the pair from it:
+- `fixer_model` and `fixer_effort` — the model and reasoning effort the run's triage and fix loops ran under, run-level. The recording session's transcript records them per message; read the pair of columns from it:
 
   ```bash
   jq -r 'select(.message.model != null and .message.model != "<synthetic>")
