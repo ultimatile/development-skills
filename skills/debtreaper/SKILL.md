@@ -1,6 +1,6 @@
 ---
 name: debtreaper
-description: Audit a test suite for structural debt — fixtures that trivialize the code under test, tautological differential assertions, implementation-locked or assertion-less tests, and name-claim mismatches. Optional scope argument (file path, directory, or module name); without arguments, audits the workspace's test surfaces. Companion to driftreaper / breachreaper.
+description: Audit a test suite for structural debt — fixtures that trivialize the code under test, tautological differential assertions, implementation-locked or assertion-less tests, and name-claim mismatches. Optional scope argument (file path, directory, or module name); without arguments, audits the workspace's test surfaces.
 ---
 
 # debtreaper

@@ -29,6 +29,7 @@
         "./skills/driftreaper",
         "./skills/breachreaper",
         "./skills/debtreaper",
+        "./skills/docreaper",
         "./skills/done-check",
         "./skills/todo-check",
         "./skills/quality-list",
