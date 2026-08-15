@@ -39,6 +39,16 @@ def is_comment(node):
     return "comment" in node.type.lower()
 
 
+# Grammars that give the interpreter line its own node type instead of a
+# comment node (JavaScript, Rust). Collected so the line is excluded and
+# stripped from referents like its comment-node counterparts.
+INTERPRETER_TYPES = {"hash_bang_line", "shebang"}
+
+
+def is_interpreter_node(node):
+    return node.type in INTERPRETER_TYPES
+
+
 def eff_end_row(node):
     """The last row on which the node has text.
 
@@ -160,7 +170,7 @@ def collect(root, docstring_ids):
     out = []
 
     def walk(node):
-        if is_comment(node):
+        if is_comment(node) or is_interpreter_node(node):
             out.append(node)
             return
         if node.id in docstring_ids:
@@ -177,17 +187,29 @@ def python_docstrings(root):
     """String nodes that are the first statement of a module/def/class body."""
     ids = {}
 
+    def is_docstring_node(node):
+        # An f-string or bytes literal is a string node too, but CPython
+        # assigns neither to __doc__; implicitly concatenated string
+        # literals do become the docstring.
+        if node.type == "concatenated_string":
+            return all(is_docstring_node(c) for c in node.named_children)
+        if node.type != "string":
+            return False
+        start = node.children[0] if node.child_count else None
+        prefix = start.text.lower() if start is not None else b""
+        return b"f" not in prefix and b"b" not in prefix
+
     def first_statement_string(body):
         if body is None or body.named_child_count == 0:
             return None
         first = next((c for c in body.named_children if not is_comment(c)), None)
         if first is None:
             return None
-        if first.type == "string":
+        if is_docstring_node(first):
             return first
         if first.type == "expression_statement" and first.named_child_count == 1:
             child = first.named_children[0]
-            if child.type == "string":
+            if is_docstring_node(child):
                 return child
         return None
 
@@ -311,6 +333,8 @@ CODING_COOKIE = re.compile(rb"^[ \t\f]*#.*?coding[:=][ \t]*([-\w.]+)")
 
 def excluded_line(node, source, lang):
     """Shebang on row 0; Python coding pragma on row 0 or 1, as CPython reads it."""
+    if is_interpreter_node(node):
+        return True
     line_start = source.rfind(b"\n", 0, node.start_byte) + 1
     if source[line_start:node.start_byte].strip():
         return False
@@ -448,7 +472,7 @@ def process(path):
     excluded = []
     kept = []
     for node in nodes:
-        if is_comment(node) and excluded_line(node, raw, lang):
+        if (is_comment(node) or is_interpreter_node(node)) and excluded_line(node, raw, lang):
             excluded.append({"line": node.start_point[0] + 1,
                              "text": utf8(raw[node.start_byte:node.end_byte])})
         else:
