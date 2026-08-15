@@ -9,13 +9,13 @@ This skill is **a definition file, not a runnable procedure**. Skills that audit
 
 ## Scope
 
-**Authoritative text** is text an agent executes as instructions. That single property decides membership, and a file it holds for qualifies in full — a body that also describes a separate artifact, a wrapped script or a co-located rule table, is still audited whole as instructions.
+**Authoritative text** is text an agent executes as instructions; applying a definition file by reference is executing it, no less than running a procedure step by step. That single property decides membership, and a file it holds for qualifies in full — a body that also describes a separate artifact, such as a wrapped script or a co-located rule table, is still audited whole as instructions.
 
-A claim in a qualifying file that describes a separate artifact has a referent, and checking the claim against that referent belongs to claim-vs-referent items outside this rule set, on their own triggers. The items here still read such a claim on their own terms — `case-space-totality`'s sweep checks a proposition an enumeration relies on against the domain itself.
+A claim about a separate artifact, made inside a qualifying file, has a referent, and checking the claim against that referent belongs to the code-quality rule set `quality-list`, on its items' own triggers. An item here whose sweep reaches such a claim still audits it and reports on its own concern conditions — `case-space-totality`'s sweep is one that does.
 
 Skill bodies — script-wrapping ones included — rule and item definition files, and repository-level agent-instruction files (`CLAUDE.md`, `AGENTS.md`, files under `.claude/rules/`, `.claude/commands/`, `.claude/agents/`, and the equivalents other tools define) are the recurring instances. The list is illustrative: the property above decides membership, and new instruction-file conventions appear faster than any enumeration tracks.
 
-Source code is not authoritative text: a machine executes it. Prose that is read rather than executed — a README, an article, a design document, a docstring — is not authoritative text either; a docstring's claims are checked against the code they describe by claim-vs-referent items, not by anything here.
+Source code is not authoritative text: a machine executes it. Prose that is read rather than executed — a README, an article, a design document, a docstring — is not authoritative text either; a docstring's claims are checked against the code they describe, and that check is `quality-list`'s, not this rule set's.
 
 **Classify per file, not per directory.** A skill directory can hold a skill body beside a package manifest, a lockfile, and scripts; the body is authoritative text and the rest is not.
 
