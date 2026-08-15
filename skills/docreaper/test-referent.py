@@ -53,11 +53,11 @@ def expect(name, line, relation, contains=(), not_contains=(), end_line=None,
     block-end / referent-start line pins."""
     def checker(rec):
         b = block_at(rec, line)
-        ok = b is not None and b["relation"] == relation
+        ok = (b is not None and b["relation"] == relation
+              and b["unreached"] is None and b["referent"] is not None)
         if ok and (contains or not_contains):
-            ok = b["referent"] is not None
-            text = b["referent"]["text"] if ok else ""
-            ok = ok and all(s in text for s in contains)
+            text = b["referent"]["text"]
+            ok = all(s in text for s in contains)
             ok = ok and all(s not in text for s in not_contains)
         if ok and end_line is not None:
             ok = b["span"]["end_line"] == end_line
@@ -74,11 +74,11 @@ def expect_many(name, expectations):
         ok = True
         for line, relation, contains in expectations:
             b = block_at(rec, line)
-            if b is None or b["relation"] != relation:
+            if b is None or b["relation"] != relation or b["unreached"] is not None \
+                    or b["referent"] is None:
                 ok = False
                 break
-            if contains and (b["referent"] is None or any(
-                    t not in b["referent"]["text"] for t in contains)):
+            if any(t not in b["referent"]["text"] for t in contains):
                 ok = False
                 break
         check(name, ok, json.dumps(rec["blocks"]))
@@ -150,6 +150,14 @@ def python_nonascii(rec):
     check("python: non-ASCII text round-trips through the block text",
           b is not None and b["relation"] == "trailing" and b["text"] == "# コメント",
           json.dumps(b))
+
+
+def c_paren_trailing_split(rec):
+    texts = [b["text"] for b in rec["blocks"]]
+    check("c: a comment trailing an open paren does not merge with the next "
+          "line's comment",
+          "// note on the call" in texts and "// second note" in texts,
+          json.dumps(rec["blocks"]))
 
 
 def python_docstring_trailing_split(rec):
@@ -294,6 +302,11 @@ SPECIMENS = [
      python_shebang_pragma),
     ("py", '#!/usr/bin/env python\n# coding: utf-8\nx = 1\n', python_shebang_pragma),
     ("py", '#!/usr/bin/env python\n# coding=utf-8\nx = 1\n', python_shebang_pragma),
+    ("py", b"\xef\xbb\xbf#!/usr/bin/env python\n# -*- coding: utf-8 -*-\nx = 1\n",
+     python_shebang_pragma),
+    ("c", "int g(int);\nint x = g( // note on the call\n    // second note\n"
+     "    1);\nint y = 2;\n",
+     c_paren_trailing_split),
     ("py", '# Handles decoding: "utf-8" and friends.\nx = 1\n',
      expect("python: a prose comment mentioning decoding is not an encoding pragma",
             1, "next-sibling", contains=["x = 1"])),

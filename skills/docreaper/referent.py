@@ -337,7 +337,10 @@ def excluded_line(node, source, lang):
     if is_interpreter_node(node):
         return True
     line_start = source.rfind(b"\n", 0, node.start_byte) + 1
-    if source[line_start:node.start_byte].strip():
+    before = source[line_start:node.start_byte]
+    if line_start == 0 and before.startswith(b"\xef\xbb\xbf"):
+        before = before[3:]
+    if before.strip():
         return False
     text = source[node.start_byte:node.end_byte]
     if node.start_point[0] == 0 and text.startswith(b"#!"):
@@ -348,7 +351,10 @@ def excluded_line(node, source, lang):
             return True
         if row == 1:
             newline = source.find(b"\n")
-            first = source[:newline if newline != -1 else len(source)].strip()
+            first = source[:newline if newline != -1 else len(source)]
+            if first.startswith(b"\xef\xbb\xbf"):
+                first = first[3:]
+            first = first.strip()
             if CODING_COOKIE.match(first):
                 return False
             return first == b"" or first.startswith(b"#")
@@ -415,13 +421,10 @@ def referent_record(relation, bound, source, comment_nodes):
             "text": utf8(text)}, error
 
 
-def starts_own_line(node, docstring_ids):
-    """False for a trailing comment — anything sits before it on its row."""
-    siblings = named_siblings(node)
-    if not siblings:
-        return True
-    index = siblings.index(node)
-    back = siblings[index - 1] if index > 0 else None
+def starts_own_line(node):
+    """False for a trailing comment — anything, punctuation included, sits
+    before it on its row."""
+    back = node.prev_sibling
     return back is None or node.start_point[0] != eff_end_row(back)
 
 
@@ -437,8 +440,8 @@ def merge_runs(nodes, docstring_ids, lang):
                 and prev.parent == node.parent
                 and (lang != "rust" or rust_marker_kind(prev) == rust_marker_kind(node))
                 and rows_adjacent(prev, node)
-                and starts_own_line(node, docstring_ids)
-                and starts_own_line(prev, docstring_ids))
+                and starts_own_line(node)
+                and starts_own_line(prev))
             if joins:
                 blocks[-1].append(node)
                 continue
