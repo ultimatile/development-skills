@@ -119,7 +119,8 @@ def chain_adjacent(siblings, index, target, docstring_ids):
 # something else (bash redirected_statement names its command `body`), and
 # stripping it would remove referent text, so it is left in place.
 BODY_TYPES = {"block", "compound_statement", "statement_block", "body_statement",
-              "declaration_list", "field_declaration_list", "class_body"}
+              "declaration_list", "field_declaration_list", "class_body",
+              "enum_variant_list", "enum_body", "constructor_body"}
 
 
 def strip_body(node, source):
@@ -348,6 +349,8 @@ def excluded_line(node, source, lang):
         if row == 1:
             newline = source.find(b"\n")
             first = source[:newline if newline != -1 else len(source)].strip()
+            if CODING_COOKIE.match(first):
+                return False
             return first == b"" or first.startswith(b"#")
     return False
 
@@ -395,7 +398,10 @@ def referent_record(relation, bound, source, comment_nodes):
         target, attributes = bound
         text, body_range = strip_body(target, source)
         text = strip_comments(text, target.start_byte, target, body_range, comment_nodes)
-        prefix = b"".join(source[a.start_byte:a.end_byte] + b"\n" for a in attributes)
+        prefix = b"".join(
+            strip_comments(source[a.start_byte:a.end_byte], a.start_byte, a, None,
+                           comment_nodes) + b"\n"
+            for a in attributes)
         error = retained_region_has_error(target, body_range) or any(
             subtree_has_error(a) for a in attributes)
         first = attributes[0] if attributes else target
@@ -410,11 +416,12 @@ def referent_record(relation, bound, source, comment_nodes):
 
 
 def starts_own_line(node, docstring_ids):
-    """False for a trailing comment — code sits before it on its row."""
+    """False for a trailing comment — anything sits before it on its row."""
     siblings = named_siblings(node)
     if not siblings:
         return True
-    back = nearest_noncomment(siblings, siblings.index(node), -1, docstring_ids)
+    index = siblings.index(node)
+    back = siblings[index - 1] if index > 0 else None
     return back is None or node.start_point[0] != eff_end_row(back)
 
 

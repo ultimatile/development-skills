@@ -96,6 +96,16 @@ def no_docstring_block(name, absent_text=None):
     return checker
 
 
+def excluded_first_line(name, line_expected, block_line, relation):
+    """Checker: line 1 is in excluded_lines and the named block still binds."""
+    def checker(rec):
+        lines = [e["line"] for e in rec["excluded_lines"]]
+        b = block_at(rec, block_line)
+        check(name, lines == [line_expected] and b is not None
+              and b["relation"] == relation, json.dumps(rec))
+    return checker
+
+
 def unreached_file(name, discriminant):
     def checker(rec):
         check(name, rec["unreached"] == discriminant, json.dumps(rec))
@@ -140,6 +150,14 @@ def python_nonascii(rec):
     check("python: non-ASCII text round-trips through the block text",
           b is not None and b["relation"] == "trailing" and b["text"] == "# コメント",
           json.dumps(b))
+
+
+def python_docstring_trailing_split(rec):
+    texts = [b["text"] for b in rec["blocks"]]
+    check("python: a trailing comment after a docstring does not merge with "
+          "the next line's comment",
+          "# trailing note" in texts and "# next comment" in texts,
+          json.dumps(rec["blocks"]))
 
 
 def c_error_locality(rec):
@@ -285,6 +303,11 @@ SPECIMENS = [
     ("py", 'x = 1  # coding: utf-8\ny = 2\n',
      expect("python: a trailing cookie after code is not a pragma",
             1, "trailing", contains=["x = 1"])),
+    ("py", '# coding: utf-8\n# coding: latin-1\nx = 1\n',
+     excluded_first_line("python: only the first cookie is a pragma; the second "
+                         "stays a block", 1, 2, "next-sibling")),
+    ("py", '"""Doc."""  # trailing note\n# next comment\nx = 1\n',
+     python_docstring_trailing_split),
     ("py", 's = """\n# workers\n"""\nx = 1\n',
      no_docstring_block("python: comment-shaped lines inside a triple-quoted string "
                         "are not blocks", absent_text="workers")),
@@ -296,14 +319,20 @@ SPECIMENS = [
     ("py", 'def f(x):\n    "part one " f"{x}"\n    return x\n',
      no_docstring_block("python: a concatenation containing an f-string is not a docstring")),
     ("rs", "#!/usr/bin/env rust\n/// doc\nfn f() {}\n",
-     expect("rust: a shebang line is excluded and the doc still binds",
-            2, "next-sibling", contains=["fn f"])),
+     excluded_first_line("rust: a shebang line lands in excluded_lines and the "
+                         "doc still binds", 1, 2, "next-sibling")),
+    ("rs", "/// doc\n#[cfg(all(/* nested */ unix))]\nfn f() {}\n",
+     expect("rust: a nested comment inside a skipped attribute is stripped",
+            1, "next-sibling", contains=["#[cfg", "fn f"], not_contains=["nested"])),
+    ("rs", "/// Which flavor.\nenum Flavor { Sweet, Sour }\n",
+     expect("rust: an enum doc's referent strips the variant list",
+            1, "next-sibling", contains=["enum Flavor"], not_contains=["Sweet"])),
     ("py", 'def f(x):\n    "part one " "part two"\n    return x\n',
      expect("python: an implicitly concatenated docstring is one",
             2, "docstring", contains=["def f"], not_contains=["return"])),
     ("js", "#!/usr/bin/env node\n// a note\nconst x = 1;\n",
-     expect("js: a hash-bang line is excluded and the comment still binds",
-            2, "next-sibling", contains=["const x"])),
+     excluded_first_line("js: a hash-bang line lands in excluded_lines and the "
+                         "comment still binds", 1, 2, "next-sibling")),
     ("c", "// far comment, binds fine\nint a = 1;\n\nint b = 2\n// near comment\nint c = 3;\n",
      c_error_locality),
     ("c", "int x;\nvoid g(void) { f(host, /*port=*/443, 3); }\n",
@@ -362,6 +391,13 @@ SPECIMENS = [
             1, "next-sibling", contains=["class C"], not_contains=["return"])),
     ("java", "class C {\n    int a = 1; // trailing note\n    int b = 2;\n}\n",
      expect("java: trailing comment", 2, "trailing")),
+    ("java", "/** Which flavor. */\nenum Flavor { SWEET, SOUR }\n",
+     expect("java: an enum doc's referent strips the enum body",
+            1, "next-sibling", contains=["enum Flavor"], not_contains=["SWEET"])),
+    ("java", "class C {\n    /** Builds a C. */\n    C(int x) { this.x = x; }\n"
+     "    int x;\n}\n",
+     expect("java: a constructor doc's referent strips the constructor body",
+            2, "next-sibling", contains=["C(int x)"], not_contains=["this.x"])),
     ("cs", "class C {\n    /// <summary>Adds one.</summary>\n    /// <returns>x+1</returns>\n"
      "    int F(int x) { return x + 1; }\n}\n",
      expect("csharp: a /// XML-doc run above a method binds to it",
