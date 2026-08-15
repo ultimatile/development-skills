@@ -1,6 +1,7 @@
 ---
 name: docreaper
-description: Audit code comments and docstrings for prose the code they annotate already carries, taking a delete-or-keep verdict per comment block and applying only what the user approves. Optional scope argument (file path, directory, or module); without arguments, audits every tracked source file of the workspace.
+description: Audit code comments and docstrings for prose the code they annotate already carries, taking a delete-or-keep verdict per comment block and applying only what the user approves. Optional scope argument (file path, directory, or module); without arguments, audits every tracked file of the workspace.
+allowed-tools: Bash(uv run:*)
 ---
 
 # docreaper
@@ -11,64 +12,49 @@ Report every verdict, including every block kept.
 ## Step 1 — Determine scope
 
 - **With argument**: audit only the specified file, directory, or module.
-- **Without argument**: audit every tracked source file of the workspace.
+- **Without argument**: audit every tracked file of the workspace.
 
-The pass covers the extent the bullet above selected, whichever of the two fired.
-A file in a language whose comment syntax you cannot read is part of that extent and is one the pass does not reach.
+An exclusion in Step 2's list that takes a whole file removes that file here, before the script runs, so an excluded file is neither audited nor reported unreached.
+The pass covers the extent the bullet above selected, minus the files so removed.
+A file or block the Step 2 script emits as unreached is part of that extent and is one the pass does not reach.
 Whether to run again on any part of that extent Step 5 reports as unreached is the user's call.
 
-## Step 2 — Read the blocks and name each block's referent
+## Step 2 — Compute the blocks and their referents
 
-A **comment block** is one docstring, one run of adjacent comment lines with no code line between its members, or one comment trailing a code line.
-One docstring is one block however many blank or empty lines it holds.
-For a run of comment lines, a line of code ends the block, and so does a wholly empty line, being neither comment nor code.
-The block is the unit the delete-or-keep verdict is taken on, so no sentence or clause boundary decides whether text is removed.
-The classes still name things inside a block — the propositions it asserts, an expression whose antecedent is missing — and a report entry quotes the span it names.
+Run the bundled extractor over the files Step 1 selected, in as many invocations as the command line's length requires:
 
-A file's leading interpreter or encoding line — `#!/usr/bin/env bash`, a coding pragma — is not a comment line for this purpose and is no member of any block.
+```bash
+uv run --with tree-sitter==0.26.0 --with tree-sitter-language-pack==1.14.3 \
+  python ${CLAUDE_SKILL_DIR}/referent.py <files...>
+```
 
+The first run on a machine fetches grammars into a local cache, so it needs network access.
+A run the script refuses — it exits 2 and emits nothing — means Step 1's selection needs correcting; fix the selection and run it again.
+
+The script parses each file, groups its comments and docstrings into blocks, and computes each block's referent from the parse tree.
+It emits JSON Lines, one object per file; its module docstring is the output contract's full statement — field shapes, the relation vocabulary, the nullity conditions, the referent's span and text semantics — and each field's consumer is:
+
+- `path`, and per block a line `span` and its `text` — what Step 5's rows cite, what Step 3's classes read, and what Step 6 edits by.
+- Per block, the `relation` that bound it — recorded by Step 5.
+- Per block, the `referent` — what classes A and C compare against.
+- `excluded_lines` — reported out of scope by Step 5.
+- `unreached` — the extent Step 5 reports as not reached, and Step 1's rerun question.
+
+A **comment block** is what the script emits as one block.
+The block is the unit the delete-or-keep verdict is taken on, and the block and referent boundaries both come from the script's output, never from a boundary the executor draws.
+The executor names spans for editing of three kinds only — an exclusion span per the list below, a class C phrase, and a class B duplicated proposition inside a larger block — each as a quotation of the block's emitted `text`; Step 6 states how an approved change is applied, and what Step 5 quotes from a referent is a report citation, not a span for editing.
 A **proposition** is anything the block states that can be true or false.
-
-The referent is the code the block's reader has in front of them.
-Take the first row that matches:
-
-| the block | referent |
-| -- | -- |
-| sits at the top of a file, above every construct in it, and is not in a doc form the language binds to a following item | the file's code |
-| documents a named construct — either a doc-form comment, or a block with no blank or empty line between it and the declaration below | that construct's declaration as written. A block documenting a construct is read by whoever reads the declaration, whether or not anything calls it yet, so the construct's body is not part of the referent |
-| sits inside a body, including between two constructs or trailing on a code line | the innermost enclosing body's code |
-
-A **body** is the code a construct's braces, indentation block, or file scope encloses, and a language construct that opens its own scope — an `unsafe` block, an `if` branch, a `with` or `try` block, a closure — is one too.
-Where several enclose the block, the innermost governs.
-A file's top level is a body, so a block among a script's top-level statements takes the third row, and every block that is neither a file header nor a construct's documentation lands there.
-
-A doc form the language binds to one particular construct rather than to the file — Rust `///` binding to what follows, a Python docstring binding to the `def` it opens, a Doxygen or JSDoc block — takes the second row even at the top of a file; the first row is for the form that documents the file itself, such as Rust `//!` or a bare leading comment run.
-The referent Step 5 records is what makes the first-row choice checkable.
-The second row binds by adjacency, not by topic: a block that reaches it takes that declaration even when its prose is about code further down, and the referent Step 5 records is what the row named rather than what the block is about.
-
-A construct's **declaration** is everything the language writes for it before its body opens, across however many lines that spans.
-That takes in its name, its parameters and their types, and whatever else sits there: attributes, decorators, specifiers, qualifiers, exception clauses, constraints.
-Where declaration and body share a line, the declaration is the part before the body opens.
-Where the construct opens no body at all — a field, a constant, a variable, a local binding, a type alias — the declaration runs to its own terminator, and its type and its initializer are part of it.
-A construct for which the language writes nothing before a body has no declaration, so a block above it documents no declaration and takes its referent from whichever later row its position matches.
-
-A **named construct** is whatever the language names and another line can refer to.
-Functions, methods, types, fields, constants, macros, aliases, local bindings and modules are instances of that predicate rather than a closed list, so a construct the list omits is still a named construct when another line can refer to it by name.
-The rows do not turn on visibility, so no reading of "exported" changes the referent.
-
-**Referent text** is the code the row named, minus every comment block that code holds — a docstring as much as a comment line, and one Step 2 placed out of scope as much as one it judges.
-Everything else the row named counts, string and character literals included: an attribute's message, an assertion's label, a help string.
-No block therefore carries another block for class A's purposes; what two blocks share is class B's concern.
-A declaration in a language that writes only a name — a shell function's `name()` — carries almost nothing, so class A rarely fires on such a referent, and that is the language's property rather than a gap to compensate for.
+The **referent** is the code the block's reader has in front of them; the `referent` field is its text.
 
 Not in scope.
-An exclusion takes the whole file when it names a file, the whole block when it names the whole block, and otherwise takes the span it names; the rest of the block stays in scope and is judged on what remains.
+An exclusion takes the whole file when it names a file — Step 1 applies those — the whole block when it names the whole block, and otherwise takes the span it names; the rest of the block stays in scope and is judged on what remains.
 
+- A file's leading interpreter line — and, in Python, its encoding pragma — which the script emits as `excluded_lines`: an instruction to the machine, not prose about the referent.
 - A block that is only a banner separator, a `shellcheck` / `noqa` / `clippy` directive, or a license header: carries no claim about the referent. Where such a line sits inside a longer block, it is the named span and the block's prose stays in scope.
 - Commented-out code, a code example inside a comment, and the data columns of an aligned table inside a comment: code or data, not prose. Each is a named span.
   An exclusion never takes prose that asserts a proposition: where a table row or a directive line carries a gloss beside its data, the gloss stays in scope and only the data is excluded.
-- A file a generator writes: regenerated rather than edited.
-- A file whose own prose is what an agent executes: there is no code beside it for a referent row to name. A script's comments describe the code beside them and stay in scope.
+- A file whose own text announces it is generated — `@generated` and "Code generated by … DO NOT EDIT" are the recurring marks — or one the user names as generated: regenerated rather than edited.
+- A file whose own prose is what an agent executes: there is no code beside it for a referent to name. A script's comments describe the code beside them and stay in scope.
 - `README.md`, other top-level `*.md`, `docs/**`: written for a repository's visitors rather than for a reader of the code beside it.
 - An article, a paper manuscript, prose whose subject is not an artifact in the repository: the referent is outside the repository.
 
@@ -95,7 +81,9 @@ Whether a reader could formally deduce the block from the referent is not asked,
 A block in the imperative mood asserts what the construct does — `// Write a body string to a temp file and echo its path.` asserts the write and the echo — so mood is not what decides condition 1.
 
 A block the referent **contradicts** is kept, with the argument that the referent does not carry it; correcting it is not this sweep's business.
-Under the second row the construct's body is not the referent, so a contradiction visible only in the body is not this sweep's finding either.
+Where the script's contract strips a construct's body from the referent, a contradiction visible only in that stripped body is not this sweep's finding either.
+
+A referent in a language that writes almost nothing before a body — a shell function's `name()` — carries almost nothing, so class A rarely fires on it, and that is the language's property rather than a gap to compensate for.
 
 The delete-or-keep verdict covers the block's in-scope text only, so a directive or an example the exclusions took away survives a deleted block.
 
@@ -142,7 +130,7 @@ These shapes look like a class and are not:
 
 Report every in-scope block the pass reached, with:
 
-- its `file:line`, the Step 2 row taken and the code that row named;
+- its `file:line`, the relation the script reported, and the referent it named;
 - its delete-or-keep verdict, and when that is delete, the part of the referent that carries it;
 - when that is keep, the argument for it: which proposition the referent does not carry, or that the block asserts none;
 - every class B set the block has a site in, with every site in the set;
@@ -150,8 +138,22 @@ Report every in-scope block the pass reached, with:
 
 Report alongside those rows, not inside them:
 
-- every file, block and span Step 2 placed out of scope — the file by path, the block and the span quoted — with the exclusion that applies to it;
+- every file, block and span placed out of scope — a file by path, an `excluded_lines` entry or an excluded span quoted — with the exclusion that applies to it;
 - any block the referent contradicts, with what contradicts it, so a kept block that is false is distinguishable in the report from a kept block that is true;
-- the extent covered, and any extent the pass did not reach.
+- the extent covered, and every file and block the script emitted as unreached, with its discriminant.
 
 Apply nothing without the user's approval, taken per block.
+
+## Step 6 — Apply per approval
+
+Apply an approved change by exact-text replacement: the old text is the block's emitted `text`, the new text is that text with the approved change applied, and nothing outside the block's span is touched.
+Where the old text occurs more than once in the file — class B's byte-identical copies are the recurring case — the block's `span` says which occurrence is meant; extend the old text with the file text adjacent to that span until the match is unique, and replace only there.
+An approved delete subsumes every other change approved for the same block; a class B or class C edit applies only to a block that is kept.
+Construct the new text by these rules:
+
+- An approved **delete** drops the block's in-scope text and keeps every excluded span; a newline goes with it exactly when the block's `text` carries that newline, and a blank line the deletion leaves behind stays.
+- A removal after which the file would no longer parse — deleting a docstring that is a body's only statement is the recurring shape — is not applied: the block stays, and the report notes that its delete is unappliable.
+- An approved **class B resolution** drops each copy the user approves removing; the user's call names the copy a reader keeps.
+- An approved **class C repair**: cutting drops the phrase; naming the antecedent replaces the phrase with wording the user supplied — this sweep authors no words of its own.
+- Keep the block's comment or string delimiters in the new text unless the whole block is deleted, so no delimiter is ever half-deleted.
+- Every removal leaves the new text a subsequence of the old; the class C naming above is the only insertion.
