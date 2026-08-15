@@ -9,7 +9,7 @@ This skill is **a definition file, not a runnable procedure**. Skills that audit
 
 ## Scope
 
-**Authoritative text** is text an agent executes as instructions; applying a definition file by reference is executing it, no less than running a procedure step by step. That single property decides membership, and a file it holds for qualifies in full — a body that also describes a separate artifact, such as a wrapped script or a co-located rule table, is still audited whole as instructions.
+**Authoritative text** is text an agent executes as instructions; applying a definition file by reference is executing it, no less than running a procedure step by step. That single property decides membership, and any file for which it holds qualifies in full — a body that also describes a separate artifact, such as a wrapped script or a co-located rule table, is still audited whole as instructions.
 
 A claim about a separate artifact, made inside a qualifying file, has a referent, and checking the claim against that referent belongs to the code-quality rule set `quality-list`, on its items' own triggers. An item here whose sweep reaches such a claim still audits it and reports on its own concern conditions — `case-space-totality`'s sweep is one that does.
 
