@@ -516,6 +516,10 @@ def process(path):
 
 
 def main(argv):
+    # The contract emits non-ASCII text verbatim, so the output encoding must
+    # not depend on the locale.
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     if len(argv) < 2:
         print("usage: referent.py <file> [<file>...]", file=sys.stderr)
         return 2

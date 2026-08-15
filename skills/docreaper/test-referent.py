@@ -22,7 +22,7 @@ FAILURES = []
 
 def invoke(args):
     return subprocess.run([sys.executable, SCRIPT] + args,
-                          capture_output=True, text=True)
+                          capture_output=True, encoding="utf-8")
 
 
 def run(paths):
@@ -442,6 +442,18 @@ def verdict_invariant(records):
     return True
 
 
+def locale_independence(tmp):
+    path = os.path.join(tmp, "nonascii_locale.py")
+    with open(path, "wb") as fh:
+        fh.write("x = 1  # コメント\n".encode("utf-8"))
+    env = dict(os.environ, LC_ALL="C", LANG="C")
+    proc = subprocess.run([sys.executable, SCRIPT, path],
+                          capture_output=True, encoding="utf-8", env=env)
+    check("cli: non-ASCII output survives a non-UTF-8 locale",
+          proc.returncode == 0 and "コメント" in proc.stdout,
+          f"rc={proc.returncode} stderr={proc.stderr!r}")
+
+
 def exit_code_contract(tmp):
     no_args = invoke([])
     check("cli: no arguments -> exit 2 with usage on stderr",
@@ -471,6 +483,7 @@ def main():
         for (ext, source, checker), record in zip(SPECIMENS, records):
             checker(record)
         exit_code_contract(tmp)
+        locale_independence(tmp)
 
     if FAILURES:
         print(f"\n{len(FAILURES)} specimen check(s) failed.")

@@ -29,7 +29,7 @@ uv run --with tree-sitter==0.26.0 --with tree-sitter-language-pack==1.14.3 \
 ```
 
 The first run on a machine fetches grammars into a local cache, so it needs network access.
-A run that exits nonzero emits nothing usable: exit 2 means Step 1's selection needs correcting, and any other failure names its own cause — the first run's grammar fetch failing without network is the recurring one. Resolve the cause and run it again.
+Treat a run that exits nonzero as having produced no output, discarding anything it printed before failing: exit 2 means Step 1's selection needs correcting, and any other failure names its own cause — the first run's grammar fetch failing without network is the recurring one. Resolve the cause and run it again.
 
 The script parses each file, groups its comments and docstrings into blocks, and computes each block's referent from the parse tree.
 It emits JSON Lines, one object per file; its module docstring is the output contract's full statement — field shapes, the relation vocabulary, the nullity conditions, the referent's span and text semantics — and each field's consumer is:
