@@ -69,6 +69,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | `driftreaper` | Audit docstrings for drift against actual code behavior |
 | `breachreaper` | Audit existing code for stock-detectable API-contract breaches |
 | `debtreaper` | Audit an existing test suite for structural debt — trivializing fixtures, tautological differentials, implementation-locked or assertion-less tests, name-claim mismatches |
+| `docreaper` | Audit comments and docstrings for prose already carried by the code they annotate, identifying each comment's referent with tree-sitter (run via `uv`; the first run fetches grammars). Use when a codebase has accumulated comments that restate their own referent, duplicate each other, or lean on a change history the file does not hold |
 
 ### Language-specific
 
