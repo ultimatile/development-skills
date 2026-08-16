@@ -32,8 +32,8 @@ import json
 import re
 import sys
 
-from tree_sitter_language_pack import get_parser
-from tree_sitter_language_pack import detect_language_from_path
+from tree_sitter_language_pack import detect_language_from_path, get_parser
+
 
 # Node types that are comments across the pack's grammars. Doc-marker child
 # nodes inside Rust comments also contain "comment" in their type, so the
@@ -121,9 +121,18 @@ def chain_adjacent(siblings, index, target, docstring_ids):
 # A `body` field whose child is not one of these is grammar vocabulary for
 # something else (bash redirected_statement names its command `body`), and
 # stripping it would remove referent text, so it is left in place.
-BODY_TYPES = {"block", "compound_statement", "statement_block", "body_statement",
-              "declaration_list", "field_declaration_list", "class_body",
-              "enum_variant_list", "enum_body", "constructor_body"}
+BODY_TYPES = {
+    "block",
+    "compound_statement",
+    "statement_block",
+    "body_statement",
+    "declaration_list",
+    "field_declaration_list",
+    "class_body",
+    "enum_variant_list",
+    "enum_body",
+    "constructor_body",
+}
 
 
 def strip_body(node, source):
@@ -148,8 +157,11 @@ def strip_body(node, source):
     if body is None and node.type.endswith("_definition"):
         body = next((c for c in node.named_children if c.type == "block"), None)
     if body is None:
-        return source[node.start_byte:node.end_byte], None
-    text = source[node.start_byte:body.start_byte] + source[body.end_byte:node.end_byte]
+        return source[node.start_byte : node.end_byte], None
+    text = (
+        source[node.start_byte : body.start_byte]
+        + source[body.end_byte : node.end_byte]
+    )
     return text, (body.start_byte, body.end_byte)
 
 
@@ -158,7 +170,11 @@ def strip_comments(text, base_byte, node, body_range, comment_nodes):
     spans = []
     for c in comment_nodes:
         if c.start_byte >= node.start_byte and c.end_byte <= node.end_byte:
-            if body_range and c.start_byte >= body_range[0] and c.end_byte <= body_range[1]:
+            if (
+                body_range
+                and c.start_byte >= body_range[0]
+                and c.end_byte <= body_range[1]
+            ):
                 continue
             start = c.start_byte - base_byte
             if body_range and c.start_byte >= body_range[1]:
@@ -220,6 +236,7 @@ def python_docstrings(root):
     candidate = first_statement_string(root)
     if candidate is not None:
         ids[candidate.id] = root
+
     def walk(node):
         if node.type in ("function_definition", "class_definition"):
             target = node
@@ -230,6 +247,7 @@ def python_docstrings(root):
                 ids[child.id] = target
         for c in node.named_children:
             walk(c)
+
     walk(root)
     return ids
 
@@ -270,7 +288,9 @@ def julia_docstrings(root):
             macro = node.named_children[0] if node.named_child_count else None
             if macro is not None and macro.text == b"@doc":
                 args = node.child_by_field_name("arguments") or next(
-                    (c for c in node.named_children if c.type == "macro_argument_list"), None)
+                    (c for c in node.named_children if c.type == "macro_argument_list"),
+                    None,
+                )
                 if args is not None:
                     arg_nodes = args.named_children
                     if arg_nodes and arg_nodes[0].type == "string_literal":
@@ -281,7 +301,9 @@ def julia_docstrings(root):
                             index = siblings.index(node)
                             if index + 1 < len(siblings):
                                 target = siblings[index + 1]
-                                if not is_comment(target) and rows_adjacent(node, target):
+                                if not is_comment(target) and rows_adjacent(
+                                    node, target
+                                ):
                                     ids[arg_nodes[0].id] = target
 
     walk(root)
@@ -298,6 +320,7 @@ def subtree_has_error(node):
 
 def retained_region_has_error(node, body_range):
     """ERROR/missing intersecting the node minus its stripped body."""
+
     def walk(n):
         if body_range and n.start_byte >= body_range[0] and n.end_byte <= body_range[1]:
             return False
@@ -306,12 +329,15 @@ def retained_region_has_error(node, body_range):
         if not n.has_error and not any(c.is_missing for c in n.children):
             return False
         return any(walk(c) for c in n.children)
+
     return walk(node)
 
 
 def line_span(start_node, end_node):
-    return {"start_line": start_node.start_point[0] + 1,
-            "end_line": eff_end_row(end_node) + 1}
+    return {
+        "start_line": start_node.start_point[0] + 1,
+        "end_line": eff_end_row(end_node) + 1,
+    }
 
 
 def utf8(data):
@@ -340,12 +366,12 @@ def excluded_line(node, source, lang):
     if is_interpreter_node(node):
         return True
     line_start = source.rfind(b"\n", 0, node.start_byte) + 1
-    before = source[line_start:node.start_byte]
+    before = source[line_start : node.start_byte]
     if line_start == 0 and before.startswith(b"\xef\xbb\xbf"):
         before = before[3:]
     if before.strip():
         return False
-    text = source[node.start_byte:node.end_byte]
+    text = source[node.start_byte : node.end_byte]
     if node.start_point[0] == 0 and text.startswith(b"#!"):
         return True
     if lang == "python" and CODING_COOKIE.match(text):
@@ -354,7 +380,7 @@ def excluded_line(node, source, lang):
             return True
         if row == 1:
             newline = source.find(b"\n")
-            first = source[:newline if newline != -1 else len(source)]
+            first = source[: newline if newline != -1 else len(source)]
             if first.startswith(b"\xef\xbb\xbf"):
                 first = first[3:]
             first = first.strip()
@@ -389,12 +415,16 @@ def bind(block_nodes, docstring_map, source, comment_nodes, lang):
     if backward is not None and head.start_point[0] == eff_end_row(backward):
         return "trailing", backward
 
-    if forward is not None and chain_adjacent(siblings, tail_index, forward, docstring_ids):
+    if forward is not None and chain_adjacent(
+        siblings, tail_index, forward, docstring_ids
+    ):
         target = forward
         attributes = []
         while target is not None and target.type == "attribute_item":
             attributes.append(target)
-            target = nearest_noncomment(siblings, siblings.index(target), +1, docstring_ids)
+            target = nearest_noncomment(
+                siblings, siblings.index(target), +1, docstring_ids
+            )
         if target is None:
             target = attributes.pop() if attributes else forward
         return "next-sibling", (target, attributes)
@@ -406,22 +436,26 @@ def referent_record(relation, bound, source, comment_nodes):
     if relation == "next-sibling" and isinstance(bound, tuple):
         target, attributes = bound
         text, body_range = strip_body(target, source)
-        text = strip_comments(text, target.start_byte, target, body_range, comment_nodes)
+        text = strip_comments(
+            text, target.start_byte, target, body_range, comment_nodes
+        )
         prefix = b"".join(
-            strip_comments(source[a.start_byte:a.end_byte], a.start_byte, a, None,
-                           comment_nodes) + b"\n"
-            for a in attributes)
+            strip_comments(
+                source[a.start_byte : a.end_byte], a.start_byte, a, None, comment_nodes
+            )
+            + b"\n"
+            for a in attributes
+        )
         error = retained_region_has_error(target, body_range) or any(
-            subtree_has_error(a) for a in attributes)
+            subtree_has_error(a) for a in attributes
+        )
         first = attributes[0] if attributes else target
-        return {"span": line_span(first, target),
-                "text": utf8(prefix + text)}, error
+        return {"span": line_span(first, target), "text": utf8(prefix + text)}, error
     node = bound
     text, body_range = strip_body(node, source)
     text = strip_comments(text, node.start_byte, node, body_range, comment_nodes)
     error = retained_region_has_error(node, body_range)
-    return {"span": line_span(node, node),
-            "text": utf8(text)}, error
+    return {"span": line_span(node, node), "text": utf8(text)}, error
 
 
 def starts_own_line(node):
@@ -438,13 +472,16 @@ def merge_runs(nodes, docstring_ids, lang):
         if blocks:
             prev = blocks[-1][-1]
             joins = (
-                node.id not in docstring_ids and prev.id not in docstring_ids
-                and is_comment(node) and is_comment(prev)
+                node.id not in docstring_ids
+                and prev.id not in docstring_ids
+                and is_comment(node)
+                and is_comment(prev)
                 and prev.parent == node.parent
                 and (lang != "rust" or rust_marker_kind(prev) == rust_marker_kind(node))
                 and rows_adjacent(prev, node)
                 and starts_own_line(node)
-                and starts_own_line(prev))
+                and starts_own_line(prev)
+            )
             if joins:
                 blocks[-1].append(node)
                 continue
@@ -460,7 +497,8 @@ def process(path):
     lang = detect_language_from_path(path)
     if lang is None:
         return unreached_record(path, "no-grammar")
-    raw = open(path, "rb").read()
+    with open(path, "rb") as fh:
+        raw = fh.read()
     if b"\x00" in raw:
         return unreached_record(path, "binary")
     try:
@@ -471,7 +509,11 @@ def process(path):
     parser = get_parser(lang)
     tree = parser.parse(raw)
     root = tree.root_node
-    if root.has_error and all(c.type == "ERROR" for c in root.children) and root.child_count > 0:
+    if (
+        root.has_error
+        and all(c.type == "ERROR" for c in root.children)
+        and root.child_count > 0
+    ):
         return unreached_record(path, "parse-error")
 
     docstring_map = {}
@@ -485,9 +527,15 @@ def process(path):
     excluded = []
     kept = []
     for node in nodes:
-        if (is_comment(node) or is_interpreter_node(node)) and excluded_line(node, raw, lang):
-            excluded.append({"line": node.start_point[0] + 1,
-                             "text": utf8(raw[node.start_byte:node.end_byte])})
+        if (is_comment(node) or is_interpreter_node(node)) and excluded_line(
+            node, raw, lang
+        ):
+            excluded.append(
+                {
+                    "line": node.start_point[0] + 1,
+                    "text": utf8(raw[node.start_byte : node.end_byte]),
+                }
+            )
         else:
             kept.append(node)
 
@@ -496,9 +544,12 @@ def process(path):
     blocks = []
     for block_nodes in merge_runs(kept, docstring_ids, lang):
         head, tail = block_nodes[0], block_nodes[-1]
-        text = utf8(raw[head.start_byte:tail.end_byte])
+        text = utf8(raw[head.start_byte : tail.end_byte])
         record = {"span": line_span(head, tail), "text": text}
-        if any(subtree_has_error(n) for n in block_nodes) or head.parent.type == "ERROR":
+        if (
+            any(subtree_has_error(n) for n in block_nodes)
+            or head.parent.type == "ERROR"
+        ):
             blocks.append(finish_block(record, None, None, "parse-error"))
             continue
         relation, bound = bind(block_nodes, docstring_map, raw, comment_nodes, lang)
@@ -515,7 +566,12 @@ def process(path):
         else:
             blocks.append(finish_block(record, relation, ref, None))
 
-    return {"path": path, "unreached": None, "excluded_lines": excluded, "blocks": blocks}
+    return {
+        "path": path,
+        "unreached": None,
+        "excluded_lines": excluded,
+        "blocks": blocks,
+    }
 
 
 def main(argv):

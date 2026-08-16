@@ -10,3 +10,11 @@ repos:
         additional_dependencies:
           - mdformat-gfm
           - mdformat-frontmatter
+  # ruff lints and formats the Python a skill bundles. The repo carries no ruff
+  # config, so the rev pinned here is what fixes the rule set and the style.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.3
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
