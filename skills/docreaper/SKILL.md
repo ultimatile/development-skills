@@ -1,6 +1,6 @@
 ---
 name: docreaper
-description: Audit code comments and docstrings for prose the code they annotate already carries, taking a delete-or-keep verdict per comment block and applying only what the user approves. Optional scope argument (file path, directory, or module); without arguments, audits every tracked file of the workspace.
+description: Audit code comments and docstrings for prose already carried by the code they annotate, taking a delete-or-keep verdict per comment block and applying only what the user approves. Optional scope argument (file path, directory, or module); without arguments, audits every tracked file of the workspace.
 allowed-tools: Bash(uv run:*)
 ---
 
