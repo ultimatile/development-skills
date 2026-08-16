@@ -15,7 +15,7 @@ Violations of any rule below are blockers — fix before declaring a task comple
 Surface-specific overrides (apply first):
 
 - **Documentation-only** change (top-level doc files including `README.md` and `CLAUDE.md`, anything under `docs/` if added later) → `docs` (regardless of add/remove). These don't change plugin behavior, so no bump and no tag (see Versioning below).
-- **`.claude-plugin/marketplace.json` only** change → `chore` (regardless of add/remove). Routine version bumps with no other change fall here.
+- **Development tooling and repo metadata** — a surface no consumer of the installed plugin can observe, because no `SKILL.md` step reads or runs it: `.claude-plugin/marketplace.json`, `.pre-commit-config.yaml`, `.gitignore`, linter / formatter config, and a bundled test no `SKILL.md` invokes → `chore` (regardless of add/remove). Routine version bumps with no other change fall here. A file under `skills/` qualifies only when no `SKILL.md` step names it; anything a step names is skill content and takes the coarse rule below.
 - **Pure formatting pass** (whitespace, table padding, list renumbering, or any other output of a formatter such as `partfmt`/`mdformat` with no semantic content change) → `style`, regardless of which files it touches (`skills/` included). These change no plugin behavior, so no bump and no tag (see Versioning below).
 
 For changes touching skills / code / other content (coarse rule):
@@ -29,7 +29,8 @@ For changes touching skills / code / other content (coarse rule):
 - Multiple skills changed in one commit → `feat(<skill1>,<skill2>): ...` (comma-separated, no spaces)
 - Repo-global change that touches no skill and doesn't fit a `docs` / `chore` surface override → no scope: `feat: ...` / `fix: ...`
 
-`docs` and `chore` commits per the type-selection overrides above also carry no scope — those surfaces ARE the entire change.
+`docs` commits per the type-selection overrides above carry no scope — that surface IS the entire change.
+A `chore` commit takes the scope rules above: confined to one skill's directory it carries that skill's name, and a repo-global tooling surface leaves it bare.
 
 ## Versioning
 
