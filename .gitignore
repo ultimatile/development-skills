@@ -3,3 +3,7 @@
 
 # macOS filesystem cruft
 .DS_Store
+
+# Bytecode left by running a skill's bundled Python. The .pytest_cache and
+# .ruff_cache directories need no entry — both tools write their own .gitignore.
+__pycache__/

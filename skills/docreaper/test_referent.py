@@ -1,30 +1,32 @@
 # /// script
 # requires-python = ">=3.10"
-# dependencies = []
+# dependencies = ["pytest"]
 # ///
 """Specimen test for referent.py's binding relations and failure shapes.
 
-Usage: uv run --script test-referent.py
+Usage: uv run --script test_referent.py
 
-Writes each specimen to a temp directory, runs referent.py over all of them
-in one invocation, and checks each emitted record. Runs every check and
-exits 1 when any failed. Each run goes through the invocation the skill
-documents, so the script's own dependency metadata is exercised too.
+Every specimen in SPECIMENS below is written to one temp directory and
+referent.py runs over all of them in a single invocation, whose records the
+per-specimen checks then read. Each run goes through the invocation the
+skill documents, so the script's own dependency metadata is exercised too.
+
+Adding a case means appending a (extension, source, checker) row to
+SPECIMENS; pytest collects it without anything else being touched.
 """
 
 import json
 import os
 import subprocess
 import sys
-import tempfile
+
+import pytest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SCRIPT = os.path.join(HERE, "referent.py")
 # The invocation Step 2 of SKILL.md documents; `--script` keeps uv from
 # resolving whatever project directory the test happens to run under.
 COMMAND = ["uv", "run", "--script", SCRIPT]
-
-FAILURES = []
 
 
 def invoke(args):
@@ -48,10 +50,15 @@ def block_at(record, line):
 
 
 def check(name, condition, detail=""):
-    status = "ok  " if condition else "FAIL"
-    print(f"{status} {name}" + (f"  [{detail}]" if not condition and detail else ""))
-    if not condition:
-        FAILURES.append(name)
+    """The assertion every checker below reports through, carrying the name
+    the specimen row gave it."""
+    assert condition, f"{name}  [{detail}]" if detail else name
+
+
+def named(func, name):
+    """Tag a checker with the name pytest builds its case id from."""
+    func.spec_name = name
+    return func
 
 
 def expect(
@@ -88,7 +95,7 @@ def expect(
             )
         check(name, ok, json.dumps(b))
 
-    return checker
+    return named(checker, name)
 
 
 def expect_many(name, expectations):
@@ -111,7 +118,7 @@ def expect_many(name, expectations):
                 break
         check(name, ok, json.dumps(rec["blocks"]))
 
-    return checker
+    return named(checker, name)
 
 
 def no_docstring_block(name, absent_text=None):
@@ -124,7 +131,7 @@ def no_docstring_block(name, absent_text=None):
             ok = all(absent_text not in b["text"] for b in rec["blocks"])
         check(name, ok, json.dumps(rec["blocks"]))
 
-    return checker
+    return named(checker, name)
 
 
 def excluded_first_line(name, line_expected, block_line, relation):
@@ -139,14 +146,14 @@ def excluded_first_line(name, line_expected, block_line, relation):
             json.dumps(rec),
         )
 
-    return checker
+    return named(checker, name)
 
 
 def unreached_file(name, discriminant):
     def checker(rec):
         check(name, rec["unreached"] == discriminant, json.dumps(rec))
 
-    return checker
+    return named(checker, name)
 
 
 # --- Custom checkers for shapes the declarative forms do not carry ---
@@ -170,7 +177,7 @@ def one_block(name, end_line):
             json.dumps(rec["blocks"]),
         )
 
-    return checker
+    return named(checker, name)
 
 
 def julia_comment_between(rec):
@@ -976,25 +983,83 @@ SPECIMENS = [
 ]
 
 
-def verdict_invariant(records):
+def spec_id(index):
+    ext, _, checker = SPECIMENS[index]
+    return f"{index:02d}-{ext}-{getattr(checker, 'spec_name', checker.__name__)}"
+
+
+@pytest.fixture(scope="module")
+def specimen_paths(tmp_path_factory):
+    """Every specimen written to one directory, in SPECIMENS order."""
+    tmp = tmp_path_factory.mktemp("specimens")
+    paths = []
+    for i, (ext, source, _) in enumerate(SPECIMENS):
+        path = tmp / f"specimen_{i:02d}.{ext}"
+        path.write_bytes(
+            source if isinstance(source, bytes) else source.encode("utf-8")
+        )
+        paths.append(str(path))
+    return paths
+
+
+@pytest.fixture(scope="module")
+def records(specimen_paths):
+    """referent.py's output for the whole specimen set, from one invocation."""
+    return run(specimen_paths)
+
+
+def test_one_record_per_input_file_in_order(specimen_paths, records):
+    assert [rec["path"] for rec in records] == specimen_paths
+
+
+def test_referent_and_relation_nullity_track_parse_error(records):
     """referent is null exactly on a parse-error block; relation is null
     only there — over every block of every specimen."""
     for rec in records:
         for b in rec["blocks"]:
-            if (b["referent"] is None) != (b["unreached"] == "parse-error"):
-                return False
-            if b["relation"] is None and b["unreached"] != "parse-error":
-                return False
-    return True
+            assert (b["referent"] is None) == (b["unreached"] == "parse-error"), (
+                json.dumps(b)
+            )
+            assert b["relation"] is not None or b["unreached"] == "parse-error", (
+                json.dumps(b)
+            )
 
 
-def locale_independence(tmp):
-    path = os.path.join(tmp, "nonascii_locale.py")
-    with open(path, "wb") as fh:
-        fh.write("x = 1  # コメント\n".encode())
+@pytest.mark.parametrize(
+    "index", range(len(SPECIMENS)), ids=[spec_id(i) for i in range(len(SPECIMENS))]
+)
+def test_specimen(index, records):
+    SPECIMENS[index][2](records[index])
+
+
+def test_no_arguments_is_a_usage_error():
+    proc = invoke([])
+    check(
+        "cli: no arguments -> exit 2 with usage on stderr",
+        proc.returncode == 2 and "usage" in proc.stderr,
+        f"rc={proc.returncode} stderr={proc.stderr!r}",
+    )
+
+
+def test_missing_path_is_a_usage_error(tmp_path):
+    proc = invoke([str(tmp_path / "absent.py")])
+    check(
+        "cli: a missing path -> exit 2 naming the path",
+        proc.returncode == 2 and "absent.py" in proc.stderr,
+        f"rc={proc.returncode} stderr={proc.stderr!r}",
+    )
+
+
+def test_non_ascii_output_survives_a_non_utf8_locale(tmp_path):
+    path = tmp_path / "nonascii_locale.py"
+    path.write_bytes("x = 1  # コメント\n".encode())
     env = dict(os.environ, LC_ALL="C", LANG="C")
     proc = subprocess.run(
-        COMMAND + [path], capture_output=True, encoding="utf-8", env=env, check=False
+        COMMAND + [str(path)],
+        capture_output=True,
+        encoding="utf-8",
+        env=env,
+        check=False,
     )
     check(
         "cli: non-ASCII output survives a non-UTF-8 locale",
@@ -1003,51 +1068,5 @@ def locale_independence(tmp):
     )
 
 
-def exit_code_contract(tmp):
-    no_args = invoke([])
-    check(
-        "cli: no arguments -> exit 2 with usage on stderr",
-        no_args.returncode == 2 and "usage" in no_args.stderr,
-        f"rc={no_args.returncode} stderr={no_args.stderr!r}",
-    )
-    missing = invoke([os.path.join(tmp, "absent.py")])
-    check(
-        "cli: a missing path -> exit 2 naming the path",
-        missing.returncode == 2 and "absent.py" in missing.stderr,
-        f"rc={missing.returncode} stderr={missing.stderr!r}",
-    )
-
-
-def main():
-    with tempfile.TemporaryDirectory() as tmp:
-        paths = []
-        for i, (ext, source, _) in enumerate(SPECIMENS):
-            path = os.path.join(tmp, f"specimen_{i:02d}.{ext}")
-            data = source if isinstance(source, bytes) else source.encode("utf-8")
-            with open(path, "wb") as fh:
-                fh.write(data)
-            paths.append(path)
-        records = run(paths)
-        check(
-            "output: one JSON Lines record per input file, in order",
-            len(records) == len(paths)
-            and all(r["path"] == p for r, p in zip(records, paths)),
-        )
-        check(
-            "output: referent/relation nullity tracks parse-error on every block",
-            verdict_invariant(records),
-        )
-        for (ext, source, checker), record in zip(SPECIMENS, records):
-            checker(record)
-        exit_code_contract(tmp)
-        locale_independence(tmp)
-
-    if FAILURES:
-        print(f"\n{len(FAILURES)} specimen check(s) failed.")
-        return 1
-    print("\nAll specimen checks passed.")
-    return 0
-
-
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(pytest.main([__file__, *sys.argv[1:]]))
