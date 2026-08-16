@@ -24,8 +24,7 @@ Whether to run again on any part of that extent Step 5 reports as unreached is t
 Run the bundled extractor over the files Step 1 selected, in as many invocations as the command line's length requires:
 
 ```bash
-uv run --with tree-sitter==0.26.0 --with tree-sitter-language-pack==1.14.3 \
-  python ${CLAUDE_SKILL_DIR}/referent.py <files...>
+uv run --script ${CLAUDE_SKILL_DIR}/referent.py <files...>
 ```
 
 The first run on a machine fetches grammars into a local cache, so it needs network access.

@@ -1,11 +1,15 @@
+# /// script
+# requires-python = ">=3.10"
+# dependencies = []
+# ///
 """Specimen test for referent.py's binding relations and failure shapes.
 
-Usage: uv run --with tree-sitter==0.26.0 --with tree-sitter-language-pack==1.14.3 \
-    python test-referent.py
+Usage: uv run --script test-referent.py
 
 Writes each specimen to a temp directory, runs referent.py over all of them
 in one invocation, and checks each emitted record. Runs every check and
-exits 1 when any failed.
+exits 1 when any failed. Each run goes through the invocation the skill
+documents, so the script's own dependency metadata is exercised too.
 """
 
 import json
@@ -16,12 +20,15 @@ import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SCRIPT = os.path.join(HERE, "referent.py")
+# The invocation Step 2 of SKILL.md documents; `--script` keeps uv from
+# resolving whatever project directory the test happens to run under.
+COMMAND = ["uv", "run", "--script", SCRIPT]
 
 FAILURES = []
 
 
 def invoke(args):
-    return subprocess.run([sys.executable, SCRIPT] + args,
+    return subprocess.run(COMMAND + args,
                           capture_output=True, encoding="utf-8")
 
 
@@ -447,7 +454,7 @@ def locale_independence(tmp):
     with open(path, "wb") as fh:
         fh.write("x = 1  # コメント\n".encode("utf-8"))
     env = dict(os.environ, LC_ALL="C", LANG="C")
-    proc = subprocess.run([sys.executable, SCRIPT, path],
+    proc = subprocess.run(COMMAND + [path],
                           capture_output=True, encoding="utf-8", env=env)
     check("cli: non-ASCII output survives a non-UTF-8 locale",
           proc.returncode == 0 and "コメント" in proc.stdout,

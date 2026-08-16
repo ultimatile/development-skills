@@ -1,7 +1,10 @@
+# /// script
+# requires-python = ">=3.10"
+# dependencies = ["tree-sitter", "tree-sitter-language-pack"]
+# ///
 """Compute each comment block's referent from the tree-sitter parse tree.
 
-Usage: uv run --with tree-sitter==0.26.0 --with tree-sitter-language-pack==1.14.3 \
-    python referent.py <file> [<file>...]
+Usage: uv run --script referent.py <file> [<file>...]
 
 Output: JSON Lines, one object per file:
 
