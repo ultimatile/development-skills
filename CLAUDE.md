@@ -67,7 +67,7 @@ Work on this repository in a **git worktree** by default. The main checkout is f
 Immediately after creating the worktree, **before editing any file**, wire the worktree's own skills into it, from inside the worktree:
 
 ```sh
-cd <worktree> && add-skill . --symlink-force
+cd <worktree> && add-skill .
 ```
 
 Verify before the first skill dispatch: `ls -l <worktree>/.claude/skills/done-check` must resolve to a path under the worktree. Any step that resolves `<SKILLS_DIR>` (`done-check`, `todo-check`, and the like) must land on the worktree side — check the resolved path, not the skill name.
@@ -92,7 +92,6 @@ For every commit, on `main` or on a branch:
 1. Make the code / skill / doc changes.
 
 2. Update `.claude-plugin/marketplace.json` as applicable:
-
    - Bump `metadata.version` — **only on `feat` / `fix` commits**; skip on `docs` / `chore`. On a branch this happens once for the whole branch, not once per commit (see "Landing a branch").
    - Update `plugins[0].skills` (only if adding or removing a skill).
 
@@ -109,7 +108,6 @@ For every commit, on `main` or on a branch:
    **Verify before tagging.** Confirm the commit landed and `HEAD` is the new commit (`git log --oneline -1`) _before_ `git tag`. Tagging blind after a formatter-aborted commit ("Every commit", step 4) applies the version to the previous, unrelated `HEAD` — a broken state. If a tag was misapplied, `git tag -d <version>` and re-tag once the real commit exists.
 
 2. Push:
-
    - `feat` / `fix`: `git push && git push origin <new-version>` (commit then tag explicitly).
    - `docs` / `chore` / `style`: `git push`.
 
