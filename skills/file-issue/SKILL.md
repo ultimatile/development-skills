@@ -12,7 +12,6 @@ Draft a GitHub issue body that follows the user's conventions, show the draft fo
 Apply the rules in `gh-body-conventions` to the title and body. The two issue-specific points to reinforce:
 
 - **Semantic line breaks, not column wrapping.** Most-violated rule on issue bodies — do not hard-wrap at 72/80 the way commit bodies do.
-- **Line numbers are forbidden in the issue body.** Issue bodies refer to the default branch's `HEAD` implicitly, which moves; cited line numbers go stale. Inline a code snippet instead. (PR bodies, governed by `file-pullreq`, are different — they are anchored to specific commits, so line refs there do not rot.)
 - **Omit empty sections.** If a heading's content would be empty (no bullets, no prose), drop the heading entirely. No `TBD` placeholders, no empty bullet lists, no synthesized filler. Making an absence visible is more useful than papering over it; the section can be added later when there is real content.
 
 ### Length
@@ -57,7 +56,7 @@ Produce a title and body following the conventions above.
 ```
 <one-paragraph problem statement using semantic line breaks>
 
-## Context  (optional — only if the reader needs background not visible from the repo)
+## Context  (optional — only if the reader needs background to follow the body)
 
 <minimal context>
 
@@ -81,9 +80,7 @@ Editing the body here is expected; the laundering pass runs on the result.
 
 ### 4. Laundering pass — run `gh-body-check`
 
-Run `gh-body-check` against the drafted body. The check runs a Unicode-math regex scan and a cold-reader subagent that judges whether every referent in the body resolves from the target repo's public state alone — the author has just drafted the text and is primed to read what they meant rather than what they wrote, which has repeatedly let private-context tokens slip past a self-administered cold re-read.
-
-Pass artifact kind `issue`, the target repo, and the target language. The check returns a ✅ / ⚠ status. Mandatory before every `gh-post issue create` / `gh-post issue comment`. Any ⚠ blocks step 5; revise the draft, re-discharge its evidence claims, and re-run until no unresolved ⚠ remains, or explicitly waive a finding with a one-line justification.
+Run `gh-body-check` against the drafted body. Pass artifact kind `issue`, the target repo, and the target language. The check returns a ✅ / ⚠ status. Mandatory before every `gh-post issue create` / `gh-post issue comment`. Any ⚠ blocks step 5; revise the draft, re-discharge its evidence claims, and re-run until no unresolved ⚠ remains, or explicitly waive a finding with a one-line justification.
 
 See `gh-body-check/SKILL.md` for the procedure.
 

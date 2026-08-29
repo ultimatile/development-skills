@@ -9,10 +9,9 @@ Draft a GitHub PR title and body that follow the user's conventions, show the dr
 
 ## Conventions
 
-Apply the rules in `gh-body-conventions` to both the title and body. The two PR-specific points to reinforce:
+Apply the rules in `gh-body-conventions` to both the title and body. The PR-specific point to reinforce:
 
 - **Semantic line breaks, not column wrapping.** This is the user's most-corrected formatting habit on PR bodies — commit-body-style hard wrapping renders as ragged text on GitHub's wide viewport.
-- **Line numbers within this PR's own diff are permitted** (the PR is anchored to specific commits, so the references will not rot). Inline review comments are still preferred for line-specific feedback because they render next to the code.
 
 ### Length
 
@@ -87,9 +86,7 @@ Editing the body here is expected; the laundering pass runs on the result.
 
 ### 4. Laundering pass — run `gh-body-check`
 
-Run `gh-body-check` against the drafted body. The check runs a Unicode-math regex scan and a cold-reader subagent that judges whether every referent in the body resolves from the target repo's public state alone — the author has just drafted the text and is primed to read what they meant rather than what they wrote, which has repeatedly let private-context tokens slip past a self-administered cold re-read.
-
-Pass artifact kind `pr`, the target repo, and the target language. The check returns a ✅ / ⚠ status. Mandatory before every `gh-post pr create` / `gh-post pr edit`. Any ⚠ blocks step 5; revise the draft, re-discharge its evidence claims, and re-run until no unresolved ⚠ remains, or explicitly waive a finding with a one-line justification.
+Run `gh-body-check` against the drafted body. Pass artifact kind `pr`, the target repo, and the target language. The check returns a ✅ / ⚠ status. Mandatory before every `gh-post pr create` / `gh-post pr edit`. Any ⚠ blocks step 5; revise the draft, re-discharge its evidence claims, and re-run until no unresolved ⚠ remains, or explicitly waive a finding with a one-line justification.
 
 See `gh-body-check/SKILL.md` for the procedure.
 

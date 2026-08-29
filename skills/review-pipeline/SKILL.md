@@ -99,7 +99,7 @@ Skip when the work is not tied to an umbrella tracking issue. Trigger only when 
 
 3. **Edit the PR description.** Append a `## Plan-vs-actual delta` section to the existing body — full delta with file/line evidence and links to the relevant review iterations.
 
-   Apply `gh-body-conventions` to the appended section (same semantic line breaks, same exclusions). Line refs into this PR's diff are permitted.
+   Apply `gh-body-conventions` to the appended section.
 
    Discharge the appended section's evidence claims per `gh-body-conventions` § Evidence claims before running the check below, and re-check any completeness claim already in the body — work done since the body was last discharged can have falsified one without its text changing.
 

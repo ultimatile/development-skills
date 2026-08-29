@@ -253,7 +253,7 @@ Where the routed body is derived from the plan rather than posted verbatim — a
 
 When ambiguous, ask the user. Umbrella sub-issue is the D1 default.
 
-**Issue creation rules** (research-specific; body shape and the language / reference / line-number / evidence-claim / exclusion rules come from `gh-body-conventions` via `file-issue`):
+**Issue creation rules** (research-specific; body shape and the language / reference / evidence-claim / exclusion rules come from `gh-body-conventions` via `file-issue`):
 
 1. **Split issues by commit unit.** Each issue corresponds to one atomic, independently committable change. Multi-commit plans become multiple issues with `Depends on #N` links.
 2. **No "rejected alternatives" sections** unless explicitly requested.
