@@ -63,9 +63,10 @@ A token is not a hit of the second kind when the sentence asserts only
 its identity or location and its form tells you any external reader can
 reach it — for instance a repo-relative path, a bare issue or PR
 number, a standard's name, a published identifier such as a DOI or an
-arXiv ID, a URL on a host anyone can open. Where the form
-leaves that open — a reference into another repository you cannot tell
-is public, a URL on a host you do not recognise — report it.
+arXiv ID, or a URL into that repository or to one of those identifiers
+or standards. Where the form leaves that open — a reference into another
+repository you cannot tell is public, a URL to anything else, whatever
+its host — report it.
 
 For each hit, return the phrase or line verbatim, which of the two it
 is, and what it would take to resolve. A span that is both is one hit
