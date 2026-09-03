@@ -103,7 +103,7 @@ Skip when the work is not tied to an umbrella tracking issue. Trigger only when 
 
    Discharge the appended section's evidence claims per `gh-body-conventions` § Evidence claims before running the check below, and re-check any completeness claim already in the body — work done since the body was last discharged can have falsified one without its text changing.
 
-   Before invoking `gh-post pr edit`, run `/gh-body-check` against the **final body** (existing PR body concatenated with the appended delta section). Paragraph boundaries and reference patterns can cross the section seam, so auditing only the appended section would miss them. Pass artifact kind `pr`. Any unresolved ⚠ blocks `gh-post pr edit` until the iteration `gh-body-check` step 4 states clears it.
+   Before invoking `gh-post pr edit`, run `/gh-body-check` against the **final body** (existing PR body concatenated with the appended delta section). Paragraph boundaries and reference patterns can cross the section seam, so auditing only the appended section would miss them. Pass artifact kind `pr`. Any ⚠ blocks `gh-post pr edit` on `gh-body-check` step 4's terms.
 
    Write the final body to a temp file and invoke `gh-post pr edit <N> --repo <owner>/<repo> --body-file /tmp/<descriptive-name>.md`. Do not run `gh pr edit ... --body*` directly; route the body through `gh-post`.
 
