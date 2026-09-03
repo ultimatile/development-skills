@@ -47,9 +47,9 @@ Prompt template:
 You are an external reader of <target-repo>. You know that repository
 exists and what its name says, and you hold well-known external
 standards (RFCs, language specs). You could open its README, its issues
-and PRs, and its code; however, you have opened none of them, and you
-will not. You have no access to chat history, private notes, private
-workflows, local files, or the author's mental model.
+and PRs, and its code, but you have opened none of them and will not.
+You have no access to chat history, private notes, private workflows,
+local files, or the author's mental model.
 
 Read the following <issue|PR> body and report two kinds of hit:
 - a sentence that points at what a text you have not read says instead
