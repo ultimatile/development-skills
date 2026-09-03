@@ -53,9 +53,10 @@ Two distinct failure surfaces:
 
 ## References
 
-Pin a citation to a fixed revision — a commit in a file URL, a version in a document URL — where what the sentence relies on can change under it: the text at a position, or the position itself.
-A reference to a whole artifact, as to an issue, a pull request, a comment, or a review, relies on nothing that changes and needs no pin.
-Where the target admits no fixed revision, reproduce what the sentence relies on in the body instead.
+A citation is any token that designates text elsewhere — a link, a path, a path with a position in it, for instance.
+Pin a citation to a fixed revision — a commit in a file URL or a version in a document URL, for instance — where what the sentence relies on can change under it: the text the citation designates, or its position within the artifact.
+A reference to a whole artifact — an issue, a pull request, a comment, a review, a file — whose sentence relies only on the artifact's identity needs no pin.
+Where the target admits no fixed revision, carry what the sentence relies on in the body instead, in whichever of § Exclusions' two forms the claim selects.
 
 For a single line inside a pull request's own diff, prefer an inline review comment on that line to a reference in the body.
 
@@ -75,8 +76,10 @@ Artifact-specific length expectations live in the referencing skills (`file-issu
 ## Exclusions
 
 A **token** is any name, path, identifier, or reference the body contains.
+An **external reader** is one who can open the target repo and nothing private beyond it.
 
 The body must not contain a token whose referent an external reader cannot reach.
+A path the body itself proposes to create designates nothing yet, and this requirement does not reach it.
 The body must also be followable: a reader who does not open the target repo can follow every sentence in it.
 A token whose referent an external reader can reach, and whose sentence asserts only its identity or location, carries no substance requirement — an issue number or a repo-relative path, for instance.
 A well-known external standard — an RFC or a language spec, for instance — is the one class of text the reader is assumed to hold, and a claim may rest on it as it stands.
@@ -91,6 +94,7 @@ Common shapes whose referents an external reader cannot reach:
 - HPC infra (cluster / host / queue / scheduler names).
 - Private repos, skills, or workflow internals — private *relative to the target repo*. A body filed into the repo that holds them may name them plainly; a body filed anywhere else reaches them only through a public reference, never through a bare name.
 - Working-session phase / step numbers ("Phase 2 of the umbrella", "Step 3 of the plan") — unless the artifact is itself a public umbrella sub-issue / sub-PR.
+- Placeholders left where a value belongs (`<TODO>`, `<owner>`).
 
 ## Evidence claims
 

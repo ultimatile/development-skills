@@ -10,7 +10,7 @@ Two checks: a mechanical math scan (Unicode-math glyphs, the GitHub-unsupported 
 
 ## Why a cold-reader subagent
 
-The author has just drafted the text. They read what they *meant*, not what the text *literally says*. A fresh-context subagent with no access to the chat history, the plan, or the author's notes, and told not to browse the repo, is the reader `gh-body-conventions` § Exclusions is written for.
+The author has just drafted the text. They read what they *meant*, not what the text *literally says*. A fresh-context subagent with no access to the chat history, the plan, or the author's notes, and told not to browse the repo, is the reader `gh-body-conventions` § Exclusions' followability requirement is written for; reachability is settled in step 4, where the repo is in reach.
 
 Hard-wrap and sub-clause line endings are out of scope here: `gh-post`'s `detect_hardwrap` rejects hard-wrap at submission, and GitHub's renderer (plus `gh-post`'s auto-format) collapses soft breaks to spaces, so source-side sub-clause shape has no wire or render consequence.
 
@@ -27,7 +27,7 @@ cat > "$BODY_FILE" <<'EOF'
 EOF
 ```
 
-Determine: artifact kind (`issue` / `pr`), target repo (e.g., `owner/repo`), target language (`English` / `Japanese` / `matches-repo`).
+Determine: artifact kind (`issue` / `pr`), target repo (e.g., `owner/repo`; `gh repo view --json nameWithOwner` in the checkout when unclear) with its default branch and whether it is private (`gh repo view <owner/repo> --json isPrivate,defaultBranchRef -q '"\(.isPrivate) \(.defaultBranchRef.name)"'`), target language (`English` / `Japanese` / `matches-repo`, per `gh-body-conventions` § Language), and for a PR body the base branch it merges into — the one the drafting context already holds for the PR it is about to open, or `gh pr view --json baseRefName,headRefName` in the checkout once the PR exists, which supplies the head too.
 
 ### 2. Math scan
 
@@ -57,16 +57,10 @@ Read the following <issue|PR> body and report two kinds of hit:
   sentence that states the substance is not a hit, even where you
   cannot check it from here;
 - a token naming something you cannot reach, or cannot tell whether you
-  can reach, a placeholder left where a value belongs among them.
-
-A token is not a hit of the second kind when the sentence asserts only
-its identity or location and its form tells you any external reader can
-reach it — for instance a repo-relative path, a bare issue or PR
-number, a standard's name, a published identifier such as a DOI or an
-arXiv ID, or a URL into that repository or to one of those identifiers
-or standards. Where the form leaves that open — a reference into another
-repository you cannot tell is public, a URL to anything else, whatever
-its host — report it.
+  can reach, a placeholder left where a value belongs among them. You
+  have opened nothing, so every path, issue or PR number, URL, and
+  published identifier is one of these; a standard you hold, or that
+  repository's own name, is not.
 
 For each hit, return the phrase or line verbatim, which of the two it
 is, and what it would take to resolve. A span that is both is one hit
@@ -84,13 +78,23 @@ Do NOT browse the repo or run tools. Judge from the body text alone.
 
 ### 4. Merge and gate
 
-Combine the rg hit (if any) and the cold-reader report into a single status. Judge each cold-reader ⚠ in main context against `gh-body-conventions` § Exclusions, and take the `finding-triage` SSOT's `actionable` / `false-positive` split from that judgment. Which kind the hit is selects the fix for an actionable one: a sentence that points at another text takes whichever form § Exclusions selects for the claim at issue; an unreachable token gets replaced or dropped; a hit carrying both kinds gets both.
+Combine the math-scan hit (if any) and the cold-reader report into a single status. Judge each cold-reader ⚠ in main context against `gh-body-conventions` § Exclusions, and take the `finding-triage` SSOT's `actionable` / `false-positive` split from that judgment. An actionable hit takes the edit `finding-triage`'s response selection picks; where that is `fix-in-place` on a sentence that points at another text, the content is whichever of § Exclusions' two forms the claim at issue selects. A hit carrying both kinds is two findings here, one per kind, each taking its own disposition and fix.
+
+Settle the second kind by resolving the token, not by reading it. Map the token to where its referent would be, dropping any position a path carries:
+
+- a repo-relative path in a PR body → the PR's head or its base, resolving at either, since a body names files the PR removes as well as ones it adds: while the body is being drafted, `git cat-file -e <rev>:<path>` in the checkout it is drafted from, at `HEAD` and at `origin/<base>`; once the PR is filed, `https://github.com/<owner>/<repo>/blob/<rev>/<path>` at both;
+- a repo-relative path in an issue body → `https://github.com/<owner>/<repo>/blob/<default-branch>/<path>`;
+- an issue or PR number → `https://github.com/<owner>/<repo>/issues/<N>`, in the repository the number names — the target repo for a bare `#N`;
+- a published identifier that has a public resolver → that resolver's URL — `https://doi.org/<doi>` or `https://arxiv.org/abs/<id>`, for instance;
+- a URL → itself.
+
+Apply § Exclusions' exemption for a path the body itself proposes to create before resolving. Fetch a URL without credentials: `curl -sSL -o /dev/null -w '%{http_code} %{url_effective}\n' <url>`; it resolves when the status is 200 and the fetch was not redirected to a sign-in page. A private target repo has no reader without credentials, so a URL into it is fetched with this session's credentials instead, through the API endpoint for what the URL names — for instance `gh api repos/<owner>/<repo>/contents/<path>?ref=<rev>` for a file, `gh api repos/<owner>/<repo>/issues/<N>` for an issue or PR. A token that resolves is a `false-positive`, one that does not is `actionable`. A token the map above does not cover — a bare name, a placeholder, a local path — is judged on § Exclusions' bar directly.
 
 - **True positive** (`actionable`) — fix before proceeding.
-- **False positive due to missing context** — record explicitly why (e.g., the cold reader did not recognize a public external reference, or the term is a standard library identifier the reader was unfamiliar with). Where one rule disposes of several hits, record them together and name that rule once. Per `finding-triage`, false-positive classification is itself a triage step the user can challenge; do not silently override.
+- **False positive due to missing context** — record explicitly why (e.g., the token resolved, or it is a bare name the target repo holds). Where one rule disposes of several hits, record them together and name that rule once. Per `finding-triage`, false-positive classification is itself a triage step the user can challenge; do not silently override.
 
 Any unresolved ⚠ blocks the caller's next step. Return the report; the caller revises the draft, re-discharges its evidence claims, and re-runs `gh-body-check`. Iterate until clean, or each remaining ⚠ has an inline waiver with a one-line justification.
 
 ## What this skill does NOT do
 
-Does not draft or file the body (caller's job). Does not maintain the rule set (`gh-body-conventions` is SSOT — update it first, then add the corresponding check here if a new mechanical rule is needed). Does not discharge `gh-body-conventions` § Evidence claims: that rule compares the body against the drafting session's record of what ran, which is exactly the context this check's subagent is denied — the caller discharges it in main context before invoking this check. Does not check hard-wrap (delegated upstream to `gh-post`'s `detect_hardwrap`) or reference anchoring (raw line numbers, broken issue refs — a separate concern that may live in a future reference-validity tool).
+Does not draft or file the body (caller's job). Does not maintain the rule set (`gh-body-conventions` is SSOT — update it first, then add the corresponding check here if a new mechanical rule is needed). Does not discharge `gh-body-conventions` § Evidence claims: that rule compares the body against the drafting session's record of what ran, which is exactly the context this check's subagent is denied — the caller discharges it in main context before invoking this check. Does not check hard-wrap (delegated upstream to `gh-post`'s `detect_hardwrap`) or reference anchoring (whether a citation is pinned to a fixed revision as `gh-body-conventions` § References requires — the drafter's to check).

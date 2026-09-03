@@ -97,13 +97,13 @@ Skip when the work is not tied to an umbrella tracking issue. Trigger only when 
 
    A "no delta" outcome (everything matched) is a valid answer — record it explicitly.
 
-3. **Edit the PR description.** Append a `## Plan-vs-actual delta` section to the existing body — full delta with file/line evidence and links to the relevant review iterations.
+3. **Edit the PR description.** Append a `## Plan-vs-actual delta` section to the existing body — full delta with evidence and links to the relevant review iterations.
 
    Apply `gh-body-conventions` to the appended section.
 
    Discharge the appended section's evidence claims per `gh-body-conventions` § Evidence claims before running the check below, and re-check any completeness claim already in the body — work done since the body was last discharged can have falsified one without its text changing.
 
-   Before invoking `gh-post pr edit`, run `/gh-body-check` against the **final body** (existing PR body concatenated with the appended delta section). Paragraph boundaries and reference patterns can cross the section seam, so auditing only the appended section would miss them. Pass artifact kind `pr` and the target language. Any unresolved ⚠ blocks `gh-post pr edit` — revise the appended section, re-discharge its evidence claims, and re-run until clean.
+   Before invoking `gh-post pr edit`, run `/gh-body-check` against the **final body** (existing PR body concatenated with the appended delta section). Paragraph boundaries and reference patterns can cross the section seam, so auditing only the appended section would miss them. Pass artifact kind `pr`. Any unresolved ⚠ blocks `gh-post pr edit` until the iteration `gh-body-check` step 4 states clears it.
 
    Write the final body to a temp file and invoke `gh-post pr edit <N> --repo <owner>/<repo> --body-file /tmp/<descriptive-name>.md`. Do not run `gh pr edit ... --body*` directly; route the body through `gh-post`.
 

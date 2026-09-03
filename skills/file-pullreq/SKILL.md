@@ -86,7 +86,7 @@ Editing the body here is expected; the laundering pass runs on the result.
 
 ### 4. Laundering pass — run `gh-body-check`
 
-Run `gh-body-check` against the drafted body. Pass artifact kind `pr`, the target repo, and the target language. The check returns a ✅ / ⚠ status. Mandatory before every `gh-post pr create` / `gh-post pr edit`. Any ⚠ blocks step 5; revise the draft, re-discharge its evidence claims, and re-run until no unresolved ⚠ remains, or explicitly waive a finding with a one-line justification.
+Run `gh-body-check` against the drafted body with artifact kind `pr`. It returns a ✅ / ⚠ status. Mandatory before every `gh-post pr create` / `gh-post pr edit`. Any ⚠ blocks step 5 until the iteration `gh-body-check` step 4 states clears it.
 
 See `gh-body-check/SKILL.md` for the procedure.
 
