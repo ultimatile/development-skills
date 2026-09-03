@@ -79,7 +79,14 @@ Do NOT browse the repo or run tools. Judge from the body text alone.
 
 Combine the math-scan hit (if any) and the cold-reader report into a single status. Judge each cold-reader ⚠ in main context against `gh-body-conventions` § Exclusions, and take the `finding-triage` SSOT's `actionable` / `false-positive` split from that judgment. An actionable hit takes the edit `finding-triage`'s response selection picks; where that is `fix-in-place` on a sentence that points at another text, the content is whichever of § Exclusions' two forms the claim at issue selects. A hit carrying both kinds is two findings here, one per kind, each taking its own disposition and fix.
 
-Settle the second kind by checking that the referent is where an external reader, as § Exclusions defines one, would find it — not by reading the token — § Exclusions' exemption for a repo-relative path the body proposes to create applying first: a repo-relative path, any position it carries dropped, at the revision the body is about — for a PR body its head (the drafting checkout's `HEAD` until the PR is filed) or its base, present at either being enough, since a body names files the PR removes as well as ones it adds; for an issue body the default branch — an issue or PR number in the repository it names, the target repo for a bare `#N`, a published identifier at its resolver, a URL at itself. A token whose referent is there is a `false-positive`; one whose referent is not is `actionable`. A token of any other form — a bare name, a placeholder, a local path — is judged on § Exclusions' bar directly.
+Settle the second kind by checking that the referent is where an external reader, as § Exclusions defines one, would find it — not by reading the token. § Exclusions' exemption for a repo-relative path the body proposes to create applies first. Where the referent must be, by the token's form:
+
+- a repo-relative path, any position it carries dropped: at the revision the body is about. For a PR body that is its head (the drafting checkout's `HEAD` until the PR is filed) or its base, present at either being enough, since a body names files the PR removes as well as ones it adds; for an issue body, the default branch.
+- an issue or PR number: in the repository it names, the target repo for a bare `#N`.
+- a published identifier: at its resolver.
+- a URL: at itself.
+
+A token whose referent is there is a `false-positive`; one whose referent is not is `actionable`. A token of any other form — a bare name, a placeholder, a local path — is judged on § Exclusions' bar directly.
 
 - **True positive** (`actionable`) — fix before proceeding.
 - **False positive due to missing context** — record explicitly why (e.g., the token resolved, or it is a bare name the target repo holds). Where one rule disposes of several hits, record them together and name that rule once. Per `finding-triage`, false-positive classification is itself a triage step the user can challenge; do not silently override.
