@@ -27,7 +27,7 @@ cat > "$BODY_FILE" <<'EOF'
 EOF
 ```
 
-Determine: artifact kind (`issue` / `pr`), target repo (e.g., `owner/repo`; `gh repo view --json nameWithOwner` in the checkout when unclear) with its default branch and whether it is private (`gh repo view <owner/repo> --json isPrivate,defaultBranchRef -q '"\(.isPrivate) \(.defaultBranchRef.name)"'`), target language (`English` / `Japanese` / `matches-repo`, per `gh-body-conventions` § Language), and for a PR body the base branch it merges into — the one the drafting context already holds for the PR it is about to open, or `gh pr view --json baseRefName,headRefOid` in the checkout once the PR exists, which supplies the head SHA too.
+Determine: artifact kind (`issue` / `pr`), target repo (e.g., `owner/repo`) and its default branch, target language (`English` / `Japanese` / `matches-repo`, per `gh-body-conventions` § Language), and for a PR body its head and the branch it merges into.
 
 ### 2. Math scan
 
@@ -62,9 +62,8 @@ Read the following <issue|PR> body and report two kinds of hit:
   published identifier is one of these; a standard you hold, or that
   repository's own name, is not.
 
-For each hit, return the phrase or line verbatim, which of the two it
-is, and what it would take to resolve. A span that is both is one hit
-carrying both kinds.
+For each hit, return the phrase or line verbatim and which of the two
+it is. A span that is both is one hit carrying both kinds.
 
 Out of scope: formatting, grammar, math notation, line width,
 sub-clause line breaks.
@@ -80,15 +79,7 @@ Do NOT browse the repo or run tools. Judge from the body text alone.
 
 Combine the math-scan hit (if any) and the cold-reader report into a single status. Judge each cold-reader ⚠ in main context against `gh-body-conventions` § Exclusions, and take the `finding-triage` SSOT's `actionable` / `false-positive` split from that judgment. An actionable hit takes the edit `finding-triage`'s response selection picks; where that is `fix-in-place` on a sentence that points at another text, the content is whichever of § Exclusions' two forms the claim at issue selects. A hit carrying both kinds is two findings here, one per kind, each taking its own disposition and fix.
 
-Settle the second kind by resolving the token, not by reading it. Map the token to where its referent would be, dropping any position a path carries:
-
-- a repo-relative path in a PR body → the PR's head or its base, resolving at either, since a body names files the PR removes as well as ones it adds: while the body is being drafted, `git cat-file -e '<rev>:<path>'` in the checkout it is drafted from, at `HEAD` and at `origin/<base>`; once the PR is filed, `https://github.com/<owner>/<repo>/blob/<rev>/<path>` at the head SHA and at the base;
-- a repo-relative path in an issue body → `https://github.com/<owner>/<repo>/blob/<default-branch>/<path>`;
-- an issue or PR number → `https://github.com/<owner>/<repo>/issues/<N>`, in the repository the number names — the target repo for a bare `#N`;
-- a published identifier that has a public resolver → that resolver's URL — `https://doi.org/<doi>` or `https://arxiv.org/abs/<id>`, for instance;
-- a URL → itself.
-
-Apply § Exclusions' exemption for a path the body itself proposes to create before resolving. A URL whose host is an IP literal or a name no public resolver serves — `localhost`, a `.local` name — is unreachable to an external reader: `actionable`, with no fetch. Fetch any other URL without credentials, the token single-quoted so the shell expands nothing in it: `curl -sSL --max-time 20 -o /dev/null -w '%{http_code} %{url_effective}\n' -- '<url>'`; it resolves when the status is 200 and the fetch was not redirected to a sign-in page. A private target repo has no reader without credentials, so a URL into it is fetched with this session's credentials instead, through the API endpoint for what the URL names — for instance `gh api 'repos/<owner>/<repo>/contents/<path>?ref=<rev>'` for a file, `gh api 'repos/<owner>/<repo>/issues/<N>'` for an issue or PR. A token that resolves is a `false-positive`, one that does not is `actionable`. A token the map above does not cover — a bare name, a placeholder, a local path — is judged on § Exclusions' bar directly.
+Settle the second kind by checking that the referent is where an external reader, as § Exclusions defines one, would find it — not by reading the token — § Exclusions' exemption for a repo-relative path the body proposes to create applying first: a repo-relative path, any position it carries dropped, at the revision the body is about — for a PR body its head (the drafting checkout's `HEAD` until the PR is filed) or its base, present at either being enough, since a body names files the PR removes as well as ones it adds; for an issue body the default branch — an issue or PR number in the repository it names, the target repo for a bare `#N`, a published identifier at its resolver, a URL at itself. A token whose referent is there is a `false-positive`; one whose referent is not is `actionable`. A token of any other form — a bare name, a placeholder, a local path — is judged on § Exclusions' bar directly.
 
 - **True positive** (`actionable`) — fix before proceeding.
 - **False positive due to missing context** — record explicitly why (e.g., the token resolved, or it is a bare name the target repo holds). Where one rule disposes of several hits, record them together and name that rule once. Per `finding-triage`, false-positive classification is itself a triage step the user can challenge; do not silently override.
