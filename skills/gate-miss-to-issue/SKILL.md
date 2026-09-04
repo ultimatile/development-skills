@@ -29,5 +29,3 @@ Hand `file-issue` these four points:
 - **Miss** — the defect, and where it was finally caught; link the work-repo PR / issue for provenance.
 - **Blind spot** — the generalizable procedure gap.
 - **Proposed improvement** — a concrete procedure change (a new sweep, a tightened definition, an added probe class). A proposal; the fix is settled in the issue.
-
-Toolchain names (skills, gates, review tools) are in-context for this repo — it *is* that toolchain — so the issue may reference them freely, unlike work-repo artifacts.

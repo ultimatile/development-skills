@@ -53,18 +53,12 @@ Two distinct failure surfaces:
 
 ## References
 
-Citations must point to something an external reader can open.
+A citation is any token that designates text elsewhere — a link, a path, a path with a position in it, for instance.
+Pin a citation to a fixed revision — a commit in a file URL or a version in a document URL, for instance — where what the sentence relies on can change under it: the text the citation designates, or its position within the artifact.
+A reference to a whole artifact — an issue, a pull request, a comment, a review, a file, for instance — whose sentence relies only on the artifact's identity needs no pin.
+Where the target admits no fixed revision, carry what the sentence relies on in the body, in whichever of § Exclusions' two forms the claim selects.
 
-- Do NOT cite local file paths, local notes, HPC cluster paths, or private-repo paths.
-- If the substance of a local reference matters, inline its content (quote, paraphrase, or reproduce the relevant snippet) so the body is self-contained.
-- External references (arXiv, DOI, public repo URLs, public docs, other issues / PRs in the same or public repos) are fine.
-
-### Line numbers
-
-Line-number citations are governed by whether the surrounding artifact anchors them to a stable commit:
-
-- **Issue body — forbidden.** Inline a code snippet instead if a specific location matters.
-- **PR body — permitted within this PR's own diff.** For a single specific line, prefer an inline review comment.
+For a single line inside a pull request's own diff, prefer an inline review comment on that line to a reference in the body.
 
 ## Language
 
@@ -75,22 +69,32 @@ Line-number citations are governed by whether the surrounding artifact anchors t
 ## Length
 
 - Be concise but do not omit explanation. Say what is needed and stop.
-- Skip narrative scaffolding ("As we discussed...", "Following up on..."), restated context the reader can see from the repo, and exhaustive option enumeration when one option is clearly preferred.
+- Skip narrative scaffolding ("As we discussed...", "Following up on...") and exhaustive option enumeration when one option is clearly preferred.
 
 Artifact-specific length expectations live in the referencing skills (`file-issue`, `file-pullreq`).
 
 ## Exclusions
 
-The body must not contain any token whose referent cannot be resolved from the target repo's public state (README, public issues / PRs, public code, well-known external standards). `gh-body-check` enforces this via a cold-reader subagent with no access to chat history, private notes, or workflow internals — whatever the cold reader cannot resolve is, by definition, leakage.
+A **token** is any name, path, identifier, or reference the body contains.
+An **external reader** is one who can open the target repo and nothing private beyond it.
 
-Common leak shapes — each fails the cold-reader test:
+The body must not contain a token whose referent an external reader cannot reach.
+A repo-relative path the body itself proposes to create designates nothing yet, and this requirement does not reach it.
+The body must also be followable: a reader who does not open the target repo can follow every sentence in it.
+A token whose referent an external reader can reach, and whose sentence asserts only its identity or location, carries no substance requirement — an issue number or a repo-relative path, for instance.
+A well-known external standard — an RFC or a language spec, for instance — is the one class of text the reader is assumed to hold, and a claim may rest on it as it stands.
+A claim resting on what any other text *says* carries that substance itself, in the form that claim's own case selects; a sentence resting on two texts takes one form per claim, not one for the sentence:
+
+- **State the predicate** — where the exact wording is not what is at issue. Say what the pointed-at text establishes; for a rule or a behavior, that is its trigger, its effect, and the outcome in the case at hand.
+- **Quote it, frozen** — where the exact wording is what is at issue. Reproduce the wording inline, and cite the source where it is public. The reproduction is what makes the sentence followable; § References governs the citation.
+
+Common shapes whose referents an external reader cannot reach:
 
 - Local paths (`/Users/...`, `~/...`, absolute paths).
 - HPC infra (cluster / host / queue / scheduler names).
-- Private repos, skills, or workflow internals (e.g. `/file-pullreq`, `research-and-implement`, `done-check`).
+- Private repos, skills, or workflow internals — private *relative to the target repo*. A body filed into the repo that holds them may name them plainly; a body filed anywhere else reaches them only through a public reference, never through a bare name.
 - Working-session phase / step numbers ("Phase 2 of the umbrella", "Step 3 of the plan") — unless the artifact is itself a public umbrella sub-issue / sub-PR.
-- Chat-tone scaffolding ("As we discussed", "Following up from chat", etc.).
-- Inline Japanese clauses in an otherwise-English body.
+- Placeholders left where a value belongs (`<TODO>`, `<owner>`).
 
 ## Evidence claims
 
