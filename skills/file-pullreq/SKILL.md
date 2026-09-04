@@ -84,11 +84,11 @@ Run this in main context: the record the rule compares against is the drafting s
 
 Editing the body here is expected; the laundering pass runs on the result.
 
-### 4. Laundering pass — run `gh-body-check`
+### 4. Laundering pass — run `gh-body-audit`
 
-Run `gh-body-check` against the drafted body with artifact kind `pr`. It returns a ✅ / ⚠ status. Mandatory before every `gh-post pr create` / `gh-post pr edit`. Any ⚠ blocks step 5 on `gh-body-check` step 4's terms.
+Run `gh-body-audit` against the drafted body with artifact kind `pr`. It returns a ✅ / ⚠ status. Mandatory before every `gh-post pr create` / `gh-post pr edit`. Any ⚠ blocks step 5 on `gh-body-audit` step 4's terms.
 
-See `gh-body-check/SKILL.md` for the procedure.
+See `gh-body-audit/SKILL.md` for the procedure.
 
 ### 5. Show for approval
 

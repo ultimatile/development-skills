@@ -1,10 +1,10 @@
 ---
-name: gh-body-check
+name: gh-body-audit
 description: Audit a drafted or filed GitHub issue / PR body against gh-body-conventions via a fresh-context subagent. Any unresolved ⚠ blocks the caller.
-allowed-tools: Bash(*/gh-body-check/body-math-scan.sh:*)
+allowed-tools: Bash(*/gh-body-audit/body-math-scan.sh:*)
 ---
 
-# GH Body Check
+# GH Body Audit
 
 Two checks: a mechanical math scan (Unicode-math glyphs, the GitHub-unsupported macro `\operatorname`, and inline math neutralized by an enclosing code span), and a cold-reader audit delegated to a fresh-context subagent.
 
@@ -21,7 +21,7 @@ Hard-wrap and sub-clause line endings are out of scope here: `gh-post`'s `detect
 Write the body to a temp file:
 
 ```bash
-BODY_FILE=$(mktemp -t gh-body-check-XXXXXX.md)
+BODY_FILE=$(mktemp -t gh-body-audit-XXXXXX.md)
 cat > "$BODY_FILE" <<'EOF'
 <the drafted body, exactly as it will be filed>
 EOF
@@ -91,7 +91,7 @@ A token whose referent is there is a `false-positive`; one whose referent is not
 - **True positive** (`actionable`) — fix before proceeding.
 - **False positive due to missing context** — record explicitly why (e.g., the token resolved, or it is a bare name the target repo holds). Where one rule disposes of several hits, record them together and name that rule once. Per `finding-triage`, false-positive classification is itself a triage step the user can challenge; do not silently override.
 
-Any unresolved ⚠ blocks the caller's next step. Return the report; the caller revises the draft, re-discharges its evidence claims, and re-runs `gh-body-check`. Iterate until clean, or each remaining ⚠ has an inline waiver with a one-line justification.
+Any unresolved ⚠ blocks the caller's next step. Return the report; the caller revises the draft, re-discharges its evidence claims, and re-runs `gh-body-audit`. Iterate until clean, or each remaining ⚠ has an inline waiver with a one-line justification.
 
 ## What this skill does NOT do
 

@@ -103,7 +103,7 @@ Skip when the work is not tied to an umbrella tracking issue. Trigger only when 
 
    Discharge the appended section's evidence claims per `gh-body-conventions` § Evidence claims before running the check below, and re-check any completeness claim already in the body — work done since the body was last discharged can have falsified one without its text changing.
 
-   Before invoking `gh-post pr edit`, run `/gh-body-check` against the **final body** (existing PR body concatenated with the appended delta section). Paragraph boundaries and reference patterns can cross the section seam, so auditing only the appended section would miss them. Pass artifact kind `pr`. Any ⚠ blocks `gh-post pr edit` on `gh-body-check` step 4's terms.
+   Before invoking `gh-post pr edit`, run `/gh-body-audit` against the **final body** (existing PR body concatenated with the appended delta section). Paragraph boundaries and reference patterns can cross the section seam, so auditing only the appended section would miss them. Pass artifact kind `pr`. Any ⚠ blocks `gh-post pr edit` on `gh-body-audit` step 4's terms.
 
    Write the final body to a temp file and invoke `gh-post pr edit <N> --repo <owner>/<repo> --body-file /tmp/<descriptive-name>.md`. Do not run `gh pr edit ... --body*` directly; route the body through `gh-post`.
 
@@ -149,7 +149,7 @@ Runs only after the user has merged.
   - `paired-artifact-drift`: every comment / docstring / PR-body sentence touched by or referring to the fixed code must still be accurate. Accuracy is not the whole test: a fix that answers a reviewer by *qualifying* a documented behavior — admitting a case the doc did not — strands every unqualified statement of that behavior elsewhere, which an accuracy check over the fix's own text never looks at. Run the item's **Qualification completeness** sweep on those fixes. Fix loops generate this class, which the first-pass audit cannot pre-empt: the caveat does not exist yet for the earlier text to contradict.
   - `completion-hygiene`: pre-commit hooks catch lint / fmt / line count, but the fix may have added stray `dbg!` / `println!` / scratch test code.
   - `behavior-coverage`: a fix that edits a docstring / module doc stating a behavioral guarantee can silently widen it to sibling symbols, creating a per-symbol coverage obligation the previous audit never saw. Run the delta pass as a fresh `done-check` (subagent) invocation rather than informal doc-truth reasoning — confirming the broadened claim is *true* does not confirm each newly-covered symbol is *tested*.
-  - The PR description: if a fix invalidates a claim in the description (e.g., "previously-missed mutant is now caught" became "now excluded"), update the description in the same iteration. That edit is text changed after its claims were discharged, so re-discharge the description in main context per `gh-body-conventions` § Evidence claims and re-run `/gh-body-check` against the result before posting it.
+  - The PR description: if a fix invalidates a claim in the description (e.g., "previously-missed mutant is now caught" became "now excluded"), update the description in the same iteration. That edit is text changed after its claims were discharged, so re-discharge the description in main context per `gh-body-conventions` § Evidence claims and re-run `/gh-body-audit` against the result before posting it.
 
 - **Never skip codex review.** Even for small fixes, run the full loop.
 

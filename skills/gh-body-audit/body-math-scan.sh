@@ -2,7 +2,7 @@
 # body-math-scan.sh — flag Unicode math glyphs, GitHub-unsupported math macros,
 # and code-span-neutralized inline math in a GitHub body draft.
 #
-# Mechanical half of gh-body-check. A single rg pass flags three classes that
+# Mechanical half of gh-body-audit. A single rg pass flags three classes that
 # gh-body-conventions § Math forbids:
 #   1. Unicode glyphs — any character in the Greek block, the two Mathematical
 #      Operators blocks, the Superscripts-and-Subscripts block, the Latin-1 math
