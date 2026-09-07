@@ -13,38 +13,38 @@ The pipeline crosses a **user-controlled merge gate** (Phase 4a → 4b): the use
 
 This pipeline takes two inputs, stated before the first phase the run executes. A run entering at Phase 4a or 4b takes neither: from Phase 4a on, no step commits, uses a root, or opens a PR — 4a reads the sub-issue and edits the PR body, and 4b runs on `main` after the merge.
 
-- **Root** — the branch this change merges into, as a bare branch name, supplied by the caller on `diff-root`'s terms. Every gate here is a coverage invocation in that skill's sense, so all of them take this one value: every `/done-check` invocation (Phase 0, Phase 0.5's delta run, and the fix-loop substep), Phase 0.5's `/code-review-gate`, Phase 1's `/codex-review`, and — when the run reads fix commits rather than working from review findings alone — Phase 3's `/bug-to-contract` and `/finding-to-audit`. Phase 2 opens the PR against that same branch. This pipeline resolves no root: with none supplied, ask.
+- **Root** — the branch this change merges into, as a bare branch name, supplied by the caller on `diff-root`'s terms. Every gate here is a coverage invocation in that skill's sense, so all of them take this one value: every `/done-check` invocation (Phase 0 and the fix-loop substep), Phase 0.5's `/code-review-gate`, Phase 1's `/codex-review`, and — when the run reads fix commits rather than working from review findings alone — Phase 3's `/bug-to-contract` and `/finding-to-audit`. Phase 2 opens the PR against that same branch. This pipeline resolves no root: with none supplied, ask.
 
 - **Branch guard** — run the default-branch check in Rules. This entry check is in addition to the per-`/stage-commit-push` checks, not a replacement for them.
 
 ## Phase 0: Done-check loop
 
-1. Run `/done-check` against the current diff (committed + staged + unstaged + untracked), passing the root stated at pipeline entry.
-2. Triage what it returned — both the `⚠` rows of the audit table and the cross-cutting concerns reported under it.
-3. If done-check's step 5 gate is not yet satisfied over everything it returned:
+1. Run `/stage-commit-push`.
+2. Run `/done-check` against the current diff (committed + staged + unstaged + untracked), passing the root stated at pipeline entry.
+3. Triage what it returned — both the `⚠` rows of the audit table and the cross-cutting concerns reported under it.
+4. If done-check's step 5 gate is not yet satisfied over everything it returned:
    - Fix the code
    - Run `/done-check` again (fresh, full audit — do not bias the next pass with the previous concerns list)
    - Re-triage
-4. Repeat until done-check's step 5 gate is satisfied over both domains — its rows and its cross-cutting concerns. That gate owns which dispositions close each; do not restate them here.
+   - Run `/stage-commit-push`
+5. Repeat until done-check's step 5 gate is satisfied over both domains — its rows and its cross-cutting concerns. That gate owns which dispositions close each; do not restate them here.
 
-What binds this phase is that the audit closing it saw the diff that proceeds — step 3 secures that by re-running the audit after every fix.
+What binds this phase is that the audit closing it saw the diff that proceeds — step 4 secures that by re-running the audit after every fix.
 
 ## Phase 0.5: Claude code-review gate
 
-Runs after the done-check loop.
+1. Run `/stage-commit-push`.
+2. Run `/code-review-gate` against the current diff, passing the root stated at pipeline entry and `high` for a large or risky diff, `medium` otherwise. The gate skill owns effort semantics, the lane chain, lane-failure handling, and exhaustion.
+3. Triage the output — classify each finding under the `finding-triage` SSOT dispositions.
+4. If actionable findings exist, apply the **fix-loop substeps** (see Rules), re-running `/code-review-gate` at the effort step 2 used. Repeat until no actionable findings remain.
 
-1. Run `/code-review-gate` against the current diff, passing the root stated at pipeline entry and `high` for a large or risky diff, `medium` otherwise. The gate skill owns effort semantics, the lane chain, lane-failure handling, and exhaustion.
-2. Triage the output — classify each finding under the `finding-triage` SSOT dispositions.
-3. If actionable findings exist: fix, run `/done-check` in delta mode against the previous audit's rows and concerns with the same root, then re-run `/code-review-gate` at the same effort and root (fresh, full review — no bias from the previous iteration). If the same conceptual topic recurs across 2+ iterations, stop and follow the escalation order in Rules.
-4. Repeat until no actionable findings remain.
-
-Step 3 gives this gate the same property Phase 0 has: the review closing it saw the diff that proceeds.
+Step 4 gives this gate the same property Phase 0 has: the review closing it saw the diff that proceeds.
 
 When that diff received a valid gate review (i.e. the gate was not waived), attribute each **Phase 1 and Phase 2** reviewer finding to one of two provenances, and note it in the triage presentation. A finding already present in the diff this gate reviewed is by construction a penetration of it. A finding introduced by a Phase 1 or Phase 2 fix is not: those fix loops run the audit, commit, and re-run the current reviewer, never this gate, so the defect did not exist when this gate ran.
 
 ## Phase 1: Codex review loop
 
-1. Ensure the diff Phase 0.5 reviewed is committed and pushed, which is the state `/codex-review`'s `--base` mode is defined over. Run `/stage-commit-push`, which routes on what is actually outstanding — commit and push, push only, or nothing — so an entry arriving already committed and pushed passes through it without action.
+1. Ensure the diff Phase 0.5 reviewed is committed, which is the state `/codex-review`'s `--base` mode is defined over. Run `/stage-commit-push`.
 2. Run `/codex-review` to review the branch diff, passing the root stated at pipeline entry
 3. Triage the output — classify each finding under the `finding-triage` SSOT dispositions
 4. If actionable findings exist, apply the **fix-loop substeps** (see Rules) and repeat until no actionable findings remain.
@@ -63,14 +63,16 @@ After Phase 1 + 2 are clean, before the user merges, fold review findings into d
 
 1. **`/bug-to-contract`** — for each actionable finding from Phase 1 and 2 (not just fix commits), ask whether an implicit contract was violated and whether it is now tested.
 
-2. **`/codex-contract-test-review`** — for each contract test added in step 1, run a narrow Codex pass: does the test express the claimed contract, and would it fail on the original buggy implementation?
+2. **`/stage-commit-push`**.
+
+3. **`/codex-contract-test-review`** — for each contract test added in step 1, run a narrow Codex pass: does the test express the claimed contract, and would it fail on the original buggy implementation?
 
    - If actionable findings: revise the test and re-run this step **once**. Repeated iteration → escalate to the user.
    - If clean: continue.
 
-3. **`/finding-to-audit`** — for findings whose detection would have been **diff-inspectable** (import direction, `pub` widening, missing standard trait impl, debug artifacts, hardcoded values, FFI output dropped, etc.), promote to a pre-commit audit rule in the host `finding-to-audit` selects — a rule-set SSOT such as `quality-list` or `authoritative-text-rules`, or a domain-specific audit skill. By default this files an issue against the host skill's repository proposing the rule, reviewed there on its own timeline — so the elevation neither blocks this project's merge gate nor lands as an unreviewed edit to a shared audit surface.
+4. **`/finding-to-audit`** — for findings whose detection would have been **diff-inspectable** (import direction, `pub` widening, missing standard trait impl, debug artifacts, hardcoded values, FFI output dropped, etc.), promote to a pre-commit audit rule in the host `finding-to-audit` selects — a rule-set SSOT such as `quality-list` or `authoritative-text-rules`, or a domain-specific audit skill. By default this files an issue against the host skill's repository proposing the rule, reviewed there on its own timeline — so the elevation neither blocks this project's merge gate nor lands as an unreviewed edit to a shared audit surface.
 
-4. **`/stage-commit-push`** — push the contract-test commits in the project repo.
+5. **`/stage-commit-push`**.
 
 A finding can map to either `bug-to-contract`, `finding-to-audit`, both, or neither. Use both when both apply.
 
@@ -130,19 +132,19 @@ Runs only after the user has merged.
 
 ## Rules
 
-- **Fix-loop substeps** (Phase 1 step 4 and Phase 2 step 5):
+- **Fix-loop substeps**:
 
   1. **Oscillation check (iteration N ≥ 2).** Compare current actionable topics against the previous iteration's preserved topics. If any conceptual topic recurs, halt and follow the escalation order below — do NOT fix or done-check.
   2. Fix the code.
   3. Run `/done-check` in delta mode, against the previous audit's rows and concerns, with the root stated at pipeline entry.
   4. Run `/stage-commit-push`.
-  5. Re-run the review (fresh, full review — no bias from previous iteration). Phase 2 uses `--re-review` instead.
+  5. Re-run the review (fresh, full review — no bias from previous iteration).
   6. Preserve actionable topic classifications for the next iteration's oscillation check.
-  7. Re-triage (Phase 2: only new comments).
+  7. Re-triage.
 
 - **Never skip done-check, including in fix loops.** Every fix commit is itself a diff that can introduce new drift — especially `completion-hygiene` and `paired-artifact-drift`.
 
-- **A halted done-check stops the pipeline.** This binds every `/done-check` invocation here — Phase 0, Phase 0.5, and the fix-loop substep alike. A halted run emits no table. The step that invoked it does not complete: do not fix, do not commit, do not re-review. It has surfaced something to the user; that is where the pipeline waits.
+- **A halted done-check stops the pipeline.** This binds every `/done-check` invocation here. A halted run emits no table. The step that invoked it does not complete: do not fix, do not commit, do not re-review. It has surfaced something to the user; that is where the pipeline waits.
 
 - **Done-check delta mode.** `done-check` defines the mode, what a delta report carries, and what its step 5 gate binds. Satisfy that gate before the subsequent `/stage-commit-push` rather than only the ⚠ the delta printed. Pay special attention to:
 
@@ -173,7 +175,7 @@ Runs only after the user has merged.
 
 - **Select the response before fixing.** Select the edit per `finding-triage`'s **Response selection (actionable findings)**; a finding fitting `invariant-premise-check` or `opens-a-question` re-triages per those dispositions. For a premise check, if unsure, ask codex a single targeted question via `codex exec "<fix proposal + one specific question about the premise>" -o /tmp/fix-check.md`. The commit is owned by whichever `/stage-commit-push` step the current phase runs.
 
-- **Oscillation detection.** Run at the start of each fix-loop iteration (the first sub-bullet under "If actionable findings exist" in Phase 1 step 4 and Phase 2 step 5), BEFORE fix and done-check. If the same conceptual topic (not the same literal comment, but the same underlying question — e.g., "is this input valid?", "does this property hold?", "should this parameter accept both values?") appears across 2+ consecutive review iterations, stop fixing and escalate to the user. Repeated findings on one topic signal that the underlying invariant is not understood well enough for a confident fix.
+- **Oscillation detection.** The fix-loop substeps place this check at substep 1. If the same conceptual topic (not the same literal comment, but the same underlying question — e.g., "is this input valid?", "does this property hold?", "should this parameter accept both values?") appears across 2+ consecutive review iterations, stop fixing and escalate to the user. Repeated findings on one topic signal that the underlying invariant is not understood well enough for a confident fix.
 
   **Escalation order.** Before presenting the fix-direction question (panic vs allow vs convert vs ...), FIRST ask whether the original plan scope is correct. Oscillation in the fix-direction space is the symptom that the contract is empty or depends on something outside the plan's scope — refining the fix without rescoping just re-anchors the same empty contract from a different angle. Ask in this order:
 

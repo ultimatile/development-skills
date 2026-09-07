@@ -1,11 +1,11 @@
 ---
 name: stage-commit-push
-description: Stage changed files, generate a conventional commit message, commit, and push in one step. Used inside automated review-fix loops.
+description: Stage changed files, generate a conventional commit message, commit, and push in one step.
 ---
 
 # Stage, Commit, Push
 
-One-shot skill for the review-fix loop: stage modified files, generate a commit message, commit, and push.
+One-shot skill: stage modified files, generate a commit message, commit, and push.
 
 ## Procedure
 
@@ -22,7 +22,7 @@ The second command answers for a branch ahead of its upstream and for one that h
 
 - **Changes to commit** — run steps 1 through 5.
 - **Nothing to commit, commits no remote has** — skip to step 4 and continue through step 5. Staging nothing and committing nothing fails, and the push is what this invocation is for.
-- **Neither** — report that and stop.
+- **Neither** — report that and make no change.
 
 ### 1. Stage
 
