@@ -144,10 +144,10 @@ Classify each finding under the `finding-triage` SSOT dispositions. The cases th
 
 Present the triage to the user, not the raw output.
 
-### 5. Apply or push
+### 5. Apply or hand back
 
 - If actionable findings exist: revise the test, then re-run this skill once. One re-review iteration is the cap — repeated iteration on a single contract test signals the contract itself is unclear; escalate to the user instead of looping.
-- If clean: the test verifies the contract; hand back to the caller's commit step.
+- If clean: the test verifies the contract; hand back to the caller.
 
 ## What this skill is bad at
 
