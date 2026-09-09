@@ -1,11 +1,11 @@
 ---
 name: gh-body-conventions
-description: Single source of truth for GitHub issue / PR body conventions — semantic line breaks, LaTeX-safe math, reference / exclusion policies, language defaults. Definition file, not a procedure.
+description: Single source of truth for GitHub issue / PR body conventions — semantic line breaks, LaTeX-safe math, reference / exclusion policies, language defaults. Drafting and audit skills apply these conventions by reference.
 ---
 
 # GitHub Body Conventions (SSOT)
 
-This skill is **a definition file, not a runnable procedure**. Skills that draft GitHub issue / PR body content apply these conventions by reference. Do not copy these rules into them — point at them by name.
+Skills that draft GitHub issue / PR body content apply these conventions by reference. Do not copy these rules into them — point at them by name.
 
 ## Formatting
 

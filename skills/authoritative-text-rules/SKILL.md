@@ -5,7 +5,7 @@ description: Single source of truth for audit items covering text that an agent 
 
 # Authoritative Text Rules (SSOT)
 
-This skill is **a definition file, not a runnable procedure**. Skills that audit authoritative text apply these items by reference. When an item changes, referencing skills pick up the change automatically. A runner may carry a compressed mnemonic of an item, but never the item's full trigger, sweep, concern conditions, or N/A criterion — that copied detail is the manual-synchronization surface this rule removes — and the mnemonic is never the authority. The Items index below is the single source of truth for **which items exist**: runners derive their active item set by reading this index, never by hardcoding a parallel slug list.
+Skills that audit authoritative text apply these items by reference. When an item changes, referencing skills pick up the change automatically. A runner may carry a compressed mnemonic of an item, but never the item's full trigger, sweep, concern conditions, or N/A criterion — that copied detail is the manual-synchronization surface this rule removes — and the mnemonic is never the authority. The Items index below is the single source of truth for **which items exist**: runners derive their active item set by reading this index, never by hardcoding a parallel slug list.
 
 ## Scope
 

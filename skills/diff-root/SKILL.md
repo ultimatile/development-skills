@@ -1,11 +1,11 @@
 ---
 name: diff-root
-description: Single source of truth for the diff root — the ref a change is measured from — covering the consumer contract, where the root comes from, and the per-command range conversion. Definition file, not a procedure.
+description: Single source of truth for the diff root — the ref a change is measured from — covering the consumer contract, where the root comes from, and the per-command range conversion. Root-using skills and their callers apply this definition by reference.
 ---
 
 # Diff Root (SSOT)
 
-This skill is **a definition file, not a runnable procedure**. Skills that use a root, and the callers that supply one, apply the rules below by reference. Do not copy these rules into them — point at them by name.
+Skills that use a root, and the callers that supply one, apply the rules below by reference. Do not copy these rules into them — point at them by name.
 
 ## What the root is
 
