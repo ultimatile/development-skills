@@ -9,9 +9,7 @@ Draft a GitHub PR title and body that follow the user's conventions, show the dr
 
 ## Conventions
 
-Apply the rules in `gh-body-conventions` to both the title and body. The PR-specific point to reinforce:
-
-- **Semantic line breaks, not column wrapping.** This is the user's most-corrected formatting habit on PR bodies — commit-body-style hard wrapping renders as ragged text on GitHub's wide viewport.
+Apply the rules in `gh-body-conventions` to both the title and body.
 
 ### Length
 
@@ -114,7 +112,7 @@ gh-post pr create \
 
 `gh-post` funnels every body through stream input and re-runs the hardwrap validator before forwarding to `gh`, so always create the PR through `gh-post` rather than `gh pr create --body ...` directly. Add `--draft` if the user wants a draft PR; extra flags (`--label`, `--reviewer <login>`, etc.) are forwarded to `gh` verbatim.
 
-Do not auto-add `@copilot` here — Copilot review is `copilot-review`'s responsibility (gate mode below).
+Do not auto-add `@copilot` here.
 
 #### 6b. Gate mode
 
