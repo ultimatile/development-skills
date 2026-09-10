@@ -127,8 +127,6 @@ Invoke the `done-check` skill against the diff, passing the root stated at Step 
 
 ## Step 5 — Final output
 
-After done-check passes:
-
-1. **Plan-vs-actual diff** (from Step 3.6)
+1. **Plan-vs-actual diff** — enumerate every divergence between the plan and the implementation diff together with what each divergence traces to, and state the outcome of comparing the plan's impact list against the callers the implementation diff modified. `quality-list` `discovery-surfacing` governs what a trace may be; `impact-verification` governs that comparison.
 2. **Conventional commit message(s)**, generated under the rules of `generate-conventional-commit-messages` if the skill is available. No HPC paths, no cluster context, no local environment details, no line numbers in body.
 3. Hand off — do **not** commit unless the user explicitly authorized commits.
