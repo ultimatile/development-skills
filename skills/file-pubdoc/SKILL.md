@@ -72,7 +72,7 @@ These are surfaces a README often carries that other `docs/` pages typically do 
 - **Registry / install matrix**: a small table when the project is published to multiple ecosystems (PyPI + Homebrew + apt + Docker Hub). Each row links to the registry; do not duplicate install commands inline if the row's link reaches them.
 - **One-line "See also" / comparison**: when the project is commonly confused with an alternative ("unlike X, this is for Y"). Single sentence; longer comparisons belong in a design issue or ADR.
 
-For non-README `docs/**/*.md`, the skeleton's section 6 (Limitations) and the badges block are typically N/A.
+For non-README `docs/**/*.md`, the skeleton's Limitations section and the badges block are typically N/A.
 
 ## Forbidden content
 
@@ -103,9 +103,9 @@ Walk the skeleton top to bottom. For each section, write the minimum content tha
 
 ### 3. Cold-read pass
 
-Re-read the draft as if you had never seen the project. Two checks:
+Re-read the draft as if you had never seen the project. Two checks; resolve before step 4 whatever either turns up:
 
-- **Comprehensibility**: does a stranger learn what this project does and how to use it from sections 1–4 alone?
+- **Comprehensibility**: does a stranger learn what this project does and how to use it from the project name, tagline, Install and Usage alone? If not, write or expand whichever of those is missing the answer.
 
 - **Forbidden content sweep**: run the `quality-list` `public-doc-durability` mechanical patterns against the draft:
 
@@ -116,7 +116,7 @@ Re-read the draft as if you had never seen the project. Two checks:
   rg -nP '(?i)\b(initially|originally|first[ -]?attempt|we (tried|chose|considered|settled|switched|moved|ended\s+up)|after (several|many)?\s*iteration)' <draft-path>
   ```
 
-  Any hit is a candidate violation; resolve before step 4.
+  Any hit is a candidate violation.
 
 ### 4. Show for approval
 
