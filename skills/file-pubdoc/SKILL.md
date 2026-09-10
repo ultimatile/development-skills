@@ -103,9 +103,9 @@ Walk the skeleton top to bottom. For each section, write the minimum content tha
 
 ### 3. Cold-read pass
 
-Re-read the draft as if you had never seen the project. Two checks:
+Re-read the draft as if you had never seen the project. Two checks; resolve before step 4 whatever either turns up:
 
-- **Comprehensibility**: does a stranger learn what this project does and how to use it from the project name, tagline, Install and Usage alone?
+- **Comprehensibility**: does a stranger learn what this project does and how to use it from the project name, tagline, Install and Usage alone? A *no* names a section to write or expand.
 
 - **Forbidden content sweep**: run the `quality-list` `public-doc-durability` mechanical patterns against the draft:
 
@@ -116,7 +116,7 @@ Re-read the draft as if you had never seen the project. Two checks:
   rg -nP '(?i)\b(initially|originally|first[ -]?attempt|we (tried|chose|considered|settled|switched|moved|ended\s+up)|after (several|many)?\s*iteration)' <draft-path>
   ```
 
-  Any hit is a candidate violation; resolve before step 4.
+  Any hit is a candidate violation.
 
 ### 4. Show for approval
 
