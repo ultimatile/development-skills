@@ -105,7 +105,7 @@ Walk the skeleton top to bottom. For each section, write the minimum content tha
 
 Re-read the draft as if you had never seen the project. Two checks; resolve before step 4 whatever either turns up:
 
-- **Comprehensibility**: does a stranger learn what this project does and how to use it from the project name, tagline, Install and Usage alone? A *no* names a section to write or expand.
+- **Comprehensibility**: does a stranger learn what this project does and how to use it from the project name, tagline, Install and Usage alone? If not, write or expand whichever of those is missing the answer.
 
 - **Forbidden content sweep**: run the `quality-list` `public-doc-durability` mechanical patterns against the draft:
 
