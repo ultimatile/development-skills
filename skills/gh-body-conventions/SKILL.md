@@ -33,7 +33,7 @@ Write the body to a file (typically under `/tmp/`) and pass it to the `gh-post` 
 ## Math
 
 - Use LaTeX notation rendered with GitHub's `` $`...`$ `` syntax for inline math and `$$...$$` for display math.
-- Prefer `` $`...`$ `` over `$...$` for inline math.
+- Prefer `` $`...`$ `` over `$...$` for inline math. Do NOT put backslash macros inside plain `$...$`.
 - Do NOT wrap the inline-math construct `` $`...`$ `` in an enclosing code span. GitHub then renders the literal math syntax as inline code, not math — the failure mode when the *display* form of the construct (the literal syntax this section shows) is copied straight into a body.
 - Plain text inside backticks is fine when the symbol must match a code identifier verbatim (e.g., `` `alpha_t` ``).
 - Do NOT write raw Unicode math characters (α, β, ⊗, ∑, ∇, †, etc.) in prose. Use `` $`\alpha`$ ``, `` $`\otimes`$ ``, `` $`\sum`$ ``, `` $`\nabla`$ ``, `` $`\dagger`$ `` instead.
@@ -45,11 +45,7 @@ Write the body to a file (typically under `/tmp/`) and pass it to the `gh-post` 
 
 ### After `gh-post`: suspect the source first
 
-Broken math on GitHub after `gh-post` is author-side by default — attribute it to `gh-post` only after reproducing the corruption on well-formed, balanced input.
-Check the source for:
-
-- an unbalanced `` $`...`$ `` delimiter, or plain `$...$` with backslash macros;
-- `\operatorname` (GitHub renders nothing) or raw Unicode glyphs (shown as literal text, not math).
+Broken math on GitHub after `gh-post` is author-side by default: check the source against the list above, and attribute it to `gh-post` only after reproducing the corruption on well-formed, balanced input.
 
 ## References
 

@@ -110,7 +110,7 @@ gh-post pr create \
   --body-file /tmp/<descriptive-name>.md
 ```
 
-Always create the PR through `gh-post` rather than `gh pr create --body ...` directly. Add `--draft` if the user wants a draft PR; extra flags (`--label`, `--reviewer <login>`, etc.) are forwarded to `gh` verbatim.
+Add `--draft` if the user wants a draft PR; extra flags (`--label`, `--reviewer <login>`, etc.) are forwarded to `gh` verbatim.
 
 Do not auto-add `@copilot` here.
 

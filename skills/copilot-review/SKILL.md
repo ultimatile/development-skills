@@ -78,8 +78,6 @@ gh-post reply-inline {owner}/{repo} {number} < /tmp/replies.jsonl
 
 If `list-pr-threads.sh --unresolved --unreplied` returns zero lines: every Copilot thread is already resolved or already has a reply — do NOT post additional replies. Surface this to the user and ask before doing anything else.
 
-Direct `gh api .../comments/{id}/replies -F body=...` is still possible — use it only for one-off cases where the JSONL ceremony is overhead, and verify thread state via `list-pr-threads.sh` first.
-
 ## Prerequisites
 
 - `gh` CLI >= 2.88.0 (for `--reviewer @copilot` support)

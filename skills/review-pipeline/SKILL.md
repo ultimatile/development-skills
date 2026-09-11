@@ -54,8 +54,8 @@ When that diff received a valid gate review (i.e. the gate was not waived), attr
 1. Run `/file-pullreq` in **gate mode** — drafts the PR title + body following `gh-body-conventions` and the standard body skeleton, discharges its evidence claims, runs the laundering pass, and gets the user's approval. The skill stops at approval and emits the approved title + body for the next step. It does NOT create the PR itself.
 2. Run `/copilot-review` in its normal mode, passing the approved title + body and **the root as this pipeline's `--base`** — this creates the PR with `--reviewer @copilot` and polls until the review arrives. The root is a branch name, which is what that flag takes; `/codex-review`'s `--base` one phase earlier is a different value, a merge base derived from the same root. Omitting it opens the PR against the repository default branch, and every gate above measured from the branch this run was told it merges into, so the two would then disagree.
 3. Triage the review — filter to the latest review's comments only (by `pull_request_review_id`)
-4. Reply to each inline comment individually via `gh-post reply-inline <owner>/<repo> <PR> < /tmp/replies.jsonl`. Build the JSONL with one `{"id": <comment-id>, "body": "<reply>"}` per line.
-5. If actionable findings exist, apply the **fix-loop substeps** (see Rules), replacing the re-review step with `${CLAUDE_SKILL_DIR}/../copilot-review/scripts/pr-with-copilot-review.sh --re-review <PR_URL>`. Triage only new comments. Repeat until no actionable findings remain.
+4. If the review left inline comments, reply to them per `copilot-review` § Respond to review.
+5. If actionable findings exist, apply the **fix-loop substeps** (see Rules), replacing the re-review step with `${CLAUDE_SKILL_DIR}/../copilot-review/scripts/pr-with-copilot-review.sh --re-review <PR_URL>`. Triage only new comments, and reply to them as step 4 does. Repeat until no actionable findings remain.
 
 ## Phase 3: Postmortem elevation (pre-merge)
 
@@ -107,7 +107,7 @@ Skip when the work is not tied to an umbrella tracking issue. Trigger only when 
 
    Before invoking `gh-post pr edit`, run `/gh-body-audit` against the **final body** (existing PR body concatenated with the appended delta section). Paragraph boundaries and reference patterns can cross the section seam, so auditing only the appended section would miss them. Pass artifact kind `pr`. Any ⚠ blocks `gh-post pr edit` on `gh-body-audit` step 4's terms.
 
-   Write the final body to a temp file and invoke `gh-post pr edit <N> --repo <owner>/<repo> --body-file /tmp/<descriptive-name>.md`. Do not run `gh pr edit ... --body*` directly; route the body through `gh-post`.
+   Write the final body to a temp file and invoke `gh-post pr edit <N> --repo <owner>/<repo> --body-file /tmp/<descriptive-name>.md`.
 
 ## ← user merges PR ←
 
@@ -119,7 +119,7 @@ After the user confirms the merge has landed, continue to Phase 4b.
 
 Runs only after the user has merged.
 
-1. **Sub-issue closing comment.** Post a compressed delta (≈ 5–10 lines) plus the merged PR link via `gh-post issue comment <leaf#> --repo <owner>/<repo> --body-file /tmp/<descriptive-name>.md`, then close the sub-issue with `gh issue close <leaf#>`. (Route the comment body through `gh-post`, not `gh issue comment ... --body*` directly; `gh issue close` carries no body and stays a direct `gh` call.)
+1. **Sub-issue closing comment.** Post a compressed delta (≈ 5–10 lines) plus the merged PR link via `gh-post issue comment <leaf#> --repo <owner>/<repo> --body-file /tmp/<descriptive-name>.md`, then close the sub-issue with `gh issue close <leaf#>`.
 
 2. **Umbrella body update.** Two independent axes:
 
@@ -168,8 +168,6 @@ Runs only after the user has merged.
   ```
 
   The first two lines are `diff-root`'s default-branch read, spelled out because this check runs it; that skill states why each is load-bearing. Halt and surface to the user if the branches are equal, or if the default branch does not resolve.
-
-- **Reply to Copilot comments individually**, not as a single PR comment. Use `gh-post reply-inline <owner>/<repo> <PR> < /tmp/replies.jsonl`. JSONL shape: one `{"id": <comment-id>, "body": "<reply>"}` per line.
 
 - **Triage is mandatory.** Never present raw review output to the user. Classify every finding under the `finding-triage` SSOT dispositions and lead with actionable items.
 

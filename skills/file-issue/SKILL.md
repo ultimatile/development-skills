@@ -100,8 +100,6 @@ gh-post issue create \
   --body-file /tmp/<descriptive-name>.md
 ```
 
-Always file the issue through `gh-post`, never `gh issue create --body ...` directly.
-
 If labels or assignees are appropriate and the user mentioned them, add `--label` / `--assignee` flags — these are forwarded to `gh` verbatim. Do not invent labels; only use ones the user named or that are obviously required by the repo's template.
 
 ### 7. Report

@@ -90,7 +90,7 @@ claude plugin install development-skills
 
 ### gh-post
 
-The skills that draft or post GitHub issue / PR bodies (`file-issue`, `file-pullreq`, `copilot-review`, `review-pipeline`, `research`, `implement`, and their wrappers) route every body through the [`gh-post`](https://github.com/ultimatile/gh-post) wrapper — a `gh` front-end that accepts bodies only via `--body-file` / `--body-stdin` and re-runs a hard-wrap validator before forwarding to `gh`. Install it and make sure `gh-post` is on `PATH`.
+The skills that draft or post GitHub issue / PR bodies (`file-issue`, `file-pullreq`, `copilot-review`, `review-pipeline`, `research`, and their wrappers) route every body through the [`gh-post`](https://github.com/ultimatile/gh-post) wrapper. Install it and make sure `gh-post` is on `PATH`.
 
 ### Quaere skills
 
