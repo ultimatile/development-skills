@@ -1,13 +1,13 @@
 ---
 name: todo-check
-description: Preflight sweep of quality-list items before or during implementation, framed as 'what to set up so done-check's quality-list rows pass at the end'. Dual of done-check on that rule set.
+description: Preflight sweep of quality-list items, and of authoritative-text-rules when the planned scope calls for it, before or during implementation. Framed as 'what to set up so done-check's rows pass at the end'.
 ---
 
 # Todo-Check
 
 Forward-looking preflight against the planned change. Item definitions live in `quality-list`; this skill is the **runner**. Update `quality-list`, not this file, when adding or modifying items.
 
-`done-check` asks: "Did the diff satisfy item N?" `todo-check` asks: "What does item N require us to set up so the diff will satisfy it?" On `quality-list` the two apply the same mechanical / contextual lane split (its Item lanes section): mechanical-lane items go to a fresh-context subagent (Step 2), contextual-lane items stay in main context (Step 3). The duality stops at that rule set — `done-check` also applies `authoritative-text-rules` when the diff calls for it, and this preflight does not, so a clean preflight does not by itself predict a clean audit.
+`done-check` asks: "Did the diff satisfy item N?" `todo-check` asks: "What does item N require us to set up so the diff will satisfy it?" On `quality-list` the two apply the same mechanical / contextual lane split (its Item lanes section): mechanical-lane items go to a fresh-context subagent (Step 2), contextual-lane items stay in main context (Step 3). Both also apply `authoritative-text-rules` when the planned scope names surfaces that could hold text an agent executes as instructions, by the firing rule in Step 3. There the two runners diverge on receiver: `done-check` dispatches a second fresh-context subagent, testing the finished text against the item bodies' literal readings; `todo-check` reads those items in main context so the writer holds them while the plan is still revisable. `done-check`'s independent fresh-context audit is unchanged by this reading here.
 
 ## Procedure
 
@@ -120,6 +120,16 @@ Forward-looking preflight against the planned change. Item definitions live in `
    - **⊘ N/A** — the item's own N/A criterion excludes the scope. State why.
    - **? unknown** — the body is read, but applicability turns on a scope fact not yet settled; record the scope check that would decide it.
 
+   **Firing rule for `authoritative-text-rules`.** After processing the `quality-list` contextual items, dispatch this rule set when Step 1's scope description names a path whose location could hold text an agent executes as instructions — skill bodies; rule / item definition files; `CLAUDE.md`, `AGENTS.md`; files under `.claude/rules/`, `.claude/commands/`, `.claude/agents/`, or the equivalents other tools define — or describes new content of that kind. **Fire when unsure.**
+
+   The rule approximates because it has to: `authoritative-text-rules`' membership predicate is a property of a file's *content*, while the scope description names only anticipated *paths and content descriptions*. It errs toward firing: a missed fire is a silently-skipped preflight, while a needless one costs one main-context pass returning ⊘ N/A rows. Deciding authoritatively which surfaces qualify is that SSOT's Scope section, applied within the pass below — Step 3 decides only whether the preview runs.
+
+   Verify `<SKILLS_DIR>/authoritative-text-rules/SKILL.md` is present before dispatching, on the same terms Step 0 verified `quality-list`: absent halts the same way. Step 0 having found `quality-list` under this `<SKILLS_DIR>` narrows the cause — the directory is the right one, so what is missing is the rule set itself.
+
+   When the firing rule fires, read `<SKILLS_DIR>/authoritative-text-rules/SKILL.md`'s Items index; for every item it lists, `Read` its `<SKILLS_DIR>/authoritative-text-rules/items/<slug>.md` body before deciding status. Apply that SSOT's Scope section to Step 1's paths and content descriptions to decide which surfaces qualify; a fired preview whose surfaces all fall outside that Scope section returns ⊘ N/A rows for the whole set. For each item, determine △ active / ⊘ N/A / ? unknown on the same terms as the `quality-list` contextual items above.
+
+   The authoritative-text items are read in main context because the writer is who must hold their guarantees while drafting; a fresh-context subagent lacks the plan intent that decides which setup fits.
+
 4. **Merge results.** Integrate the mechanical-lane rows the subagent returned with the contextual-lane rows (Step 3) into a single table.
 
    ```
@@ -149,6 +159,8 @@ Forward-looking preflight against the planned change. Item definitions live in `
 
    A half left `?` at merge time carries its scope check forward to Step 5, so the half's own setup action is not lost behind an active status.
 
+   When Step 3's authoritative-text firing rule fired, append its rows below the `quality-list` rows above, one per item in the `<SKILLS_DIR>/authoritative-text-rules/SKILL.md` Items index, in that index's order. These rows take no coverage check, on the same terms main-context contextual-lane rows take none: main selects them from the index directly, with no return to compare against.
+
    If the subagent returned a discrepancy list, adjudicate each: correct the affected row's setup action to match what the subagent found, or — if the scope description was right and the subagent's codebase read was the mistaken side — note that resolution instead rather than rewriting the row.
 
 5. **Resolve every `?` before declaring preflight done.**
@@ -167,7 +179,8 @@ Forward-looking preflight against the planned change. Item definitions live in `
                                             settled answer is not one it
                                             enumerated, take the arm below
      mechanical lane, otherwise           → narrowed re-dispatch (below)
-     contextual lane                      → settle the scope check Step 3
+     contextual lane, or an
+     authoritative-text row               → settle the scope check Step 3
                                             recorded, in main context
 
    pass 2 — record the outcome:
@@ -201,9 +214,11 @@ Forward-looking preflight against the planned change. Item definitions live in `
 
 ## Preflight framing per item (quick reference)
 
-These are how each `quality-list` item reads in preflight mode — a compressed mnemonic of the lens-shift from the item's audit question to a preflight setup action. A row is **not** the applicability authority and decides nothing: Step 3 reads each contextual item's body (`<SKILLS_DIR>/quality-list/items/<slug>.md`) plus any applicable addendum, and that — with the index as the item set — decides whether it applies. Consult a row for its setup framing once the body has marked the item active.
+These are how each item reads in preflight mode — a compressed mnemonic of the lens-shift from the item's audit question to a preflight setup action. A row is **not** the applicability authority and decides nothing: Step 3 reads each item's body (`<SKILLS_DIR>/<rule-set>/items/<slug>.md`) plus any applicable addendum, and that — with the index as the item set — decides whether it applies. Consult a row for its setup framing once the body has marked the item active.
 
-This list covers only the contextual-lane items (and the contextual half of the dual-lane item) that Step 3 processes. Mechanical-lane items have no row *in this quick reference* (they still get a row in the final preflight table, per Step 4): the subagent never reads this file, so a mnemonic for it would have no consumer.
+This list covers the `quality-list` contextual-lane items (and the contextual half of the dual-lane item) that Step 3 processes in main context, and the `authoritative-text-rules` items that Step 3 processes in main context when the firing rule fires. Mechanical-lane `quality-list` items have no row *in this quick reference* (they still get a row in the final preflight table, per Step 4): the subagent never reads this file, so a mnemonic for it would have no consumer.
+
+**For `quality-list` items (contextual-lane and the contextual half of the dual-lane item):**
 
 - **`invariant-derivation`** — Before patching, derive the full necessary-and-sufficient condition from first principles. List it in the plan.
 - **`purpose-verification`** — Identify the input that exposes the purpose end-to-end. Plan to exercise it before declaring done.
@@ -215,6 +230,14 @@ This list covers only the contextual-lane items (and the contextual half of the 
 - **`docstring-drift`** — List the docstring / comment / README surfaces describing any behavior the change alters, and plan a cold-read re-verification of each against the new behavior, with an execution probe where the behavior becomes library-owned.
 - **`discovery-surfacing`** — Extract any research plan's `Inconclusive` items into a watch list for the implementation phase.
 - **`ported-code-attribution`** (undeclared-port half) — If research surfaced an external implementation this scope structurally follows but hasn't named, plan the attribution surface now even though no comment names it yet.
+
+**For `authoritative-text-rules` items (when the preview fires):**
+
+- **`case-space-totality`** — Before writing condition→outcome authoritative text, enumerate the domain axes the rule branches on; plan for each cell to reach exactly one outcome and for mirrored cases to be treated symmetrically or excluded with a reason.
+- **`single-reading`** — Before writing sentences in authoritative text, plan the ambiguity-guard checkpoints (antecedent naming, definition-vs-example marks, clause-scope, extent, coordination grouping, attachment, negation / quantifier scope, grammatical completeness) that the drafting sweep will revisit.
+- **`clause-composition`** — Before editing a clause in a rule set holding more than one unit, plan the rule-set fix and derive the search-key set (subject, verb, named artifacts) that drives the inbound + outbound reference sweep.
+- **`executor-fitness`** — Before writing a step that names an executor, list what the step will demand and quote the written definition of the executor's inputs; plan to reconcile any gap before writing the step.
+- **`consumer-closure`** — Before emitting a value or imposing an obligation, freeze the emitted-value / obligation list up front and plan to identify each consuming step or receiver.
 
 ## Output format
 
@@ -232,4 +255,4 @@ preflight: <task / unit description>
 | discovery-surfacing           | △ active | watch: inconclusive[1] probe at <site>; branches X/Y   |
 ```
 
-Emit one row per item in the `<SKILLS_DIR>/quality-list/SKILL.md` Items index, in index order — the rows above illustrate the format and the status vocabulary (△ active / ⊘ N/A), not the full set. `? unknown` is a working state that Step 5 resolves, so it never appears in the final table. Only a preflight that reaches Step 6 emits a table at all; every halt above ends it without one, however many such halts the steps above come to hold. The table merges the mechanical-lane rows (Step 2's subagent) with Step 3's contextual-lane rows, per Step 4. Hand the △ rows forward as the implementation setup.
+Emit one row per item in the `<SKILLS_DIR>/quality-list/SKILL.md` Items index, in index order, followed — when Step 3's authoritative-text firing rule fired — by every item in the `<SKILLS_DIR>/authoritative-text-rules/SKILL.md` Items index, in that index's order. The rows above illustrate the format and the status vocabulary (△ active / ⊘ N/A), not the full set. `? unknown` is a working state that Step 5 resolves, so it never appears in the final table. Only a preflight that reaches Step 6 emits a table at all; every halt above ends it without one, however many such halts the steps above come to hold. The table merges the mechanical-lane rows (Step 2's subagent) with Step 3's main-context rows (`quality-list` contextual + any `authoritative-text-rules` rows the firing rule dispatched), per Step 4. Hand the △ rows forward as the implementation setup.
