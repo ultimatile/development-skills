@@ -235,7 +235,7 @@ This list covers the `quality-list` contextual-lane items (and the contextual ha
 **For `authoritative-text-rules` items (when the preview fires):**
 
 - **`case-space-totality`** — Before writing condition→outcome authoritative text, enumerate the domain axes the rule branches on; plan for each cell to reach exactly one outcome and for mirrored cases to be treated symmetrically or excluded with a reason.
-- **`single-reading`** — Before writing sentences in authoritative text, plan the ambiguity-guard checkpoints the drafting sweep will revisit; the item body holds the catalogue.
+- **`single-reading`** — Before writing sentences in authoritative text, plan to hold the ambiguity-guard checkpoints during drafting; the item body holds the catalogue.
 - **`clause-composition`** — Before editing a clause in a rule set holding more than one unit, plan the rule-set fix that the inbound + outbound reference sweep runs over; the item body defines the search-key derivation.
 - **`executor-fitness`** — Before writing a step that names an executor, list what the step will demand and quote the written definition of the executor's inputs; plan to reconcile any gap before writing the step.
 - **`consumer-closure`** — Before emitting a value or imposing an obligation, freeze the emitted-value / obligation list up front and plan to identify each consuming step or receiver.
