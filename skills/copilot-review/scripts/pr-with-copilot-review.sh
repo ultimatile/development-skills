@@ -6,9 +6,7 @@
 #   Poll:       --poll <PR_URL> — wait for review on existing PR
 #   Re-review:  --re-review <PR_URL> — trigger new review + wait for it
 #
-# Body must flow through `--body-file <path>` or `--body-stdin`; the
-# `gh-post` wrapper rejects inline `--body <string>` / `-b` so every
-# body passes the hardwrap validator stack before reaching GitHub.
+# Body must flow through `--body-file <path>` or `--body-stdin`.
 #
 # Usage:
 #   ./pr-with-copilot-review.sh --title "fix: foo" --body-file /tmp/body.md --base main
@@ -137,11 +135,8 @@ if [[ "${1:-}" == "--re-review" ]]; then
 fi
 
 # --- Normal mode: create PR + request review + poll -----------------------
-# Routes through `gh-post pr create` (not `gh pr create`) so the body
-# passes the hardwrap validator stack at submission, closing the last
-# known body-validation bypass. `gh-post` forwards unknown flags
-# (`--reviewer`, `--base`, etc.) to `gh` verbatim, so the script's
-# invocation surface is unchanged for callers using `--body-file`.
+# `gh-post` forwards unknown flags (`--reviewer`, `--base`, etc.) to `gh`
+# verbatim.
 echo "Creating PR with Copilot review..." >&2
 pr_url=$(gh-post pr create --reviewer @copilot "$@") || {
     echo "Error: gh-post pr create failed" >&2

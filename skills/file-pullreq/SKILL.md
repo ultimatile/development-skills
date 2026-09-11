@@ -110,7 +110,7 @@ gh-post pr create \
   --body-file /tmp/<descriptive-name>.md
 ```
 
-`gh-post` funnels every body through stream input and re-runs the hardwrap validator before forwarding to `gh`, so always create the PR through `gh-post` rather than `gh pr create --body ...` directly. Add `--draft` if the user wants a draft PR; extra flags (`--label`, `--reviewer <login>`, etc.) are forwarded to `gh` verbatim.
+Always create the PR through `gh-post` rather than `gh pr create --body ...` directly. Add `--draft` if the user wants a draft PR; extra flags (`--label`, `--reviewer <login>`, etc.) are forwarded to `gh` verbatim.
 
 Do not auto-add `@copilot` here.
 
@@ -140,8 +140,6 @@ ${CLAUDE_SKILL_DIR}/../copilot-review/scripts/pr-with-copilot-review.sh \
   --title "<approved title>" \
   --body-file /tmp/<descriptive-name>.md
 ```
-
-The script routes PR creation through `gh-post pr create`, which rejects inline `--body <string>` / `-b` to keep every body through the wrapper's validator stack — `--body-file` (preferred) or `--body-stdin` are the only accepted body inputs.
 
 ### 7. Report
 
