@@ -167,9 +167,9 @@ Forward-looking preflight against the planned change. This skill is the **runner
 
    ```
    domain: every unsettled scope check — the one behind a `?` row that
-           is not a half of a dual-lane row, and one per unsettled half
-           of any dual-lane row, which can therefore carry two. Each
-           check has a single settlement path; settle them one at a time.
+           is not a dual-lane row, and one per unsettled half of any
+           dual-lane row, which can therefore carry two. Each check
+           has a single settlement path; settle them one at a time.
 
    pass 1 — settle the scope fact, by the lane of the check being settled:
      mechanical lane, and the subagent
@@ -185,7 +185,7 @@ Forward-looking preflight against the planned change. This skill is the **runner
 
    pass 2 — record the outcome:
      settled, `?` row that is not a
-     half of a dual-lane row              → △ with a concrete setup action
+     dual-lane row                        → △ with a concrete setup action
                                           | ⊘ with a reason
      settled, a half of a dual-lane row   → add that half's own setup action
                                             to the row's Setup action cell,
