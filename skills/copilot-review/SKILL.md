@@ -20,7 +20,7 @@ ${CLAUDE_SKILL_DIR}/scripts/pr-with-copilot-review.sh --title "fix: foo" --body-
 
 All arguments are forwarded to `gh-post pr create --reviewer @copilot`. The script then polls until Copilot's review arrives, outputting the review body and inline comments to stdout.
 
-Inline `--body <string>` and `-b <string>` are rejected by `gh-post` — the wrapper exists to keep every body through its hardwrap validator. Use `--body-file <path>` (preferred) or `--body-stdin`.
+Pass the body with `--body-file <path>` (preferred) or `--body-stdin`.
 
 ### Re-review mode: after pushing fixes
 
@@ -62,7 +62,7 @@ For each finding:
 
 Each Copilot finding lives on an inline thread; that thread is the unit of response. Each reply names the disposition the triage step gave that finding, by its `finding-triage` slug, and states in one or two sentences the reasoning and what the run will do about the finding.
 
-After triaging, reply within each thread via `gh-post reply-inline` — every reply body is validated (hardwrap detector + halt-before-send) and a single batch covers the full review:
+After triaging, reply within each thread via `gh-post reply-inline` — a single batch covers the full review:
 
 ```bash
 # 1. Collect target threads — by default this filters to Copilot-authored heads
@@ -72,20 +72,16 @@ ${CLAUDE_SKILL_DIR}/scripts/list-pr-threads.sh {owner}/{repo} {number} --unresol
 
 # 2. Build a JSONL file: one {"id": <head-comment-id>, "body": "<reply text>"} per line.
 
-# 3. Send the batch. The wrapper validates every body BEFORE any send; on a body
-#    failure no replies post. On a mid-batch API failure it prints un-sent indices
-#    and exits non-zero.
+# 3. Send the batch.
 gh-post reply-inline {owner}/{repo} {number} < /tmp/replies.jsonl
 ```
 
-If `list-pr-threads.sh --unresolved --unreplied` returns zero lines: every Copilot thread is already resolved or already has a reply — do NOT post additional replies. Surface this to the user and ask before doing anything else. Stacking a duplicate "addressed in …" reply on a closed thread is the failure mode this wrapper exists to prevent.
-
-Direct `gh api .../comments/{id}/replies -F body=...` is still possible but defeats both the body-validation guarantee and the thread-state filter — use it only for one-off cases where the JSONL ceremony is overhead, and verify thread state via `list-pr-threads.sh` first.
+If `list-pr-threads.sh --unresolved --unreplied` returns zero lines: every Copilot thread is already resolved or already has a reply — do NOT post additional replies. Surface this to the user and ask before doing anything else.
 
 ## Prerequisites
 
 - `gh` CLI >= 2.88.0 (for `--reviewer @copilot` support)
-- `gh-post` on `PATH` — the script routes PR creation through `gh-post pr create` so the body passes the wrapper's validator stack
+- `gh-post` on `PATH`
 - Copilot code review enabled for the repository (via GitHub plan + org/repo settings)
 - Alternative: configure automatic Copilot review via Repository Rulesets (Settings > Rules)
 

@@ -33,7 +33,7 @@ Write the body to a file (typically under `/tmp/`) and pass it to the `gh-post` 
 ## Math
 
 - Use LaTeX notation rendered with GitHub's `` $`...`$ `` syntax for inline math and `$$...$$` for display math.
-- Prefer `` $`...`$ `` over `$...$` for inline math.
+- Prefer `` $`...`$ `` over `$...$` for inline math. Do NOT put backslash macros inside plain `$...$`.
 - Do NOT wrap the inline-math construct `` $`...`$ `` in an enclosing code span. GitHub then renders the literal math syntax as inline code, not math — the failure mode when the *display* form of the construct (the literal syntax this section shows) is copied straight into a body.
 - Plain text inside backticks is fine when the symbol must match a code identifier verbatim (e.g., `` `alpha_t` ``).
 - Do NOT write raw Unicode math characters (α, β, ⊗, ∑, ∇, †, etc.) in prose. Use `` $`\alpha`$ ``, `` $`\otimes`$ ``, `` $`\sum`$ ``, `` $`\nabla`$ ``, `` $`\dagger`$ `` instead.
@@ -41,15 +41,11 @@ Write the body to a file (typically under `/tmp/`) and pass it to the `gh-post` 
 - Avoid `\_` in GitHub/LaTeX math. Use `` $`\mathrm{\textunderscore}`$ `` when an underscore glyph is required in math mode.
 - Do NOT use `\textunderscore` inside `\text{...}` or `\texttt{...}`. Restructure the expression, or put the literal identifier in Markdown backticks outside math when exact code spelling matters.
 - When two inline math spans are separated by punctuation, put a space before the second math opener. Write `` $`K_1`$/ $`K_2`$ ``, not `` $`K_1`$/$`K_2`$ ``.
-- Keep the `` $`...`$ `` code-span delimiters balanced — an unbalanced backtick makes `gh-post`'s auto-format (mdformat) escape the surrounding text as literal prose (doubling backslashes, escaping `*`), which corrupts the rendered output.
+- Keep the `` $`...`$ `` code-span delimiters balanced.
 
 ### After `gh-post`: suspect the source first
 
-Broken math on GitHub after `gh-post` is author-side by default — attribute it to `gh-post` only after reproducing the corruption on well-formed, balanced input.
-Two distinct failure surfaces:
-
-- mdformat mangles the *source* — an unbalanced `` $`...`$ `` delimiter, or plain `$...$` with backslash macros.
-- GitHub won't render otherwise-intact source — `\operatorname` (GitHub renders nothing), raw Unicode glyphs (shown as literal text, not math); mdformat leaves these untouched.
+Broken math on GitHub after `gh-post` is author-side by default: check the source against the list above, and attribute it to `gh-post` only after reproducing the corruption on well-formed, balanced input.
 
 ## References
 

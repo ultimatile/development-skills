@@ -100,8 +100,6 @@ gh-post issue create \
   --body-file /tmp/<descriptive-name>.md
 ```
 
-`gh-post` is a single-entry wrapper that funnels every body through stream input (`--body-file` or `--body-stdin`) and re-runs the hardwrap validator before forwarding to `gh`. Always file the issue through `gh-post`, never `gh issue create --body ...` directly — an inline body (e.g. `--body "$(cat /tmp/x.md)"`) bypasses the validator.
-
 If labels or assignees are appropriate and the user mentioned them, add `--label` / `--assignee` flags — these are forwarded to `gh` verbatim. Do not invent labels; only use ones the user named or that are obviously required by the repo's template.
 
 ### 7. Report
