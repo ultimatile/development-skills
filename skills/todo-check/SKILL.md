@@ -124,9 +124,9 @@ Forward-looking preflight against the planned change. This skill is the **runner
 
    The rule approximates because it has to: `authoritative-text-rules`' membership predicate is a property of a file's *content*, while the scope description names only anticipated *paths and content descriptions*. It errs toward firing: a missed fire is a silently-skipped preflight, while a needless one costs one main-context pass returning ⊘ N/A rows. Deciding authoritatively which surfaces qualify is that SSOT's Scope section, applied within the pass below — Step 3 decides only whether the preview runs.
 
-   Verify `<SKILLS_DIR>/authoritative-text-rules/SKILL.md` is present before proceeding, on the same terms Step 0 verified `quality-list`: absent halts the same way. Step 0 having found `quality-list` under this `<SKILLS_DIR>` narrows the cause — the directory is the right one, so what is missing is the rule set itself.
+   When the firing rule fires, verify `<SKILLS_DIR>/authoritative-text-rules/SKILL.md` is present, on the same terms Step 0 verified `quality-list`: absent halts the same way. Step 0 having found `quality-list` under this `<SKILLS_DIR>` narrows the cause — the directory is the right one, so what is missing is the rule set itself. A run whose firing rule did not fire takes no such check: an uninstalled rule set the preflight was never going to touch does not halt the preflight.
 
-   When the firing rule fires, read `<SKILLS_DIR>/authoritative-text-rules/SKILL.md`'s Items index; for every item it lists, `Read` its `<SKILLS_DIR>/authoritative-text-rules/items/<slug>.md` body before deciding status. Apply that SSOT's Scope section to Step 1's paths and content descriptions to decide which surfaces qualify; a fired preview whose surfaces all fall outside that Scope section returns ⊘ N/A rows for the whole set. For each item, determine △ active / ⊘ N/A / ? unknown on the same terms as the `quality-list` contextual items above.
+   Then read `<SKILLS_DIR>/authoritative-text-rules/SKILL.md`'s Items index; for every item it lists, `Read` its `<SKILLS_DIR>/authoritative-text-rules/items/<slug>.md` body before deciding status. Apply that SSOT's Scope section to Step 1's paths and content descriptions to decide which surfaces qualify; a fired preview whose surfaces all fall outside that Scope section returns ⊘ N/A rows for the whole set. For each item, determine △ active / ⊘ N/A / ? unknown on the same terms as the `quality-list` contextual items above.
 
    The authoritative-text items are read in main context because the writer is who must hold their guarantees while drafting; a fresh-context subagent lacks the plan intent that decides which setup fits.
 
@@ -166,10 +166,10 @@ Forward-looking preflight against the planned change. This skill is the **runner
 5. **Resolve every `?` before declaring preflight done.**
 
    ```
-   domain: every unsettled scope check — the one behind a single-lane `?`
-           row, and one per unsettled half of any dual-lane row,
-           which can therefore carry two. Each check belongs to exactly
-           one lane; settle them one at a time.
+   domain: every unsettled scope check — the one behind a `?` row that
+           is not a half of a dual-lane row, and one per unsettled half
+           of any dual-lane row, which can therefore carry two. Each
+           check has a single settlement path; settle them one at a time.
 
    pass 1 — settle the scope fact, by the lane of the check being settled:
      mechanical lane, and the subagent
@@ -184,7 +184,8 @@ Forward-looking preflight against the planned change. This skill is the **runner
                                             recorded, in main context
 
    pass 2 — record the outcome:
-     settled, single-lane `?` row         → △ with a concrete setup action
+     settled, `?` row that is not a
+     half of a dual-lane row              → △ with a concrete setup action
                                           | ⊘ with a reason
      settled, a half of a dual-lane row   → add that half's own setup action
                                             to the row's Setup action cell,
