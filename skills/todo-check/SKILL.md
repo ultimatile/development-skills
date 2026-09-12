@@ -9,7 +9,7 @@ Forward-looking preflight against the planned change. This skill is the **runner
 
 `done-check` asks: "Did the diff satisfy item N?" `todo-check` asks: "What does item N require us to set up so the diff will satisfy it?" On `quality-list` the two apply the same mechanical / contextual lane split (its Item lanes section): mechanical-lane items go to a fresh-context subagent (Step 2), contextual-lane items stay in main context (Step 3). Both also apply `authoritative-text-rules` when the change calls for it — `done-check` decides from the diff at its Step 2, `todo-check` decides from the plan or task description at Step 0 below. There the two runners diverge on receiver: `done-check` spawns a second fresh-context subagent, testing the finished text against the item bodies' literal readings; `todo-check` reads those items in main context so the writer holds them while the plan is still revisable. `done-check`'s independent fresh-context audit is unchanged by this reading here.
 
-The two runners see different inputs — `done-check` inspects the diff's paths, `todo-check` reads the plan or task description — and the difference is not closed by this skill. A file that the eventual diff will carry but that the plan or task description does not name will not activate `authoritative-text-rules` here; `done-check` catches it later. The plan or task description is the author's contract with this preflight — see Step 0 for the mid-implementation obligation on the invocation input.
+The two runners see different inputs — `done-check` inspects the diff's paths, `todo-check` reads the plan or task description — and the difference is not closed by this skill. A file that the eventual diff will carry but that the plan or task description does not name will not activate `authoritative-text-rules` here; `done-check` catches it later.
 
 ## Procedure
 
@@ -23,12 +23,10 @@ The two runners see different inputs — `done-check` inspects the diff's paths,
 
    **Activate `authoritative-text-rules` when the plan or task description shows it applies.** Two independent conditions activate it; either is enough:
 
-   - a path the description names sits under a location the SSOT's Scope section lists as a recurring instance — a skill body, a rule or item definition file, `CLAUDE.md` / `AGENTS.md`, or a file under `.claude/rules/`, `.claude/commands/`, `.claude/agents/` (or the equivalents other tools define); or
+   - the description names a path that qualifies under the SSOT's Scope section — a skill body, a rule or item definition file, `CLAUDE.md` / `AGENTS.md`, a file under `.claude/rules/`, `.claude/commands/`, `.claude/agents/`, or an equivalent an agent tool defines; or
    - the description says the change will write new content that is authoritative text (a skill body, a rule set, or one of the file kinds above), the author's own declaration standing as the trigger.
 
    Do not activate on uncertainty — a plan or task description that names none of these surfaces, and does not declare authoritative-text content, keeps `authoritative-text-rules` inactive. The Scope section is the SSOT for what qualifies; the enumeration above is a quick-reference gloss of its recurring instances, not an exhaustive replacement — an edge surface the gloss omits (a tool's agent-instruction file the gloss did not enumerate) is still admitted when the Scope section admits it. When the description is silent on a file the change will end up carrying, `done-check` catches it at its own Step 2 — activation here is worth the item bodies it loads into main context only when the description gives Step 3 an actual surface to process.
-
-   The description this activation reads is the `todo-check` invocation input. A mid-implementation run whose input does not name the authoritative-text surfaces the current unit will touch — a skill body it will edit, a rule file it will add — must have them named in that input before invoking; activation happens here, and Step 1's later formalization does not re-open it.
 
    When activation fires, verify `<SKILLS_DIR>/authoritative-text-rules/SKILL.md` is present here, on the same terms `quality-list` was verified above: absent halts the same way. A run whose activation did not fire takes no such check.
 
