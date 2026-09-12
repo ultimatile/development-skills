@@ -7,17 +7,28 @@ description: Preflight sweep of quality-list items, and of authoritative-text-ru
 
 Forward-looking preflight against the planned change. This skill is the **runner**; item definitions live in the rule-set SSOTs it applies — `quality-list` for universal code quality, and `authoritative-text-rules` for text the agent executes as instructions. Update the owning SSOT, not this file, when adding or modifying items.
 
-`done-check` asks: "Did the diff satisfy item N?" `todo-check` asks: "What does item N require us to set up so the diff will satisfy it?" On `quality-list` the two apply the same mechanical / contextual lane split (its Item lanes section): mechanical-lane items go to a fresh-context subagent (Step 2), contextual-lane items stay in main context (Step 3). Both also apply `authoritative-text-rules` when the change calls for it — `done-check` on its own diff-path firing rule at its Step 2, `todo-check` on the scope-description firing rule at Step 3 below. There the two runners diverge on receiver: `done-check` spawns a second fresh-context subagent, testing the finished text against the item bodies' literal readings; `todo-check` reads those items in main context so the writer holds them while the plan is still revisable. `done-check`'s independent fresh-context audit is unchanged by this reading here.
+`done-check` asks: "Did the diff satisfy item N?" `todo-check` asks: "What does item N require us to set up so the diff will satisfy it?" On `quality-list` the two apply the same mechanical / contextual lane split (its Item lanes section): mechanical-lane items go to a fresh-context subagent (Step 2), contextual-lane items stay in main context (Step 3). Both also apply `authoritative-text-rules` when the change calls for it — `done-check` decides from the diff at its Step 2, `todo-check` decides from the plan or task description at Step 0 below. There the two runners diverge on receiver: `done-check` spawns a second fresh-context subagent, testing the finished text against the item bodies' literal readings; `todo-check` reads those items in main context so the writer holds them while the plan is still revisable. `done-check`'s independent fresh-context audit is unchanged by this reading here.
+
+The two runners see different inputs — `done-check` inspects the diff's paths, `todo-check` reads the plan or task description — and the difference is not closed by this skill. A file that the eventual diff will carry but that the plan or task description does not name will not activate `authoritative-text-rules` here; `done-check` catches it later. The plan or task description is the author's contract with this preflight — see Step 1 for how a mid-implementation run keeps it complete.
 
 ## Procedure
 
-0. **Resolve the active rule set.** Resolve two absolute paths first, and use them everywhere below: `<SKILLS_DIR>`, the directory holding this skill's own directory, and `<TARGET_ROOT>`, the project this preflight is for (cwd). Every read of a rule file — main context's as much as the subagent's — resolves against `<SKILLS_DIR>`, so both paths are resolved here and carried, never re-derived downstream.
+0. **Resolve the active rule sets.** Resolve two absolute paths first, and use them everywhere below: `<SKILLS_DIR>`, the directory holding this skill's own directory, and `<TARGET_ROOT>`, the project this preflight is for (cwd). Every read of a rule file — main context's as much as the subagent's — resolves against `<SKILLS_DIR>`, so both paths are resolved here and carried, never re-derived downstream.
 
    `<SKILLS_DIR>` is `${CLAUDE_SKILL_DIR}/..`.
 
-   Base items live in `<SKILLS_DIR>/quality-list/SKILL.md`; language-specific addenda at `<SKILLS_DIR>/quality-list/lang-<language>.md` realize them concretely. Verify `<SKILLS_DIR>/quality-list/SKILL.md` is present here, before anything reads it. A rule set that is not there halts, reporting the file looked for and the directory looked in, so that whoever reads the halt can tell a wrong `<SKILLS_DIR>` from a rule set that is not installed.
+   `quality-list` always applies: base items live in `<SKILLS_DIR>/quality-list/SKILL.md`, and language-specific addenda at `<SKILLS_DIR>/quality-list/lang-<language>.md` realize them concretely. Verify `<SKILLS_DIR>/quality-list/SKILL.md` is present here, before anything reads it. A rule set that is not there halts, reporting the file looked for and the directory looked in, so that whoever reads the halt can tell a wrong `<SKILLS_DIR>` from a rule set that is not installed.
 
    Detect language from `<TARGET_ROOT>/CLAUDE.md`'s `Language:` declaration — the target's, never one found beside the rule files; otherwise auto-detect from the extensions of the files the work will likely touch — taken from the plan or task description, since Step 0 runs before Step 1 formalizes the scope (`.rs` → rust, `.cpp`/`.cc`/`.cxx`/`.h`/`.hpp` → cpp, `.py` → python, `.ts`/`.tsx` → typescript, `.go` → go, etc.). Multi-language projects detect every present language; each matching addendum applies. Missing addendum → base rules only for that language (not a concern). Step 0 only **detects** the language(s); it routes nothing. Each consumer — the Step 2 mechanical subagent and the Step 3 contextual pass — loads every matching addendum file itself.
+
+   **Activate `authoritative-text-rules` when the plan or task description shows it applies.** Two independent conditions activate it; either is enough:
+
+   - a path the description names sits under a location the SSOT's Scope section lists as a recurring instance — a skill body, a rule or item definition file, `CLAUDE.md` / `AGENTS.md`, or a file under `.claude/rules/`, `.claude/commands/`, `.claude/agents/` (or the equivalents other tools define); or
+   - the description says the change will write new content that is authoritative text (a skill body, a rule set, or one of the file kinds above), the author's own declaration standing as the trigger.
+
+   Do not activate on uncertainty — a plan or task description that names none of these surfaces, and does not declare authoritative-text content, keeps `authoritative-text-rules` inactive. The Scope section is the SSOT for what qualifies; do not attempt to widen the list here. When the description is silent on a file the change will end up carrying, `done-check` catches it at its own Step 2 — activation here is worth the item bodies it loads into main context only when the description gives Step 3 an actual surface to process.
+
+   When activation fires, verify `<SKILLS_DIR>/authoritative-text-rules/SKILL.md` is present here, on the same terms `quality-list` was verified above: absent halts the same way. A run whose activation did not fire takes no such check.
 
 1. **Describe the planned change.** State in plain terms what the change will do: the files / modules it will touch, the behavior it will change, the public symbols / schemas / contracts it will move, and the invariants it introduces or modifies. Capture what is already decided; leave the rest unstated — an unsettled fact surfaces as a `? unknown` row below, not a guess. State the language(s) Step 0 detected here too, so the subagent applies the same addenda the contextual lane does rather than re-deriving them from a scope description that may name modules without file extensions. **Do not pre-classify the change against individual items** — the subagent (Step 2) and the contextual pass (Step 3) read each item's body and decide applicability themselves; the scope description is a plain account of the change, not a per-item trigger checklist.
 
@@ -32,6 +43,8 @@ Forward-looking preflight against the planned change. This skill is the **runner
    ```
 
    State that this range is **part of the change under preflight**, not pre-existing baseline to reuse from — a helper just added there is a candidate for `duplication-extraction`'s search, not an existing helper the search should call.
+
+   Step 0's rule-set activation reads from this description too, so a mid-implementation run must name authoritative-text surfaces (skill bodies, rule files, agent-instruction files) the earlier units already put on disk when the current unit will touch them or their neighbors. `todo-check` cannot re-derive that from the materialized range alone — the activation contract is with the description, not the tree.
 
 2. **Spawn a fresh-context preflight subagent for the mechanical items.** A fresh context removes the author's blindspot for what the planned scope actually implies, and keeps the item-body rule text out of main context.
 
@@ -120,13 +133,9 @@ Forward-looking preflight against the planned change. This skill is the **runner
    - **⊘ N/A** — the item's own N/A criterion excludes the scope. State why.
    - **? unknown** — the body is read, but applicability turns on a scope fact not yet settled; record the scope check that would decide it.
 
-   **Firing rule for `authoritative-text-rules`.** After processing the `quality-list` contextual items, apply this rule set when Step 1's scope description names a path — or describes new content — that could be text an agent executes as instructions. **Fire when unsure.**
+   **Process `authoritative-text-rules` items when Step 0 activated the rule set.** Read `<SKILLS_DIR>/authoritative-text-rules/SKILL.md`'s Items index; for every item it lists, `Read` its `<SKILLS_DIR>/authoritative-text-rules/items/<slug>.md` body before deciding status. Apply the SSOT's Scope section to Step 1's paths and content descriptions to decide which surfaces qualify — Step 0's activation admitted the rule set on approximate reading; this main-context pass is where each surface is checked against Scope directly, so an activated run whose surfaces all fall outside that Scope section returns ⊘ N/A rows for the whole set. For each item, determine △ active / ⊘ N/A / ? unknown on the same terms as the `quality-list` contextual items above.
 
-   When the firing rule fires, verify `<SKILLS_DIR>/authoritative-text-rules/SKILL.md` is present, on the same terms Step 0 verified `quality-list`: absent halts the same way. A run whose firing rule did not fire takes no such check.
-
-   Then read that SKILL.md's Items index; for every item it lists, `Read` its `<SKILLS_DIR>/authoritative-text-rules/items/<slug>.md` body before deciding status. Apply the SSOT's Scope section to Step 1's paths and content descriptions to decide which surfaces qualify; a fired preview whose surfaces all fall outside that Scope section returns ⊘ N/A rows for the whole set. For each item, determine △ active / ⊘ N/A / ? unknown on the same terms as the `quality-list` contextual items above.
-
-4. **Merge results.** Assemble the table from the mechanical-lane rows the subagent returned, Step 3's `quality-list` contextual rows, and — when Step 3's authoritative-text firing rule fired — Step 3's authoritative-text rows.
+4. **Merge results.** Assemble the table from the mechanical-lane rows the subagent returned, Step 3's `quality-list` contextual rows, and — when Step 0 activated `authoritative-text-rules` — Step 3's authoritative-text rows.
 
    ```
    domain: every item in the `<SKILLS_DIR>/quality-list/SKILL.md` Items index
@@ -155,7 +164,7 @@ Forward-looking preflight against the planned change. This skill is the **runner
 
    A half left `?` at merge time carries its scope check forward to Step 5, so the half's own setup action is not lost behind an active status.
 
-   When Step 3's authoritative-text firing rule fired, append its rows below the `quality-list` rows above, one per item in the `<SKILLS_DIR>/authoritative-text-rules/SKILL.md` Items index, in that index's order. These rows take no coverage check, on the same terms main-context contextual-lane rows take none: main selects them from the index directly, with no return to compare against.
+   When Step 0 activated `authoritative-text-rules`, append its rows below the `quality-list` rows above, one per item in the `<SKILLS_DIR>/authoritative-text-rules/SKILL.md` Items index, in that index's order. These rows take no coverage check, on the same terms main-context contextual-lane rows take none: main selects them from the index directly, with no return to compare against.
 
    If the subagent returned a discrepancy list, adjudicate each: correct the affected row's setup action to match what the subagent found, or — if the scope description was right and the subagent's codebase read was the mistaken side — note that resolution instead rather than rewriting the row.
 
@@ -213,7 +222,7 @@ Forward-looking preflight against the planned change. This skill is the **runner
 
 These are how each item reads in preflight mode — a compressed mnemonic of the lens-shift from the item's audit question to a preflight setup action. A row is **not** the applicability authority and decides nothing: Step 3 reads each item's body (`<SKILLS_DIR>/quality-list/items/<slug>.md` for a `quality-list` contextual item, `<SKILLS_DIR>/authoritative-text-rules/items/<slug>.md` for an authoritative-text one) plus any applicable addendum, and that — with the index as the item set — decides whether it applies. Consult a row for its setup framing once the body has marked the item active.
 
-This list covers the `quality-list` contextual-lane items (and the contextual half of the dual-lane item) that Step 3 processes in main context, and the `authoritative-text-rules` items that Step 3 processes in main context when the firing rule fires. Mechanical-lane `quality-list` items have no row *in this quick reference* (they still get a row in the final preflight table, per Step 4): the subagent never reads this file, so a mnemonic for it would have no consumer.
+This list covers the `quality-list` contextual-lane items (and the contextual half of the dual-lane item) that Step 3 processes in main context, and the `authoritative-text-rules` items that Step 3 processes in main context when Step 0 activated that rule set. Mechanical-lane `quality-list` items have no row *in this quick reference* (they still get a row in the final preflight table, per Step 4): the subagent never reads this file, so a mnemonic for it would have no consumer.
 
 **For `quality-list` items (contextual-lane and the contextual half of the dual-lane item):**
 
@@ -228,7 +237,7 @@ This list covers the `quality-list` contextual-lane items (and the contextual ha
 - **`discovery-surfacing`** — Extract any research plan's `Inconclusive` items into a watch list for the implementation phase.
 - **`ported-code-attribution`** (undeclared-port half) — If research surfaced an external implementation this scope structurally follows but hasn't named, plan the attribution surface now even though no comment names it yet.
 
-**For `authoritative-text-rules` items (when the preview fires):**
+**For `authoritative-text-rules` items (when Step 0 activated that rule set):**
 
 - **`case-space-totality`** — Before writing condition→outcome authoritative text, enumerate the domain axes the rule branches on; plan for each cell to reach exactly one outcome and for mirrored cases to be treated symmetrically or excluded with a reason.
 - **`single-reading`** — Before writing sentences in authoritative text, plan to hold the ambiguity-guard checkpoints during drafting; the item body holds the catalogue.
