@@ -28,6 +28,8 @@ The two runners see different inputs — `done-check` inspects the diff's paths,
 
    Do not activate on uncertainty — a plan or task description that names none of these surfaces, and does not declare authoritative-text content, keeps `authoritative-text-rules` inactive. The Scope section is the SSOT for what qualifies; do not attempt to widen the list here. When the description is silent on a file the change will end up carrying, `done-check` catches it at its own Step 2 — activation here is worth the item bodies it loads into main context only when the description gives Step 3 an actual surface to process.
 
+   The description this activation reads is the `todo-check` invocation input. A mid-implementation run whose input does not name the authoritative-text surfaces the current unit will touch — a skill body it will edit, a rule file it will add — must have them named in that input before invoking; activation happens here, and Step 1's later formalization does not re-open it.
+
    When activation fires, verify `<SKILLS_DIR>/authoritative-text-rules/SKILL.md` is present here, on the same terms `quality-list` was verified above: absent halts the same way. A run whose activation did not fire takes no such check.
 
 1. **Describe the planned change.** State in plain terms what the change will do: the files / modules it will touch, the behavior it will change, the public symbols / schemas / contracts it will move, and the invariants it introduces or modifies. Capture what is already decided; leave the rest unstated — an unsettled fact surfaces as a `? unknown` row below, not a guess. State the language(s) Step 0 detected here too, so the subagent applies the same addenda the contextual lane does rather than re-deriving them from a scope description that may name modules without file extensions. **Do not pre-classify the change against individual items** — the subagent (Step 2) and the contextual pass (Step 3) read each item's body and decide applicability themselves; the scope description is a plain account of the change, not a per-item trigger checklist.
@@ -43,8 +45,6 @@ The two runners see different inputs — `done-check` inspects the diff's paths,
    ```
 
    State that this range is **part of the change under preflight**, not pre-existing baseline to reuse from — a helper just added there is a candidate for `duplication-extraction`'s search, not an existing helper the search should call.
-
-   Step 0's rule-set activation reads from this description too, so a mid-implementation run must name authoritative-text surfaces (skill bodies, rule files, agent-instruction files) the earlier units already put on disk when the current unit will touch them or their neighbors. `todo-check` cannot re-derive that from the materialized range alone — the activation contract is with the description, not the tree.
 
 2. **Spawn a fresh-context preflight subagent for the mechanical items.** A fresh context removes the author's blindspot for what the planned scope actually implies, and keeps the item-body rule text out of main context.
 
