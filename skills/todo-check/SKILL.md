@@ -23,7 +23,7 @@ The two runners see different inputs — `done-check` inspects the diff's paths,
 
    **Activate `authoritative-text-rules` when the plan or task description shows it applies.** Two independent conditions activate it; either is enough:
 
-   - the description names a path that qualifies under the SSOT's Scope section — a skill body, a rule or item definition file, `CLAUDE.md` / `AGENTS.md`, a file under `.claude/rules/`, `.claude/commands/`, `.claude/agents/`, or an equivalent an agent tool defines; or
+   - the description names a path that qualifies under the SSOT's Scope section — a skill body, a rule or item definition file, `CLAUDE.md` / `AGENTS.md`, or a file under `.claude/rules/`, `.claude/commands/`, `.claude/agents/`; or
    - the description says the change will write new content that is authoritative text (a skill body, a rule set, or one of the file kinds above), the author's own declaration standing as the trigger.
 
    Do not activate on uncertainty — a plan or task description that names none of these surfaces, and does not declare authoritative-text content, keeps `authoritative-text-rules` inactive. The `authoritative-text-rules` Scope section is the SSOT for what qualifies; this Step 0 activation reads only the inline gloss above and does not open the SSOT file, so a surface outside the gloss stays inactive here even when Scope would admit it — `done-check` catches such a surface at its own Step 2. Activation here is worth the item bodies it loads into main context only when the description gives Step 3 an actual surface to process.
@@ -239,11 +239,11 @@ This list covers the `quality-list` contextual-lane items (and the contextual ha
 
 **For `authoritative-text-rules` items (when Step 0 activated that rule set):**
 
-- **`case-space-totality`** — Before writing condition→outcome authoritative text, enumerate the domain axes the rule branches on; plan for each cell to reach exactly one outcome and for mirrored cases to be treated symmetrically or excluded with a reason.
-- **`single-reading`** — Before writing sentences in authoritative text, plan to hold the ambiguity-guard checkpoints during drafting; the item body holds the catalogue.
-- **`clause-composition`** — Before editing a clause in a rule set holding more than one unit, plan the inbound + outbound reference sweep; the item body defines how to identify the rule set and derive the search keys.
-- **`executor-fitness`** — Before writing a step that names an executor, list what the step will demand and quote the written definition of the executor's inputs; plan to reconcile any gap before writing the step.
-- **`consumer-closure`** — Before emitting a value or imposing an obligation, freeze the emitted-value / obligation list up front and plan to identify each consuming step or receiver.
+- **`case-space-totality`** — Before adding, modifying, or removing condition→outcome authoritative text, enumerate the domain axes the rule branches on; plan for each cell to reach exactly one outcome and for mirrored cases to be treated symmetrically or excluded with a reason.
+- **`single-reading`** — Before adding, modifying, or removing sentences in authoritative text, plan to hold the ambiguity-guard checkpoints during drafting; the item body holds the catalogue.
+- **`clause-composition`** — Before adding, modifying, or removing a clause in a rule set holding more than one unit, plan the inbound + outbound reference sweep; the item body defines how to identify the rule set and derive the search keys.
+- **`executor-fitness`** — Before adding, modifying, or removing a step that names an executor, list what the step will demand and quote the written definition of the executor's inputs; plan to reconcile any gap before making the change.
+- **`consumer-closure`** — Before adding, modifying, or removing text that emits a value or imposes an obligation, freeze the emitted-value / obligation list up front and plan to identify each consuming step or receiver.
 
 ## Output format
 
