@@ -120,7 +120,7 @@ Forward-looking preflight against the planned change. This skill is the **runner
    - **⊘ N/A** — the item's own N/A criterion excludes the scope. State why.
    - **? unknown** — the body is read, but applicability turns on a scope fact not yet settled; record the scope check that would decide it.
 
-   **Firing rule for `authoritative-text-rules`.** After processing the `quality-list` contextual items, apply this rule set when Step 1's scope description names a path — or describes new content — that could qualify under `authoritative-text-rules`' Scope section. **Fire when unsure.**
+   **Firing rule for `authoritative-text-rules`.** After processing the `quality-list` contextual items, apply this rule set when Step 1's scope description names a path — or describes new content — that could be text an agent executes as instructions. **Fire when unsure.**
 
    When the firing rule fires, verify `<SKILLS_DIR>/authoritative-text-rules/SKILL.md` is present, on the same terms Step 0 verified `quality-list`: absent halts the same way. A run whose firing rule did not fire takes no such check.
 
@@ -211,7 +211,7 @@ Forward-looking preflight against the planned change. This skill is the **runner
 
 ## Preflight framing per item (quick reference)
 
-These are how each item reads in preflight mode — a compressed mnemonic of the lens-shift from the item's audit question to a preflight setup action. A row is **not** the applicability authority and decides nothing: Step 3 reads each item's body (`<SKILLS_DIR>/quality-list/items/<slug>.md` for a `quality-list` item, `<SKILLS_DIR>/authoritative-text-rules/items/<slug>.md` for an authoritative-text one) plus any applicable addendum, and that — with the index as the item set — decides whether it applies. Consult a row for its setup framing once the body has marked the item active.
+These are how each item reads in preflight mode — a compressed mnemonic of the lens-shift from the item's audit question to a preflight setup action. A row is **not** the applicability authority and decides nothing: Step 3 reads each item's body (`<SKILLS_DIR>/quality-list/items/<slug>.md` for a `quality-list` contextual item, `<SKILLS_DIR>/authoritative-text-rules/items/<slug>.md` for an authoritative-text one) plus any applicable addendum, and that — with the index as the item set — decides whether it applies. Consult a row for its setup framing once the body has marked the item active.
 
 This list covers the `quality-list` contextual-lane items (and the contextual half of the dual-lane item) that Step 3 processes in main context, and the `authoritative-text-rules` items that Step 3 processes in main context when the firing rule fires. Mechanical-lane `quality-list` items have no row *in this quick reference* (they still get a row in the final preflight table, per Step 4): the subagent never reads this file, so a mnemonic for it would have no consumer.
 
