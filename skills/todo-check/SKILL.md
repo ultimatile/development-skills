@@ -1,6 +1,6 @@
 ---
 name: todo-check
-description: Preflight sweep of quality-list items, and of authoritative-text-rules when the planned scope calls for it, before or during implementation. Framed as 'what to set up so done-check's rows pass at the end'.
+description: Preflight sweep of quality-list items, and of authoritative-text-rules when the planned scope calls for it, before or during implementation.
 ---
 
 # Todo-Check
