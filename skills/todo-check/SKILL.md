@@ -1,6 +1,6 @@
 ---
 name: todo-check
-description: Preflight sweep of quality-list items, and of authoritative-text-rules when the planned scope calls for it, before or during implementation.
+description: Preflight sweep of quality-list and authoritative-text-rules items before or during implementation.
 ---
 
 # Todo-Check
@@ -13,18 +13,9 @@ Forward-looking preflight against the planned change. This skill is the **runner
 
    `<SKILLS_DIR>` is `${CLAUDE_SKILL_DIR}/..`.
 
-   `quality-list` always applies: base items live in `<SKILLS_DIR>/quality-list/SKILL.md`, and language-specific addenda at `<SKILLS_DIR>/quality-list/lang-<language>.md` realize them concretely. Verify `<SKILLS_DIR>/quality-list/SKILL.md` is present here, before anything reads it. A rule set that is not there halts, reporting the file looked for and the directory looked in, so that whoever reads the halt can tell a wrong `<SKILLS_DIR>` from a rule set that is not installed.
+   The rule sets applied are `quality-list` (base at `<SKILLS_DIR>/quality-list/SKILL.md`, language addenda at `<SKILLS_DIR>/quality-list/lang-<language>.md`) and `authoritative-text-rules` (at `<SKILLS_DIR>/authoritative-text-rules/SKILL.md`). Verify both SKILL.md files are present here before anything reads them. A rule set that is not there halts, reporting the file looked for and the directory looked in.
 
-   Detect language from `<TARGET_ROOT>/CLAUDE.md`'s `Language:` declaration — the target's, never one found beside the rule files; otherwise auto-detect from the extensions of the files the work will likely touch — taken from the plan or task description, since Step 0 runs before Step 1 formalizes the scope (`.rs` → rust, `.cpp`/`.cc`/`.cxx`/`.h`/`.hpp` → cpp, `.py` → python, `.ts`/`.tsx` → typescript, `.go` → go, etc.). Multi-language projects detect every present language; each matching addendum applies. Missing addendum → base rules only for that language (not a concern). Step 0 only **detects** the language(s); it routes nothing. Each consumer — the Step 2 mechanical subagent and the Step 3 contextual pass — loads every matching addendum file itself.
-
-   **Activate `authoritative-text-rules` when the plan or task description shows it applies.** Two independent conditions activate it; either is enough:
-
-   - the description names a path that qualifies under the SSOT's Scope section — a skill body, a rule or item definition file, `CLAUDE.md` / `AGENTS.md`, or a file under `.claude/rules/`, `.claude/commands/`, `.claude/agents/`; or
-   - the description says the change will write new content that is authoritative text (a skill body, a rule set, or one of the file kinds above), the author's own declaration standing as the trigger.
-
-   Do not activate on uncertainty — a plan or task description that names none of these surfaces, and does not declare authoritative-text content, keeps `authoritative-text-rules` inactive. The `authoritative-text-rules` Scope section is the SSOT for what qualifies; this Step 0 activation reads only the inline gloss above and does not open the SSOT file.
-
-   When activation fires, verify `<SKILLS_DIR>/authoritative-text-rules/SKILL.md` is present here, on the same terms `quality-list` was verified above: absent halts the same way. A run whose activation did not fire takes no such check.
+   Detect language from `<TARGET_ROOT>/CLAUDE.md`'s `Language:` declaration — the target's, never one found beside the rule files; otherwise auto-detect from the extensions of the files the work will likely touch, taken from the plan or task description (`.rs` → rust, `.cpp`/`.cc`/`.cxx`/`.h`/`.hpp` → cpp, `.py` → python, `.ts`/`.tsx` → typescript, `.go` → go, etc.). Multi-language projects detect every present language; each matching addendum applies. Missing addendum → base rules only for that language (not a concern). Step 0 only **detects** the language(s); it routes nothing. Each consumer — the Step 2 mechanical subagent and the Step 3 contextual pass — loads every matching addendum file itself.
 
 1. **Describe the planned change.** State in plain terms what the change will do: the files / modules it will touch, the behavior it will change, the public symbols / schemas / contracts it will move, and the invariants it introduces or modifies. Capture what is already decided; leave the rest unstated — an unsettled fact surfaces as a `? unknown` row below, not a guess. State the language(s) Step 0 detected here too, so the subagent applies the same addenda the contextual lane does rather than re-deriving them from a scope description that may name modules without file extensions. **Do not pre-classify the change against individual items** — the subagent (Step 2) and the contextual pass (Step 3) read each item's body and decide applicability themselves; the scope description is a plain account of the change, not a per-item trigger checklist.
 
@@ -125,9 +116,9 @@ Forward-looking preflight against the planned change. This skill is the **runner
    - **⊘ N/A** — the item's own N/A criterion excludes the scope. State why.
    - **? unknown** — the body is read, but applicability turns on a scope fact not yet settled; record the scope check that would decide it.
 
-   **Process `authoritative-text-rules` items when Step 0 activated the rule set.** Read `<SKILLS_DIR>/authoritative-text-rules/SKILL.md`'s Items index; for every item it lists, `Read` its `<SKILLS_DIR>/authoritative-text-rules/items/<slug>.md` body before deciding status. Apply the SSOT's Scope section per-file to Step 1's paths and content descriptions to decide which surfaces qualify — Step 0's activation used only the inline gloss, and this main-context pass consults the full Scope section (which classifies per file, so a path under an admitted directory that is actually a lockfile or script comes out ⊘ N/A). For each item, determine △ active / ⊘ N/A / ? unknown on the same terms as the `quality-list` contextual items above.
+   **Process `authoritative-text-rules` items.** Read `<SKILLS_DIR>/authoritative-text-rules/SKILL.md`'s Scope section and apply it per-file to Step 1's paths and content descriptions. If no surface qualifies, emit five ⊘ N/A rows (one per item in the SSOT's Items index) with reason "no authoritative-text surface in scope", and do not open any item body. If some surface qualifies, read the Items index and each item's `<SKILLS_DIR>/authoritative-text-rules/items/<slug>.md` body, and determine △ active / ⊘ N/A / ? unknown per item on the same terms as the `quality-list` contextual items above.
 
-4. **Merge results.** Assemble the table from the mechanical-lane rows the subagent returned, Step 3's `quality-list` contextual rows, and — when Step 0 activated `authoritative-text-rules` — Step 3's authoritative-text rows.
+4. **Merge results.** Assemble the table from the mechanical-lane rows the subagent returned, Step 3's `quality-list` contextual rows, and Step 3's `authoritative-text-rules` rows.
 
    The block below covers the `quality-list` slice — coverage check and row rendering. The `authoritative-text-rules` slice is a straight append with no coverage check or lane merging; it is stated after the block.
 
@@ -158,7 +149,7 @@ Forward-looking preflight against the planned change. This skill is the **runner
 
    A half left `?` at merge time carries its scope check forward to Step 5, so the half's own setup action is not lost behind an active status.
 
-   When Step 0 activated `authoritative-text-rules`, append its rows below the `quality-list` rows above, one per item in the `<SKILLS_DIR>/authoritative-text-rules/SKILL.md` Items index, in that index's order. These rows take no coverage check, on the same terms main-context contextual-lane rows take none: main selects them from the index directly, with no return to compare against.
+   Append `authoritative-text-rules` rows below the `quality-list` rows above, one per item in the `<SKILLS_DIR>/authoritative-text-rules/SKILL.md` Items index, in that index's order. These rows take no coverage check.
 
    If the subagent returned a discrepancy list, adjudicate each: correct the affected row's setup action to match what the subagent found, or — if the scope description was right and the subagent's codebase read was the mistaken side — note that resolution instead rather than rewriting the row.
 
@@ -216,7 +207,7 @@ Forward-looking preflight against the planned change. This skill is the **runner
 
 A row is **not** the applicability authority and decides nothing: Step 3 reads each item's body (`<SKILLS_DIR>/quality-list/items/<slug>.md` for a `quality-list` contextual item, `<SKILLS_DIR>/authoritative-text-rules/items/<slug>.md` for an authoritative-text one) plus any applicable addendum, and that — with the index as the item set — decides whether it applies. Consult a row for its setup framing once the body has marked the item active.
 
-This list covers the `quality-list` contextual-lane items (and the contextual half of the dual-lane item) that Step 3 processes in main context, and the `authoritative-text-rules` items that Step 3 processes in main context when Step 0 activated that rule set. Mechanical-lane `quality-list` items have no row *in this quick reference* (they still get a row in the final preflight table, per Step 4).
+This list covers the `quality-list` contextual-lane items (and the contextual half of the dual-lane item) that Step 3 processes in main context, and the `authoritative-text-rules` items that Step 3 processes in main context. Mechanical-lane `quality-list` items have no row *in this quick reference* (they still get a row in the final preflight table, per Step 4).
 
 **For `quality-list` items (contextual-lane and the contextual half of the dual-lane item):**
 
@@ -231,7 +222,7 @@ This list covers the `quality-list` contextual-lane items (and the contextual ha
 - **`discovery-surfacing`** — Extract any research plan's `Inconclusive` items into a watch list for the implementation phase.
 - **`ported-code-attribution`** (undeclared-port half) — If research surfaced an external implementation this scope structurally follows but hasn't named, plan the attribution surface now even though no comment names it yet.
 
-**For `authoritative-text-rules` items (when Step 0 activated that rule set):**
+**For `authoritative-text-rules` items:**
 
 - **`case-space-totality`** — Before adding, modifying, or removing condition→outcome authoritative text, enumerate the domain axes the rule branches on; plan for each cell to reach exactly one outcome and for mirrored cases to be treated symmetrically or excluded with a reason.
 - **`single-reading`** — Before adding, modifying, or removing sentences in authoritative text, plan to hold the ambiguity-guard checkpoints during drafting; the item body holds the catalogue.
