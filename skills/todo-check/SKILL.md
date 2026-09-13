@@ -205,7 +205,7 @@ Forward-looking preflight against the planned change. This skill is the **runner
 
 ## Preflight framing per item (quick reference)
 
-A row is **not** the applicability authority and decides nothing: Step 3 reads each item's body (`<SKILLS_DIR>/quality-list/items/<slug>.md` for a `quality-list` contextual item, `<SKILLS_DIR>/authoritative-text-rules/items/<slug>.md` for an authoritative-text one) plus any applicable addendum, and that — with the index as the item set — decides whether it applies. Consult a row for its setup framing once the body has marked the item active.
+A row is **not** the applicability authority and decides nothing: Step 3 reads each item's body (`<SKILLS_DIR>/quality-list/items/<slug>.md` for a `quality-list` contextual item; `<SKILLS_DIR>/authoritative-text-rules/items/<slug>.md` for an `authoritative-text-rules` item only when Scope admits at least one file in the planned change) plus any applicable addendum, and that — with the index as the item set — decides whether it applies. Consult a row for its setup framing once the body has marked the item active.
 
 This list covers the `quality-list` contextual-lane items (and the contextual half of the dual-lane item) that Step 3 processes in main context, and the `authoritative-text-rules` items that Step 3 processes in main context. Mechanical-lane `quality-list` items have no row *in this quick reference* (they still get a row in the final preflight table, per Step 4).
 
@@ -224,11 +224,11 @@ This list covers the `quality-list` contextual-lane items (and the contextual ha
 
 **For `authoritative-text-rules` items:**
 
-- **`case-space-totality`** — Before adding, modifying, or removing condition→outcome authoritative text, enumerate the domain axes the rule branches on; plan for each cell to reach exactly one outcome and for mirrored cases to be treated symmetrically or excluded with a reason.
-- **`single-reading`** — Before adding, modifying, or removing sentences in authoritative text, plan to hold the ambiguity-guard checkpoints during drafting; the item body holds the catalogue.
-- **`clause-composition`** — Before adding, modifying, or removing a clause in a rule set holding more than one unit, plan the inbound + outbound reference sweep; the item body defines how to identify the rule set and derive the search keys.
-- **`executor-fitness`** — Before adding, modifying, or removing a step that names an executor, list what the step will demand and quote the written definition of the executor's inputs; plan to reconcile any gap before making the change.
-- **`consumer-closure`** — Before adding, modifying, or removing text that emits a value or imposes an obligation, freeze the emitted-value / obligation list up front and plan to identify each consuming step or receiver.
+- **`case-space-totality`** — Enumerate the domain axes before writing condition→outcome authoritative text.
+- **`single-reading`** — Hold the item body's ambiguity-guard checkpoints while drafting sentences in authoritative text.
+- **`clause-composition`** — Run the inbound + outbound reference sweep before editing a clause in a rule set holding more than one unit.
+- **`executor-fitness`** — Quote the executor's written inputs against the step's demands before writing a step that names an executor.
+- **`consumer-closure`** — Freeze the emitted-value / obligation list before writing text that emits a value or imposes an obligation.
 
 ## Output format
 
