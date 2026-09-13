@@ -205,11 +205,9 @@ Forward-looking preflight against the planned change. This skill is the **runner
 
 ## Preflight framing per item (quick reference)
 
-A row is **not** the applicability authority and decides nothing: Step 3 reads each item's body (`<SKILLS_DIR>/quality-list/items/<slug>.md` for a `quality-list` contextual item; `<SKILLS_DIR>/authoritative-text-rules/items/<slug>.md` for an `authoritative-text-rules` item only when Scope admits at least one file in the planned change) plus any applicable addendum, and that — with the index as the item set — decides whether it applies. Consult a row for its setup framing once the body has marked the item active.
+A row is **not** the applicability authority and decides nothing: Step 3 reads each `<SKILLS_DIR>/quality-list/items/<slug>.md` body plus any applicable addendum, and that — with the index as the item set — decides whether it applies. Consult a row for its setup framing once the body has marked the item active.
 
-This list covers the `quality-list` contextual-lane items (and the contextual half of the dual-lane item) that Step 3 processes in main context, and the `authoritative-text-rules` items that Step 3 processes in main context. Mechanical-lane `quality-list` items have no row *in this quick reference* (they still get a row in the final preflight table, per Step 4).
-
-**For `quality-list` items (contextual-lane and the contextual half of the dual-lane item):**
+This list covers the `quality-list` contextual-lane items (and the contextual half of the dual-lane item) that Step 3 processes in main context. Mechanical-lane `quality-list` items have no row *in this quick reference* (they still get a row in the final preflight table, per Step 4).
 
 - **`invariant-derivation`** — Before patching, derive the full necessary-and-sufficient condition from first principles. List it in the plan.
 - **`purpose-verification`** — Identify the input that exposes the purpose end-to-end. Plan to exercise it before declaring done.
@@ -221,14 +219,6 @@ This list covers the `quality-list` contextual-lane items (and the contextual ha
 - **`docstring-drift`** — List the docstring / comment / README surfaces describing any behavior the change alters, and plan a cold-read re-verification of each against the new behavior, with an execution probe where the behavior becomes library-owned.
 - **`discovery-surfacing`** — Extract any research plan's `Inconclusive` items into a watch list for the implementation phase.
 - **`ported-code-attribution`** (undeclared-port half) — If research surfaced an external implementation this scope structurally follows but hasn't named, plan the attribution surface now even though no comment names it yet.
-
-**For `authoritative-text-rules` items:**
-
-- **`case-space-totality`** — Enumerate the domain axes before writing condition→outcome authoritative text.
-- **`single-reading`** — Hold the item body's ambiguity-guard checkpoints while drafting sentences in authoritative text.
-- **`clause-composition`** — Run the inbound + outbound reference sweep before editing a clause in a rule set holding more than one unit.
-- **`executor-fitness`** — Quote the executor's written inputs against the step's demands before writing a step that names an executor.
-- **`consumer-closure`** — Freeze the emitted-value / obligation list before writing text that emits a value or imposes an obligation.
 
 ## Output format
 
