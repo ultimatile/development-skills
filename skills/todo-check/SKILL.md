@@ -1,27 +1,25 @@
 ---
 name: todo-check
-description: Preflight sweep of quality-list items before or during implementation, framed as 'what to set up so done-check's quality-list rows pass at the end'. Dual of done-check on that rule set.
+description: Preflight sweep of quality-list and authoritative-text-rules items before or during implementation.
 ---
 
 # Todo-Check
 
-Forward-looking preflight against the planned change. Item definitions live in `quality-list`; this skill is the **runner**. Update `quality-list`, not this file, when adding or modifying items.
-
-`done-check` asks: "Did the diff satisfy item N?" `todo-check` asks: "What does item N require us to set up so the diff will satisfy it?" On `quality-list` the two apply the same mechanical / contextual lane split (its Item lanes section): mechanical-lane items go to a fresh-context subagent (Step 2), contextual-lane items stay in main context (Step 3). The duality stops at that rule set — `done-check` also applies `authoritative-text-rules` when the diff calls for it, and this preflight does not, so a clean preflight does not by itself predict a clean audit.
+Forward-looking preflight against the planned change. This skill is the **runner**; item definitions live in the rule-set SSOTs it applies — `quality-list` for universal code quality, and `authoritative-text-rules` for text the agent executes as instructions. Update the owning SSOT, not this file, when adding or modifying items.
 
 ## Procedure
 
-0. **Resolve the active rule set.** Resolve two absolute paths first, and use them everywhere below: `<SKILLS_DIR>`, the directory holding this skill's own directory, and `<TARGET_ROOT>`, the project this preflight is for (cwd). Every read of a rule file — main context's as much as the subagent's — resolves against `<SKILLS_DIR>`, so both paths are resolved here and carried, never re-derived downstream.
+0. **Resolve the active rule sets.** Resolve two absolute paths first, and use them everywhere below: `<SKILLS_DIR>`, the directory holding this skill's own directory, and `<TARGET_ROOT>`, the project this preflight is for (cwd). Every read of a rule file — main context's as much as the subagent's — resolves against `<SKILLS_DIR>`, so both paths are resolved here and carried, never re-derived downstream.
 
    `<SKILLS_DIR>` is `${CLAUDE_SKILL_DIR}/..`.
 
-   Base items live in `<SKILLS_DIR>/quality-list/SKILL.md`; language-specific addenda at `<SKILLS_DIR>/quality-list/lang-<language>.md` realize them concretely. Verify `<SKILLS_DIR>/quality-list/SKILL.md` is present here, before anything reads it. A rule set that is not there halts, reporting the file looked for and the directory looked in, so that whoever reads the halt can tell a wrong `<SKILLS_DIR>` from a rule set that is not installed.
+   The rule sets applied are `quality-list` (base at `<SKILLS_DIR>/quality-list/SKILL.md`, language addenda at `<SKILLS_DIR>/quality-list/lang-<language>.md`) and `authoritative-text-rules` (at `<SKILLS_DIR>/authoritative-text-rules/SKILL.md`). Verify both SKILL.md files are present here before anything reads them. A rule set that is not there halts, reporting the file looked for and the directory looked in.
 
-   Detect language from `<TARGET_ROOT>/CLAUDE.md`'s `Language:` declaration — the target's, never one found beside the rule files; otherwise auto-detect from the extensions of the files the work will likely touch — taken from the plan or task description, since Step 0 runs before Step 1 formalizes the scope (`.rs` → rust, `.cpp`/`.cc`/`.cxx`/`.h`/`.hpp` → cpp, `.py` → python, `.ts`/`.tsx` → typescript, `.go` → go, etc.). Multi-language projects detect every present language; each matching addendum applies. Missing addendum → base rules only for that language (not a concern). Step 0 only **detects** the language(s); it routes nothing. Each consumer — the Step 2 mechanical subagent and the Step 3 contextual pass — loads every matching addendum file itself.
+   Detect language from `<TARGET_ROOT>/CLAUDE.md`'s `Language:` declaration — the target's, never one found beside the rule files; otherwise auto-detect from the extensions of the files the work will likely touch, taken from the plan or task description (`.rs` → rust, `.cpp`/`.cc`/`.cxx`/`.h`/`.hpp` → cpp, `.py` → python, `.ts`/`.tsx` → typescript, `.go` → go, etc.). Multi-language projects detect every present language; each matching addendum applies. Missing addendum → base rules only for that language (not a concern). Step 0 only **detects** the language(s); it routes nothing. Each consumer — the Step 2 mechanical subagent and the Step 3 contextual pass — loads every matching addendum file itself.
 
 1. **Describe the planned change.** State in plain terms what the change will do: the files / modules it will touch, the behavior it will change, the public symbols / schemas / contracts it will move, and the invariants it introduces or modifies. Capture what is already decided; leave the rest unstated — an unsettled fact surfaces as a `? unknown` row below, not a guess. State the language(s) Step 0 detected here too, so the subagent applies the same addenda the contextual lane does rather than re-deriving them from a scope description that may name modules without file extensions. **Do not pre-classify the change against individual items** — the subagent (Step 2) and the contextual pass (Step 3) read each item's body and decide applicability themselves; the scope description is a plain account of the change, not a per-item trigger checklist.
 
-   `todo-check` also runs mid-implementation. When earlier units are already materialized on disk, name their inspectable revision range in the scope description too, so the subagent reads the real code instead of treating the tree as unwritten. Name a **committed** range only when earlier units are already committed; it takes a **root** on `diff-root`'s consumer contract, halt included, and that skill's per-command conversion. A run with no committed units names no such range and so needs no root — a preflight runs against work that does not exist yet, and its scope description, not the repository, is what says how much of it is written. `done-check` has no equivalent case: it audits work that exists, and whether that work includes commits is what a root decides rather than something the audit may assume. The working-tree commands below still apply in that case.
+   `todo-check` also runs mid-implementation. When earlier units are already materialized on disk, name their inspectable revision range in the scope description too, so the subagent reads the real code instead of treating the tree as unwritten. Name a **committed** range only when earlier units are already committed; it takes a **root** on `diff-root`'s consumer contract, halt included, and that skill's per-command conversion. A run with no committed units names no such range and so needs no root. The working-tree commands below still apply in that case.
 
    ```bash
    git log --oneline <root-rev>..HEAD           # committed units
@@ -33,11 +31,9 @@ Forward-looking preflight against the planned change. Item definitions live in `
 
    State that this range is **part of the change under preflight**, not pre-existing baseline to reuse from — a helper just added there is a candidate for `duplication-extraction`'s search, not an existing helper the search should call.
 
-2. **Spawn a fresh-context preflight subagent for the mechanical items.** A fresh context removes the author's blindspot for what the planned scope actually implies, and keeps the item-body rule text out of main context.
+2. **Spawn a fresh-context preflight subagent for the mechanical items.**
 
    **Main context MUST NOT load a purely-mechanical item's body** (the dual-lane `ported-code-attribution` body is the one exception, read in Step 3 for its contextual half). The subagent reads the index and those bodies in its own fresh context — it derives the mechanical-lane item set from the index itself; main only composes the prompt (scope description + the resolved paths) and dispatches.
-
-   The prompt carries the two absolute paths Step 0 resolved; the subagent needs both.
 
    Use the `Agent` tool with `subagent_type: "general-purpose"` and a prompt of the following shape:
 
@@ -112,15 +108,19 @@ Forward-looking preflight against the planned change. Item definitions live in `
 
    Start Step 3 immediately rather than waiting; the two run in parallel. Block on the subagent's return once you reach Step 4.
 
-3. **Process the contextual items in main context.** Read `<SKILLS_DIR>/quality-list/SKILL.md`'s Items index and select every item whose lane is `contextual`, including the contextual half of dual-lane items — `ported-code-attribution`'s undeclared-port signal is main's job because it needs the conversation / research history the subagent lacks. These need plan / intent / review history, or command-execution planning against the working tree.
+3. **Process the contextual items in main context.** Read `<SKILLS_DIR>/quality-list/SKILL.md`'s Items index and select every item whose lane is `contextual`, including the contextual half of dual-lane items — `ported-code-attribution`'s undeclared-port signal is main's job.
 
-   For each selected contextual item, `Read` its `<SKILLS_DIR>/quality-list/items/<slug>.md` body — plus every `lang-<lang>.md` addendum section for a language Step 0 detected, self-loaded here — before deciding its status. Read only the contextual-lane bodies — plus `ported-code-attribution`'s own body, which the undeclared-port half is decided from even though the item is index-tagged `mechanical (+ contextual half)` — not a purely mechanical-lane item's body. For each, determine one of:
+   For each selected contextual item, `Read` its `<SKILLS_DIR>/quality-list/items/<slug>.md` body — plus every `lang-<lang>.md` addendum section for a language Step 0 detected, self-loaded here — before deciding its status. From `quality-list`, read only the contextual-lane bodies — plus `ported-code-attribution`'s own body, which the undeclared-port half is decided from even though the item is index-tagged `mechanical (+ contextual half)` — not a purely mechanical-lane item's body. For each, determine one of:
 
    - **△ active** — this item will apply to the finished diff; record the concrete setup action to do *now* (fixture variants, guard locations, paired-artifact surfaces, probes to thread through).
    - **⊘ N/A** — the item's own N/A criterion excludes the scope. State why.
    - **? unknown** — the body is read, but applicability turns on a scope fact not yet settled; record the scope check that would decide it.
 
-4. **Merge results.** Integrate the mechanical-lane rows the subagent returned with the contextual-lane rows (Step 3) into a single table.
+   **Process `authoritative-text-rules` items.** Read `<SKILLS_DIR>/authoritative-text-rules/SKILL.md`'s Scope section and its Items index; then apply Scope per-file to Step 1's paths and content descriptions. When Step 1's description does not settle whether a named file qualifies, treat that file as not qualifying here. If no file qualifies, emit an ⊘ N/A row per item in the Items index with reason "no authoritative-text surface in scope", and do not open any item body. If some file qualifies, read each item's `<SKILLS_DIR>/authoritative-text-rules/items/<slug>.md` body and determine △ active / ⊘ N/A / ? unknown per item on the same terms as the `quality-list` contextual items above.
+
+4. **Merge results.** Assemble the table from the mechanical-lane rows the subagent returned, Step 3's `quality-list` contextual rows, and Step 3's `authoritative-text-rules` rows.
+
+   The block below covers the `quality-list` slice — coverage check and row rendering. The `authoritative-text-rules` slice is a straight append with no coverage check or lane merging; it is stated after the block.
 
    ```
    domain: every item in the `<SKILLS_DIR>/quality-list/SKILL.md` Items index
@@ -149,17 +149,19 @@ Forward-looking preflight against the planned change. Item definitions live in `
 
    A half left `?` at merge time carries its scope check forward to Step 5, so the half's own setup action is not lost behind an active status.
 
+   Append `authoritative-text-rules` rows below the `quality-list` rows above, one per item in the `<SKILLS_DIR>/authoritative-text-rules/SKILL.md` Items index, in that index's order. These rows take no coverage check.
+
    If the subagent returned a discrepancy list, adjudicate each: correct the affected row's setup action to match what the subagent found, or — if the scope description was right and the subagent's codebase read was the mistaken side — note that resolution instead rather than rewriting the row.
 
 5. **Resolve every `?` before declaring preflight done.**
 
    ```
-   domain: every unsettled scope check — the one behind a single-lane `?`
-           row, and one per unsettled half of any dual-lane row,
-           which can therefore carry two. Each check belongs to exactly
-           one lane; settle them one at a time.
+   domain: every unsettled scope check — the one behind a `?` row that
+           is not a dual-lane row, and one per unsettled half of any
+           dual-lane row, which can therefore carry two. Each check
+           has a single settlement path; settle them one at a time.
 
-   pass 1 — settle the scope fact, by the lane of the check being settled:
+   pass 1 — settle the scope fact, by the row type of the check being settled:
      mechanical lane, and the subagent
      stated a verdict per answer to its
      scope check                          → settle the fact; read the
@@ -167,11 +169,13 @@ Forward-looking preflight against the planned change. Item definitions live in `
                                             settled answer is not one it
                                             enumerated, take the arm below
      mechanical lane, otherwise           → narrowed re-dispatch (below)
-     contextual lane                      → settle the scope check Step 3
+     contextual lane, or an
+     authoritative-text row               → settle the scope check Step 3
                                             recorded, in main context
 
    pass 2 — record the outcome:
-     settled, single-lane `?` row         → △ with a concrete setup action
+     settled, `?` row that is not a
+     dual-lane row                        → △ with a concrete setup action
                                           | ⊘ with a reason
      settled, a half of a dual-lane row   → add that half's own setup action
                                             to the row's Setup action cell,
@@ -201,9 +205,9 @@ Forward-looking preflight against the planned change. Item definitions live in `
 
 ## Preflight framing per item (quick reference)
 
-These are how each `quality-list` item reads in preflight mode — a compressed mnemonic of the lens-shift from the item's audit question to a preflight setup action. A row is **not** the applicability authority and decides nothing: Step 3 reads each contextual item's body (`<SKILLS_DIR>/quality-list/items/<slug>.md`) plus any applicable addendum, and that — with the index as the item set — decides whether it applies. Consult a row for its setup framing once the body has marked the item active.
+A row is **not** the applicability authority and decides nothing: Step 3 reads each `<SKILLS_DIR>/quality-list/items/<slug>.md` body plus any applicable addendum, and that — with the index as the item set — decides whether it applies. Consult a row for its setup framing once the body has marked the item active.
 
-This list covers only the contextual-lane items (and the contextual half of the dual-lane item) that Step 3 processes. Mechanical-lane items have no row *in this quick reference* (they still get a row in the final preflight table, per Step 4): the subagent never reads this file, so a mnemonic for it would have no consumer.
+This list covers the `quality-list` contextual-lane items (and the contextual half of the dual-lane item) that Step 3 processes in main context. Mechanical-lane `quality-list` items have no row *in this quick reference* (they still get a row in the final preflight table, per Step 4).
 
 - **`invariant-derivation`** — Before patching, derive the full necessary-and-sufficient condition from first principles. List it in the plan.
 - **`purpose-verification`** — Identify the input that exposes the purpose end-to-end. Plan to exercise it before declaring done.
@@ -232,4 +236,4 @@ preflight: <task / unit description>
 | discovery-surfacing           | △ active | watch: inconclusive[1] probe at <site>; branches X/Y   |
 ```
 
-Emit one row per item in the `<SKILLS_DIR>/quality-list/SKILL.md` Items index, in index order — the rows above illustrate the format and the status vocabulary (△ active / ⊘ N/A), not the full set. `? unknown` is a working state that Step 5 resolves, so it never appears in the final table. Only a preflight that reaches Step 6 emits a table at all; every halt above ends it without one, however many such halts the steps above come to hold. The table merges the mechanical-lane rows (Step 2's subagent) with Step 3's contextual-lane rows, per Step 4. Hand the △ rows forward as the implementation setup.
+The table Step 4 assembled is the report. The rows above illustrate the format and the status vocabulary (△ active / ⊘ N/A), not the full set. `? unknown` is a working state that Step 5 resolves, so it never appears in the final table. Only a preflight that reaches Step 6 emits a table at all; every halt above ends it without one, however many such halts the steps above come to hold. Hand the △ rows forward as the implementation setup.

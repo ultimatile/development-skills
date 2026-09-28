@@ -43,7 +43,7 @@ The **root** — the ref this change is measured from — is an input, supplied 
 
 ### 3.0 Preflight via todo-check
 
-Before any code change, invoke `todo-check` against the plan, passing the root stated above, to extract the active `quality-list` items and their setup actions for this work. `todo-check` covers that rule set only; the `done-check` at Step 4 below may apply a second rule set on top of it, and nothing previews those items here. Hand the resulting △ rows to `quaere-execution`'s Plan step so the unit checks already include them. A preflight that halts emits no table at all, so there are no △ rows to hand on; it has surfaced something to the user, and the unit does not start. Re-invoke `todo-check` between units when the next unit changes the active item set (e.g., it introduces a new public API → `impact-verification` and `paired-artifact-drift` become active).
+Before any implementation change, invoke `todo-check` against the plan, passing the root stated above, to extract the active preflight items and their setup actions for this work. Hand the resulting △ rows to `quaere-execution`'s Plan step so the unit checks already include them. A preflight that halts emits no table at all, so there are no △ rows to hand on; it has surfaced something to the user, and the unit does not start. Re-invoke `todo-check` between units when the next unit changes the active item set (e.g., it introduces a new public API → `impact-verification` and `paired-artifact-drift` become active). A file the diff will carry but the plan does not name has no preflight setup row here; the Step 4 `done-check` catches it against the diff.
 
 ### 3.0.1 Pre-commit hook recall
 
@@ -67,7 +67,7 @@ Make recall deliberate once per session.
 2. For each entry whose one-line description plausibly intersects a unit in the Step 2 checklist, open and read it.
 3. Scope filter: entries the unit's description does not plausibly invoke are not active.
 
-Output: a short list of active memory rules, threaded into per-unit checks alongside `todo-check`'s `quality-list` items. A unit violating an active memory rule is a discovery-contract violation.
+Output: a short list of active memory rules, threaded into per-unit checks alongside `todo-check`'s active items. A unit violating an active memory rule is a discovery-contract violation.
 
 ### 3.0.3 Project documentation recall
 
@@ -119,7 +119,7 @@ Procedure when substituting:
 
 ### 3.3 Quality items during Do / Study
 
-Substantive rules for guards, fixtures, docstring consistency, textual drift, naming-as-claim, and plan-vs-actual reconciliation live in `quality-list`. Honor whichever items Step 3.0's `todo-check` marked active for the current unit. The wrapper-specific gates (3.2 / 3.2.1 / 3.2.2 above) layer on top.
+Substantive rules for guards, fixtures, docstring consistency, textual drift, naming-as-claim, and plan-vs-actual reconciliation live in the rule sets `todo-check` applies. Honor whichever items Step 3.0's `todo-check` marked active for the current unit. The wrapper-specific gates (3.2 / 3.2.1 / 3.2.2 above) layer on top.
 
 ## Step 4 — Run done-check
 
