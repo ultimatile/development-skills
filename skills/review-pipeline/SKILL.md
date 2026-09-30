@@ -34,9 +34,9 @@ What binds this phase is that the audit closing it saw the diff that proceeds â€
 ## Phase 0.5: Claude code-review gate
 
 1. Run `/stage-commit-push`.
-2. Run `/code-review-gate` against the current diff, passing the root stated at pipeline entry, the absolute path of the working tree step 1 ran in as the review tree, and `high` for a large or risky diff, `medium` otherwise. The gate skill owns effort semantics, the lane chain, lane-failure handling, and exhaustion.
+2. Run `/code-review-gate` against the current diff, passing the root stated at pipeline entry, the absolute path of the working tree step 1 ran in as the review tree, and an effort chosen on the gate's terms. The gate skill owns effort semantics, the lane chain, lane-failure handling, and exhaustion.
 3. Triage the output â€” classify each finding under the `finding-triage` SSOT dispositions.
-4. If actionable findings exist, apply the **fix-loop substeps** (see Rules), re-running `/code-review-gate` with the review tree and effort step 2 passed. Repeat until no actionable findings remain.
+4. If actionable findings exist, apply the **fix-loop substeps** (see Rules), re-running `/code-review-gate` with the inputs step 2 passed. Repeat until no actionable findings remain.
 
 Step 4 gives this gate the same property Phase 0 has: the review closing it saw the diff that proceeds.
 
