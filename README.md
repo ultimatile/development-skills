@@ -38,7 +38,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | `diff-root` | Single source of truth for the diff root — the ref a change is measured from. Holds the consumer contract, where the root comes from, and the per-command range conversion. Root-using skills and their callers apply this definition by reference. |
 | `codex-review` | Run OpenAI Codex review with triage before PR creation |
 | `copilot-review` | Create PR with GitHub Copilot review, poll for results, triage |
-| `code-review-gate` | Run the built-in `/code-review` through a fallback lane chain when the Skill tool cannot invoke it directly; used by `review-pipeline` at Phase 0.5 |
+| `code-review-gate` | Run the built-in `/code-review` through a fallback lane chain; used by `review-pipeline` at Phase 0.5 |
 | `review-pipeline` | Orchestrator — runs the full flow from local changes to reviewed PR |
 
 ### End-to-end composite
