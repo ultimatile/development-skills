@@ -12,7 +12,9 @@ The caller supplies two inputs:
 - **effort** — `medium` by default, `high` for a large or risky diff, held fixed across a PR's iterations.
 - **root** — the ref the change under review is measured from, supplied on `diff-root`'s consumer contract. Apply that contract here, halt included.
 
-`/code-review` reads the working tree (committed-on-branch + staged + unstaged + untracked). That is what it covers, not which base its committed half is measured against: Lanes 1 and 2 leave that base to the built-in's own inference.
+The **gate scope** is what every lane reviews: the branch's committed diff against the root, by `diff-root`'s per-command conversion (`git diff <root-rev>...HEAD`, after that conversion's refresh), plus uncommitted changes (`git diff HEAD`), plus untracked files (`git ls-files --others --exclude-standard`).
+
+When all three parts are empty, halt before entering any lane and surface to the user that the gate scope is empty. This is neither a lane failure nor exhaustion.
 
 ## Output validity
 
@@ -22,13 +24,11 @@ A genuine `/code-review` run engages with the diff and returns one of two things
 
 ## Lane chain
 
-**The root selects the chain.** Read the default branch as `diff-root` directs; it comes back bare, so it compares with `<root>` directly. The chain is Lanes 1, 2, 3 when the two names are equal; otherwise the chain is Lane 3 alone, and Lanes 1 and 2 are not in it, so they are neither entered nor abandoned. Test names for equality; do not substitute an ancestry test.
+The chain is Lanes 1, 2, 3, in that order. Use the first lane in the chain that produces a valid review. On lane failure, retry the same lane once — a bare retry only helps a cause that clears on its own (network blip, cold start). When the failure names a reset condition an immediate retry cannot satisfy (a session or model-usage limit with a reset time, an announced outage), skip the retry. After the failed retry or the skip, abandon the lane for the rest of this PR's iterations and advance to the next lane.
 
-Use the first lane in the chain that produces a valid review. On lane failure, retry the same lane once — a bare retry only helps a cause that clears on its own (network blip, cold start). When the failure names a reset condition an immediate retry cannot satisfy (a session or model-usage limit with a reset time, an announced outage), skip the retry. After the failed retry or the skip, abandon the lane for the rest of this PR's iterations and advance to the next lane.
-
-- **Lane 1 — headless.** From the repo root, via Bash with a 10-minute timeout: `claude -p --model opus "/code-review <effort>" --output-format text`, capturing stdout as the review output. `--model opus` is pinned so the review — and the finder subagents, which inherit the session model — does not run on whatever small CLI-default model is set. Skip this lane — its abandonment, no retry — when the user has announced that the billing watch in ultimatile/development-skills#117 has fired (`claude -p` no longer draws from the subscription pool).
-- **Lane 2 — user gate.** Pause and ask the user to run `/code-review <effort>` and report the output. An explicit decline abandons the lane without retry; the reported output is judged by Output validity like any lane's.
-- **Lane 3 — subagent.** Spawn a fresh-context subagent. Give it the full gate scope: the branch's committed diff against the root, by `diff-root`'s per-command conversion (`git diff <root-rev>...HEAD`), plus uncommitted changes (`git diff HEAD`), plus the contents of untracked files (list them with `git ls-files --others --exclude-standard`, then read each). Instruct it to review adversarially for bugs, contract drift, and quality issues at the caller's effort (`medium` = standard pass; `high` = exhaustive per-hunk pass), and to return findings as `file:line — description — severity` or an explicit clean verdict.
+- **Lane 1 — headless.** From the repo root, via Bash with a 10-minute timeout: `claude -p --model opus "/code-review <effort> <root-rev>...HEAD" --output-format text`, capturing stdout as the review output. `--model opus` is pinned so the review — and the finder subagents, which inherit the session model — does not run on whatever small CLI-default model is set. Skip this lane — its abandonment, no retry — when the user has announced that the billing watch in ultimatile/development-skills#117 has fired (`claude -p` no longer draws from the subscription pool).
+- **Lane 2 — user gate.** Pause and ask the user to run `/code-review <effort> <root-rev>...HEAD`, with both substituted, and report the output. An explicit decline abandons the lane without retry; the reported output is judged by Output validity like any lane's.
+- **Lane 3 — subagent.** Spawn a fresh-context subagent. Give it the gate scope, with the contents of each untracked file read in. Instruct it to review adversarially for bugs, contract drift, and quality issues at the caller's effort (`medium` = standard pass; `high` = exhaustive per-hunk pass), and to return findings as `file:line — description — severity` or an explicit clean verdict.
 
 ## Exhaustion
 
