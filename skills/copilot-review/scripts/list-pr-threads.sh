@@ -16,6 +16,8 @@
 #     "resolved": <bool>,
 #     "outdated": <bool>,         # diff has moved past this hunk
 #     "reply_count": <int>,       # number of comments after the head
+#     "last_reply_body": <str|null>,  # body of the last fetched comment after
+#                                 # the head; null when reply_count is 0
 #     "head_author": <str>,
 #     "head_body_excerpt": <str>  # first 120 chars of head body
 #   }
@@ -110,6 +112,7 @@ gh api graphql \
         resolved: .isResolved,
         outdated: .isOutdated,
         reply_count: ((.comments.nodes | length) - 1),
+        last_reply_body: (if (.comments.nodes | length) > 1 then .comments.nodes[-1].body else null end),
         head_author: .comments.nodes[0].author.login,
         head_body_excerpt: (.comments.nodes[0].body | .[0:120])
       }

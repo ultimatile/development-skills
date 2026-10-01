@@ -84,7 +84,7 @@ poll_for_review() {
             # Filter inline comments to only those from the latest review
             comments=$(
                 gh api "repos/$repo/pulls/$pr_number/comments" \
-                    --jq "[.[] | select(.user.login == \"Copilot\" and .pull_request_review_id == ${latest_review_id})] | .[] | \"\\(.path):\\(.line)\\t\\(.body)\"" \
+                    --jq "[.[] | select(.user.login == \"Copilot\" and .pull_request_review_id == ${latest_review_id})] | .[] | \"\\(.id)\\t\\(.path):\\(.line)\\t\\(.body)\"" \
                     2>/dev/null
             ) || true
 
