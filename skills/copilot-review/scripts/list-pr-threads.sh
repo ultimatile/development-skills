@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
-# List PR inline review threads as JSONL, with optional filters for
-# resolved state, reply state, and head author.
+# List PR inline review threads as JSONL, filtered by head author.
 #
 # Default: only threads whose head author is `copilot-pull-request-reviewer`.
 # Override with `--author <login>` (exact match).
 #
 # Usage:
-#   ./list-pr-threads.sh OWNER/REPO PR [--unresolved] [--unreplied] [--author <login>]
+#   ./list-pr-threads.sh OWNER/REPO PR [--author <login>]
 #
 # Output (one JSON object per line):
 #   {
@@ -33,15 +32,11 @@ usage() {
   exit "${1:-0}"
 }
 
-unresolved=false
-unreplied=false
 author="copilot-pull-request-reviewer"
 positional=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --unresolved) unresolved=true; shift ;;
-    --unreplied)  unreplied=true;  shift ;;
     --author)
       [[ $# -ge 2 ]] || { echo "error: --author needs a value" >&2; exit 2; }
       author="$2"; shift 2
@@ -99,11 +94,7 @@ gh api graphql \
   -F pr="$pr" \
   --jq "
     .data.repository.pullRequest.reviewThreads.nodes
-    | map(select(
-        (.comments.nodes[0].author.login == \"$author\")
-        and (if $unresolved then (.isResolved | not) else true end)
-        and (if $unreplied  then ((.comments.nodes | length) == 1) else true end)
-      ))
+    | map(select(.comments.nodes[0].author.login == \"$author\"))
     | .[]
     | {
         head_id: .comments.nodes[0].databaseId,

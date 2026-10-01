@@ -70,7 +70,7 @@ Reply within each due thread via `gh-post reply-inline` — a single batch cover
 # 1. List the Copilot-headed threads, one JSON object per line. `head_id` is the
 #    id `pr-with-copilot-review.sh` printed ahead of the thread's finding,
 #    `reply_count` is 0 on a thread with no reply, and `last_reply_body` is the
-#    thread's latest reply.
+#    latest reply among the comments the script fetched.
 ${CLAUDE_SKILL_DIR}/scripts/list-pr-threads.sh {owner}/{repo} {number}
 
 # 2. Build a JSONL file: one {"id": <head_id>, "body": "<reply text>"} per due thread.
