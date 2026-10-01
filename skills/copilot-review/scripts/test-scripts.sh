@@ -114,6 +114,9 @@ check "list: two replies -> the later body" '"second\treply\nwith \"quote\""' "$
 check "list: resolved thread is listed" "true" "$(field 104 .resolved)"
 check "list: resolved thread carries its reply" '"reply on resolved"' "$(field 104 .last_reply_body)"
 
+"$LIST" owner/repo 1 --unresolved >/dev/null 2>&1
+check "list: a removed filter flag is rejected" "2" "$?"
+
 # --- pr-with-copilot-review.sh --poll ---------------------------------------
 poll="$(COPILOT_POLL_INITIAL=0 "$POLL" --poll https://github.com/owner/repo/pull/1 2>/dev/null)"
 inline="$(awk 'found { print } /^=== Inline Comments ===$/ { found = 1 }' <<<"$poll")"
