@@ -15,15 +15,14 @@
 #     "resolved": <bool>,
 #     "outdated": <bool>,         # diff has moved past this hunk
 #     "reply_count": <int>,       # number of comments after the head
-#     "last_reply_body": <str|null>,  # body of the last fetched comment after
-#                                 # the head; null when reply_count is 0
+#     "last_reply_body": <str|null>,  # body of the thread's latest comment
+#                                 # after the head; null when reply_count is 0
 #     "head_author": <str>,
 #     "head_body_excerpt": <str>  # first 120 chars of head body
 #   }
 #
-# Limit: fetches up to 100 threads with up to 50 comments each (GraphQL
-# `first:` caps). Larger PRs need pagination — extend the query if you
-# hit the cap.
+# Limit: fetches up to 100 threads (GraphQL `first:` cap). Larger PRs need
+# pagination — extend the query if you hit the cap.
 
 set -euo pipefail
 
@@ -71,7 +70,8 @@ query($owner: String!, $name: String!, $pr: Int!) {
         nodes {
           isResolved
           isOutdated
-          comments(first: 50) {
+          head: comments(first: 1) {
+            totalCount
             nodes {
               databaseId
               author { login }
@@ -79,6 +79,9 @@ query($owner: String!, $name: String!, $pr: Int!) {
               line
               body
             }
+          }
+          tail: comments(last: 1) {
+            nodes { body }
           }
         }
       }
@@ -94,18 +97,18 @@ gh api graphql \
   -F pr="$pr" \
   --jq "
     .data.repository.pullRequest.reviewThreads.nodes
-    | map(select(.comments.nodes[0].author.login == \"$author\"))
+    | map(select(.head.nodes[0].author.login == \"$author\"))
     | .[]
     | {
-        head_id: .comments.nodes[0].databaseId,
-        path: .comments.nodes[0].path,
-        line: .comments.nodes[0].line,
+        head_id: .head.nodes[0].databaseId,
+        path: .head.nodes[0].path,
+        line: .head.nodes[0].line,
         resolved: .isResolved,
         outdated: .isOutdated,
-        reply_count: ((.comments.nodes | length) - 1),
-        last_reply_body: (if (.comments.nodes | length) > 1 then .comments.nodes[-1].body else null end),
-        head_author: .comments.nodes[0].author.login,
-        head_body_excerpt: (.comments.nodes[0].body | .[0:120])
+        reply_count: (.head.totalCount - 1),
+        last_reply_body: (if .head.totalCount > 1 then .tail.nodes[0].body else null end),
+        head_author: .head.nodes[0].author.login,
+        head_body_excerpt: (.head.nodes[0].body | .[0:120])
       }
     | @json
   "
