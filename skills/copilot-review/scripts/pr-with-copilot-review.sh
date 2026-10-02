@@ -49,11 +49,16 @@ parse_pr_url() {
     fi
 }
 
+# Ids of the Copilot reviews on the PR, oldest first
+copilot_review_ids() {
+    gh api "repos/$repo/pulls/$pr_number/reviews" --paginate \
+        --jq '.[] | select(.user.login == "copilot-pull-request-reviewer[bot]") | .id' \
+        2>/dev/null || true
+}
+
 # Count existing Copilot reviews on the PR
 count_copilot_reviews() {
-    gh api "repos/$repo/pulls/$pr_number/reviews" \
-        --jq '[.[] | select(.user.login == "copilot-pull-request-reviewer[bot]")] | length' \
-        2>/dev/null || echo "0"
+    copilot_review_ids | grep -c . || true
 }
 
 # Poll until a new Copilot review appears (review count exceeds $1)
@@ -71,20 +76,15 @@ poll_for_review() {
             echo "Copilot review received (review #${current_count})" >&2
 
             # Get the latest review ID and body
-            latest_review_id=$(
-                gh api "repos/$repo/pulls/$pr_number/reviews" \
-                    --jq '[.[] | select(.user.login == "copilot-pull-request-reviewer[bot]")] | last | .id' \
-                    2>/dev/null
-            ) || true
+            latest_review_id=$(copilot_review_ids | tail -1)
 
             echo "=== Review Summary ==="
-            gh api "repos/$repo/pulls/$pr_number/reviews" \
-                --jq '[.[] | select(.user.login == "copilot-pull-request-reviewer[bot]")] | last | .body'
+            gh api "repos/$repo/pulls/$pr_number/reviews/$latest_review_id" --jq '.body'
 
             # Filter inline comments to only those from the latest review
             comments=$(
-                gh api "repos/$repo/pulls/$pr_number/comments" \
-                    --jq "[.[] | select(.user.login == \"Copilot\" and .pull_request_review_id == ${latest_review_id})] | .[] | \"\\(.id)\\t\\(.path):\\(.line)\\t\\(.body)\"" \
+                gh api "repos/$repo/pulls/$pr_number/comments" --paginate \
+                    --jq ".[] | select(.user.login == \"Copilot\" and .pull_request_review_id == ${latest_review_id}) | \"\\(.id)\\t\\(.path):\\(.line)\\t\\(.body)\"" \
                     2>/dev/null
             ) || true
 
