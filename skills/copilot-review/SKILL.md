@@ -65,16 +65,15 @@ Each Copilot finding lives on an inline thread; that thread is the unit of respo
 A thread is due a reply when all of these hold:
 
 - the run has triaged its finding;
-- the thread has no reply, or its latest reply does not name the disposition the finding now holds;
+- no reply on the thread names a disposition, or the latest reply that names one does not name the disposition the finding now holds;
 - the finding is not `actionable`, or its fix is pushed.
 
 Reply within each due thread via `gh-post reply-inline` — a single batch covers every due thread:
 
 ```bash
 # 1. List the Copilot-headed threads, one JSON object per line. `head_id` is the
-#    id `pr-with-copilot-review.sh` printed ahead of the thread's finding,
-#    `reply_count` is 0 on a thread with no reply, and `last_reply_body` is the
-#    thread's latest reply.
+#    id `pr-with-copilot-review.sh` printed ahead of the thread's finding, and
+#    `reply_bodies` holds the thread's replies, oldest first.
 ${CLAUDE_SKILL_DIR}/scripts/list-pr-threads.sh {owner}/{repo} {number}
 
 # 2. Build a JSONL file: one {"id": <head_id>, "body": "<reply text>"} per due thread.
@@ -89,5 +88,6 @@ When no thread is due a reply, post nothing.
 
 - `gh` CLI >= 2.88.0 (for `--reviewer @copilot` support)
 - `gh-post` on `PATH`
+- `jq` on `PATH`
 - Copilot code review enabled for the repository (via GitHub plan + org/repo settings)
 - Alternative: configure automatic Copilot review via Repository Rulesets (Settings > Rules)

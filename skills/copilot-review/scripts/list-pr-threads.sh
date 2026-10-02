@@ -15,8 +15,8 @@
 #     "resolved": <bool>,
 #     "outdated": <bool>,         # diff has moved past this hunk
 #     "reply_count": <int>,       # number of comments after the head
-#     "last_reply_body": <str|null>,  # body of the thread's latest comment
-#                                 # after the head; null when reply_count is 0
+#     "reply_bodies": [<str>],    # bodies of the comments after the head,
+#                                 # oldest first
 #     "head_author": <str>,
 #     "head_body_excerpt": <str>  # first 120 chars of head body
 #   }
@@ -70,7 +70,7 @@ query($owner: String!, $name: String!, $pr: Int!) {
         nodes {
           isResolved
           isOutdated
-          head: comments(first: 1) {
+          comments(first: 1) {
             totalCount
             nodes {
               databaseId
@@ -80,15 +80,18 @@ query($owner: String!, $name: String!, $pr: Int!) {
               body
             }
           }
-          tail: comments(last: 1) {
-            nodes { body }
-          }
         }
       }
     }
   }
 }
 GRAPHQL
+
+replies=$(
+  gh api "repos/$repo/pulls/$pr/comments?sort=created&direction=asc" --paginate \
+    --jq '.[] | select(.in_reply_to_id != null) | {head_id: .in_reply_to_id, body}' \
+    | jq -sc 'group_by(.head_id) | map({key: (.[0].head_id | tostring), value: map(.body)}) | from_entries'
+)
 
 gh api graphql \
   -f query="$query" \
@@ -97,18 +100,18 @@ gh api graphql \
   -F pr="$pr" \
   --jq "
     .data.repository.pullRequest.reviewThreads.nodes
-    | map(select(.head.nodes[0].author.login == \"$author\"))
+    | map(select(.comments.nodes[0].author.login == \"$author\"))
     | .[]
     | {
-        head_id: .head.nodes[0].databaseId,
-        path: .head.nodes[0].path,
-        line: .head.nodes[0].line,
+        head_id: .comments.nodes[0].databaseId,
+        path: .comments.nodes[0].path,
+        line: .comments.nodes[0].line,
         resolved: .isResolved,
         outdated: .isOutdated,
-        reply_count: (.head.totalCount - 1),
-        last_reply_body: (if .head.totalCount > 1 then .tail.nodes[0].body else null end),
-        head_author: .head.nodes[0].author.login,
-        head_body_excerpt: (.head.nodes[0].body | .[0:120])
+        reply_count: (.comments.totalCount - 1),
+        head_author: .comments.nodes[0].author.login,
+        head_body_excerpt: (.comments.nodes[0].body | .[0:120])
       }
     | @json
-  "
+  " \
+  | jq -c --argjson replies "$replies" '. + {reply_bodies: ($replies[.head_id | tostring] // [])}'
