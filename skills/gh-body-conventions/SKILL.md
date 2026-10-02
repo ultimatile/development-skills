@@ -32,7 +32,7 @@ Write the body to a file (typically under `/tmp/`) and pass it to the `gh-post` 
 
 ## Math
 
-- Use LaTeX notation rendered with GitHub's `` $`...`$ `` syntax for inline math and `$$...$$` for display math.
+- Use LaTeX notation rendered with GitHub's `` $`...`$ `` syntax for inline math, and a fenced code block whose info string is `math` for display math. Do NOT write display math as `$$...$$`.
 - Prefer `` $`...`$ `` over `$...$` for inline math. Do NOT put backslash macros inside plain `$...$`.
 - Do NOT wrap the inline-math construct `` $`...`$ `` in an enclosing code span. GitHub then renders the literal math syntax as inline code, not math — the failure mode when the *display* form of the construct (the literal syntax this section shows) is copied straight into a body.
 - Plain text inside backticks is fine when the symbol must match a code identifier verbatim (e.g., `` `alpha_t` ``).
