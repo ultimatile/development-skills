@@ -87,11 +87,13 @@ query($owner: String!, $name: String!, $pr: Int!) {
 }
 GRAPHQL
 
-replies=$(
-  gh api "repos/$repo/pulls/$pr/comments?sort=created&direction=asc" --paginate \
-    --jq '.[] | select(.in_reply_to_id != null) | {head_id: .in_reply_to_id, body}' \
-    | jq -sc 'group_by(.head_id) | map({key: (.[0].head_id | tostring), value: map(.body)}) | from_entries'
-)
+replies=$(mktemp)
+trap 'rm -f "$replies"' EXIT
+
+gh api "repos/$repo/pulls/$pr/comments?sort=created&direction=asc" --paginate \
+  --jq '.[] | select(.in_reply_to_id != null) | {head_id: .in_reply_to_id, body}' \
+  | jq -sc 'group_by(.head_id) | map({key: (.[0].head_id | tostring), value: map(.body)}) | from_entries' \
+  >"$replies"
 
 gh api graphql \
   -f query="$query" \
@@ -114,4 +116,4 @@ gh api graphql \
       }
     | @json
   " \
-  | jq -c --argjson replies "$replies" '. + {reply_bodies: ($replies[.head_id | tostring] // [])}'
+  | jq -c --slurpfile replies "$replies" '. + {reply_bodies: ($replies[0][.head_id | tostring] // [])}'
