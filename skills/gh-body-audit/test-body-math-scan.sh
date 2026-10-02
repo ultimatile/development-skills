@@ -85,6 +85,14 @@ assert "operatornamewithlimits -> clean"     "$(scan_rc 'Use $`\operatornamewith
 assert "unicode glyph -> hit"                "$(scan_rc 'The angle is α here.')"                     1
 assert "mathrm substitute -> clean"          "$(scan_rc 'Use `\mathrm{Tr}` for the trace.')"        0
 
+# --- Fenced blocks --------------------------------------------------------
+# A class 1 or class 2 match on a line inside a fenced code block is reported,
+# with the `math` info string or another.
+assert "operatorname in math fence -> hit"   "$(scan_rc $'```math\n\\operatorname{Tr}(A)\n```')"    1
+assert "unicode glyph in math fence -> hit"  "$(scan_rc $'```math\nα + 1\n```')"                     1
+assert "mathrm in math fence -> clean"       "$(scan_rc $'```math\n\\mathrm{Tr}(A)\n```')"          0
+assert "operatorname in tex fence -> hit"    "$(scan_rc $'```tex\n\\operatorname{Tr}(A)\n```')"     1
+
 # --- Class 3: code-span-neutralized inline math ---------------------------
 # The construct $`...`$ wrapped in a >=2-backtick code span renders as literal
 # code on GitHub, not math, so it must be flagged.
