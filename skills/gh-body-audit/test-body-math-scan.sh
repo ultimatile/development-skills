@@ -4,8 +4,9 @@
 # Zero-dependency harness: bash + rg only (the repo has no bash test framework,
 # and this adds only enough to drive this one script). It runs the scan against
 # crafted body fixtures and asserts the exit-code contract:
-#   0 = clean, 1 = a forbidden Unicode glyph, macro, or code-span-neutralized
-#   inline-math construct found, 2 = usage / env error.
+#   0 = clean, 1 = a forbidden Unicode glyph, macro, code-span-neutralized
+#   inline-math construct, or $$ display-math delimiter found, 2 = usage / env
+#   error.
 #
 # Two frozen regex reconstructions are checked alongside the real assertions, so
 # the suite proves it guards the real regressions rather than just restating
@@ -113,6 +114,14 @@ assert "codespan then bare math -> clean"    "$(scan_rc 'Use `` `inline` `` then
 # Mismatched fences (open 2, close 3) are not a GFM code span, so the math is not
 # neutralized and must stay clean.
 assert "mismatched fences -> clean"          "$(scan_rc 'Bad `` $`x`$ ``` mismatch.')"               0
+
+# --- Class 4: $$ display-math delimiter -----------------------------------
+assert "display math block -> hit"           "$(scan_rc $'$$\na + b\n$$')"                         1
+assert "one-line display math -> hit"        "$(scan_rc 'Then $$a + b$$ holds.')"                   1
+assert "single dollars -> clean"             "$(scan_rc 'Costs $5, or $`x`$ each.')"                0
+# A $$ is reported in every context; SKILL.md step 2 dismisses these two.
+assert "\$\$ in sh fence -> hit"              "$(scan_rc $'```sh\necho $$\n```')"                   1
+assert "adjacent inline math -> hit"         "$(scan_rc 'Adjacent $`a`$$`b`$ spans.')"              1
 
 # Environment error, source 1: a path that does not exist -> caught by the -f
 # guard -> exit 2.

@@ -6,7 +6,7 @@ allowed-tools: Bash(*/gh-body-audit/body-math-scan.sh:*)
 
 # GH Body Audit
 
-Two checks: a mechanical math scan (Unicode-math glyphs, the GitHub-unsupported macro `\operatorname`, and inline math neutralized by an enclosing code span), and a cold-reader audit delegated to a fresh-context subagent.
+Two checks: a mechanical math scan (Unicode-math glyphs, the GitHub-unsupported macro `\operatorname`, inline math neutralized by an enclosing code span, and the `$$` display-math delimiter), and a cold-reader audit delegated to a fresh-context subagent.
 
 ## Why a cold-reader subagent
 
@@ -33,7 +33,9 @@ Determine: artifact kind (`issue` / `pr`), target repo (e.g., `owner/repo`) and 
 ${CLAUDE_SKILL_DIR}/body-math-scan.sh "$BODY_FILE"
 ```
 
-Exit 0 = clean, 1 = hits found (printed as `line:match`), 2 = usage / environment error. It flags the raw Unicode math glyphs, the `\operatorname` macro, and inline math `` $`...`$ `` neutralized by an enclosing code span — all forbidden by `gh-body-conventions` § Math. Judge a Unicode-glyph or `\operatorname` hit by main-context inspection of where it sits. A Unicode-glyph hit: inside a fenced code block, inside an inline code span, or in prose that merely names the glyph → ⊘ N/A; anywhere else → ⚠. A `\operatorname` hit: inside a fenced code block whose info string is not `math`, inside an inline code span that is not the body of an inline-math construct `` $`...`$ ``, or in prose that merely names the macro → ⊘ N/A; anywhere else → ⚠. A code-span-neutralized inline-math hit is NOT auto-dismissed by those inline-code-span exemptions — the enclosing code span IS the defect — so judge intent in main context: math a copied display form silently neutralized → ⚠ (fix); a legitimate literal `` $`...`$ `` shown as code or data → ⊘ N/A with a one-line justification.
+Exit 0 = clean, 1 = hits found (printed as `line:match`), 2 = usage / environment error. It flags the raw Unicode math glyphs, the `\operatorname` macro, inline math `` $`...`$ `` neutralized by an enclosing code span, and the `$$` display-math delimiter — all forbidden by `gh-body-conventions` § Math.
+
+Judge each hit in main context. A Unicode-glyph, `\operatorname`, or `$$` hit is ⚠ when it is an instance of what the `gh-body-conventions` § Math rule for its class forbids, and ⊘ N/A otherwise. A code-span-neutralized inline-math hit is ⚠ (fix) when the enclosing code span keeps math meant to render from rendering, and otherwise ⊘ N/A with a one-line justification.
 
 ### 3. Cold-reader audit (fresh-context subagent)
 

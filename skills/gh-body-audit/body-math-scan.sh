@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # body-math-scan.sh — flag Unicode math glyphs, GitHub-unsupported math macros,
-# and code-span-neutralized inline math in a GitHub body draft.
+# code-span-neutralized inline math, and $$ display-math delimiters in a GitHub
+# body draft.
 #
-# Mechanical half of gh-body-audit. A single rg pass flags three classes that
+# Mechanical half of gh-body-audit. A single rg pass flags four classes that
 # gh-body-conventions § Math forbids:
 #   1. Unicode glyphs — any character in the Greek block, the two Mathematical
 #      Operators blocks, the Superscripts-and-Subscripts block, the Latin-1 math
@@ -19,6 +20,8 @@
 #      literal code, not math, so the math silently fails to render. This
 #      happens when the display form of the construct (how gh-body-conventions
 #      shows the literal syntax) is copied straight into a body.
+#   4. Display-math delimiter — the literal $$. Display math goes in a fenced
+#      code block with the `math` info string instead.
 # The scan reports every match, whatever Markdown context it sits in; SKILL.md
 # step 2 decides which hits are dismissed.
 #
@@ -41,7 +44,7 @@ usage() {
   cat <<'EOF'
 Usage: body-math-scan.sh <body-file>
 
-Scans <body-file> for three classes of math that gh-body-conventions forbids:
+Scans <body-file> for four classes of math that gh-body-conventions forbids:
   - Unicode math characters (Greek, Math Operators, Supplemental Math
     Operators, Superscripts/Subscripts, the Latin-1 signs ± × ÷ and
     superscripts ¹ ² ³, †, ‡).
@@ -49,6 +52,8 @@ Scans <body-file> for three classes of math that gh-body-conventions forbids:
     GitHub regardless of delimiter form; use \mathrm{...} instead).
   - Inline math $`...`$ neutralized by an enclosing code span, which GitHub
     renders as literal code instead of math.
+  - The display-math delimiter $$ (use a fenced code block with the math info
+    string instead).
 
 Prints rg output (line:match — rg emits no path prefix for a single file)
 and exits 1 if any hit is found.
@@ -97,7 +102,9 @@ command -v rg >/dev/null 2>&1 || { echo "error: ripgrep (rg) is required" >&2; e
 #   \$`[^`]*`\$          the wrapped inline-math construct itself (its LaTeX body
 #                        has no backticks). Detected anywhere inside the span, so
 #                        text co-resident with the math is still caught.
-rg -nP '[\x{00B1}\x{00B2}\x{00B3}\x{00B9}\x{00D7}\x{00F7}\x{0370}-\x{03FF}\x{2070}-\x{209F}\x{2200}-\x{22FF}\x{2A00}-\x{2AFF}\x{2020}\x{2021}]|\\operatorname\*?(?![A-Za-z])|(?<!`)(`{2,})(?!`)(?:(?!(?<!`)\1(?!`)).)*?\$`[^`]*`\$(?:(?!(?<!`)\1(?!`)).)*?(?<!`)\1(?!`)' "$BODY_FILE"
+#
+# The fourth alternative catches class 4, the literal $$.
+rg -nP '[\x{00B1}\x{00B2}\x{00B3}\x{00B9}\x{00D7}\x{00F7}\x{0370}-\x{03FF}\x{2070}-\x{209F}\x{2200}-\x{22FF}\x{2A00}-\x{2AFF}\x{2020}\x{2021}]|\\operatorname\*?(?![A-Za-z])|(?<!`)(`{2,})(?!`)(?:(?!(?<!`)\1(?!`)).)*?\$`[^`]*`\$(?:(?!(?<!`)\1(?!`)).)*?(?<!`)\1(?!`)|\$\$' "$BODY_FILE"
 rc=$?
 # rg: 0 match, 1 no match, 2+ real error.
 case "$rc" in
