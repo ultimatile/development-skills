@@ -60,43 +60,34 @@ For each finding:
 
 ## Respond to review
 
-Each Copilot finding lives on an inline thread; that thread is the unit of response. Each reply names the disposition the triage step gave that finding, by its `finding-triage` slug, and states in one or two sentences the reasoning and what the run will do about the finding.
+Each Copilot finding lives on an inline thread; that thread is the unit of response. Each reply names the disposition its finding now holds, by its `finding-triage` slug, and states in one or two sentences the reasoning and what the run will do about the finding.
 
-After triaging, reply within each thread via `gh-post reply-inline` — a single batch covers the full review:
+A thread is due a reply when all of these hold:
+
+- the run has triaged its finding;
+- no reply on the thread names a disposition, or the latest reply that names one does not name the disposition the finding now holds;
+- the finding is not `actionable`, or its fix is pushed.
+
+Reply within each due thread via `gh-post reply-inline` — a single batch covers every due thread:
 
 ```bash
-# 1. Collect target threads — by default this filters to Copilot-authored heads
-#    and reports per-thread state (resolved? has reply? outdated?).
-#    Use --unresolved --unreplied to narrow to threads that actually need a reply.
-${CLAUDE_SKILL_DIR}/scripts/list-pr-threads.sh {owner}/{repo} {number} --unresolved --unreplied
+# 1. List the Copilot-headed threads, one JSON object per line. `head_id` is the
+#    id `pr-with-copilot-review.sh` printed ahead of the thread's finding, and
+#    `reply_bodies` holds the thread's replies, oldest first.
+${CLAUDE_SKILL_DIR}/scripts/list-pr-threads.sh {owner}/{repo} {number}
 
-# 2. Build a JSONL file: one {"id": <head-comment-id>, "body": "<reply text>"} per line.
+# 2. Build a JSONL file: one {"id": <head_id>, "body": "<reply text>"} per due thread.
 
 # 3. Send the batch.
 gh-post reply-inline {owner}/{repo} {number} < /tmp/replies.jsonl
 ```
 
-If `list-pr-threads.sh --unresolved --unreplied` returns zero lines: every Copilot thread is already resolved or already has a reply — do NOT post additional replies. Surface this to the user and ask before doing anything else.
+When no thread is due a reply, post nothing.
 
 ## Prerequisites
 
 - `gh` CLI >= 2.88.0 (for `--reviewer @copilot` support)
 - `gh-post` on `PATH`
+- `jq` on `PATH`
 - Copilot code review enabled for the repository (via GitHub plan + org/repo settings)
 - Alternative: configure automatic Copilot review via Repository Rulesets (Settings > Rules)
-
-## Combined pipeline with codex-review
-
-```
-codex review loop (pre-PR, local)
-    ↓ clean
-${CLAUDE_SKILL_DIR}/scripts/pr-with-copilot-review.sh (creates PR + polls for review)
-    ↓ review received
-Triage + respond to each inline comment via gh-post reply-inline (JSONL batch)
-    ↓ if fixes needed
-Push fixes
-    ↓
-${CLAUDE_SKILL_DIR}/scripts/pr-with-copilot-review.sh --re-review <PR_URL>
-    ↓ new review received
-Triage + respond again
-```

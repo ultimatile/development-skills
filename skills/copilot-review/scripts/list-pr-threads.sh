@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
-# List PR inline review threads as JSONL, with optional filters for
-# resolved state, reply state, and head author.
+# List PR inline review threads as JSONL, filtered by head author.
 #
 # Default: only threads whose head author is `copilot-pull-request-reviewer`.
 # Override with `--author <login>` (exact match).
 #
 # Usage:
-#   ./list-pr-threads.sh OWNER/REPO PR [--unresolved] [--unreplied] [--author <login>]
+#   ./list-pr-threads.sh OWNER/REPO PR [--author <login>]
 #
 # Output (one JSON object per line):
 #   {
@@ -16,13 +15,14 @@
 #     "resolved": <bool>,
 #     "outdated": <bool>,         # diff has moved past this hunk
 #     "reply_count": <int>,       # number of comments after the head
+#     "reply_bodies": [<str>],    # bodies of the comments after the head,
+#                                 # oldest first
 #     "head_author": <str>,
 #     "head_body_excerpt": <str>  # first 120 chars of head body
 #   }
 #
-# Limit: fetches up to 100 threads with up to 50 comments each (GraphQL
-# `first:` caps). Larger PRs need pagination — extend the query if you
-# hit the cap.
+# Limit: fetches up to 100 threads (GraphQL `first:` cap). Larger PRs need
+# pagination — extend the query if you hit the cap.
 
 set -euo pipefail
 
@@ -31,15 +31,11 @@ usage() {
   exit "${1:-0}"
 }
 
-unresolved=false
-unreplied=false
 author="copilot-pull-request-reviewer"
 positional=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --unresolved) unresolved=true; shift ;;
-    --unreplied)  unreplied=true;  shift ;;
     --author)
       [[ $# -ge 2 ]] || { echo "error: --author needs a value" >&2; exit 2; }
       author="$2"; shift 2
@@ -74,7 +70,8 @@ query($owner: String!, $name: String!, $pr: Int!) {
         nodes {
           isResolved
           isOutdated
-          comments(first: 50) {
+          comments(first: 1) {
+            totalCount
             nodes {
               databaseId
               author { login }
@@ -90,6 +87,14 @@ query($owner: String!, $name: String!, $pr: Int!) {
 }
 GRAPHQL
 
+replies=$(mktemp)
+trap 'rm -f "$replies"' EXIT
+
+gh api "repos/$repo/pulls/$pr/comments?sort=created&direction=asc" --paginate \
+  --jq '.[] | select(.in_reply_to_id != null) | {head_id: .in_reply_to_id, body}' \
+  | jq -sc 'group_by(.head_id) | map({key: (.[0].head_id | tostring), value: map(.body)}) | from_entries' \
+  >"$replies"
+
 gh api graphql \
   -f query="$query" \
   -F owner="$owner" \
@@ -97,11 +102,7 @@ gh api graphql \
   -F pr="$pr" \
   --jq "
     .data.repository.pullRequest.reviewThreads.nodes
-    | map(select(
-        (.comments.nodes[0].author.login == \"$author\")
-        and (if $unresolved then (.isResolved | not) else true end)
-        and (if $unreplied  then ((.comments.nodes | length) == 1) else true end)
-      ))
+    | map(select(.comments.nodes[0].author.login == \"$author\"))
     | .[]
     | {
         head_id: .comments.nodes[0].databaseId,
@@ -109,9 +110,10 @@ gh api graphql \
         line: .comments.nodes[0].line,
         resolved: .isResolved,
         outdated: .isOutdated,
-        reply_count: ((.comments.nodes | length) - 1),
+        reply_count: (.comments.totalCount - 1),
         head_author: .comments.nodes[0].author.login,
         head_body_excerpt: (.comments.nodes[0].body | .[0:120])
       }
     | @json
-  "
+  " \
+  | jq -c --slurpfile replies "$replies" '. + {reply_bodies: ($replies[0][.head_id | tostring] // [])}'
