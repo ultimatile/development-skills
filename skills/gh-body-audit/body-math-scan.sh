@@ -25,9 +25,8 @@
 # it is flagged; SKILL.md then judges intent (neutralized math vs. a legitimate
 # literal $`...`$ shown as code/data).
 #
-# Limitations: the scan is line-oriented (a code span split across source lines
-# is not detected) and covers inline math only ($$...$$ display math wrapped in
-# a code span is out of scope). Because a regex cannot track which fences pair,
+# Limitations: the scan is line-oriented, so class 3 does not detect a code span
+# split across source lines. Because a regex cannot track which fences pair,
 # two class-3 false positives are possible: a backslash-escaped backtick run, or
 # two separate code spans flanking bare (correctly-rendering) inline math on one
 # line — the closing fence of the first span mis-pairs with the opening fence of
