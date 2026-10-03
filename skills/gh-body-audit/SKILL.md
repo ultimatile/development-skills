@@ -6,7 +6,7 @@ allowed-tools: Bash(*/gh-body-audit/body-math-scan.sh:*)
 
 # GH Body Audit
 
-Two checks: a mechanical math scan (Unicode-math glyphs, the GitHub-unsupported macro `\operatorname`, and inline math neutralized by an enclosing code span), and a cold-reader audit delegated to a fresh-context subagent.
+Two checks: a mechanical math scan (Unicode-math glyphs, the GitHub-unsupported macro `\operatorname`, inline math neutralized by an enclosing code span, and the `$$` delimiter), and a cold-reader audit delegated to a fresh-context subagent.
 
 ## Why a cold-reader subagent
 
@@ -33,7 +33,7 @@ Determine: artifact kind (`issue` / `pr`), target repo (e.g., `owner/repo`) and 
 ${CLAUDE_SKILL_DIR}/body-math-scan.sh "$BODY_FILE"
 ```
 
-Exit 0 = clean, 1 = hits found (printed as `line:match`), 2 = usage / environment error. It flags the raw Unicode math glyphs, the `\operatorname` macro, and inline math `` $`...`$ `` neutralized by an enclosing code span. For a Unicode-glyph or `\operatorname` hit: a hit in the text its `gh-body-conventions` § Math rule prohibits it in → ⚠; any other hit → ⊘ N/A, judged by main-context inspection. For a code-span-neutralized inline-math hit, judge intent in main context: math a copied display form silently neutralized → ⚠ (fix); a legitimate literal `` $`...`$ `` shown as code or data → ⊘ N/A with a one-line justification.
+Exit 0 = clean, 1 = hits found (printed as `line:match`), 2 = usage / environment error. It flags the raw Unicode math glyphs, the `\operatorname` macro, inline math `` $`...`$ `` neutralized by an enclosing code span, and the `$$` delimiter. For a Unicode-glyph or `\operatorname` hit: a hit in the text its `gh-body-conventions` § Math rule prohibits it in → ⚠; any other hit → ⊘ N/A, judged by main-context inspection. For a code-span-neutralized inline-math hit, judge intent in main context: math a copied display form silently neutralized → ⚠ (fix); a legitimate literal `` $`...`$ `` shown as code or data → ⊘ N/A with a one-line justification. For a `$$` hit, judge each `$$` on the line: one that main-context inspection shows GitHub does not render as a math delimiter → ⊘ N/A; any other → ⚠. The `$$` formed where one `` $`...`$ `` span closes directly before the next opens is not a math delimiter: GitHub renders the two spans as inline math.
 
 ### 3. Cold-reader audit (fresh-context subagent)
 
