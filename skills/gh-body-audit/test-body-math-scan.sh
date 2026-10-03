@@ -4,8 +4,8 @@
 # Zero-dependency harness: bash + rg only (the repo has no bash test framework,
 # and this adds only enough to drive this one script). It runs the scan against
 # crafted body fixtures and asserts the exit-code contract:
-#   0 = clean, 1 = a forbidden Unicode glyph, macro, or code-span-neutralized
-#   inline-math construct found, 2 = usage / env error.
+#   0 = clean, 1 = a scanned Unicode math glyph, \operatorname, or
+#   code-span-neutralized inline-math construct found, 2 = usage / env error.
 #
 # Two frozen regex reconstructions are checked alongside the real assertions, so
 # the suite proves it guards the real regressions rather than just restating
