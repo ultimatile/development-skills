@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # body-math-scan.sh — flag Unicode math glyphs, GitHub-unsupported math macros,
-# and code-span-neutralized inline math in a GitHub body draft.
+# code-span-neutralized inline math, and the $$ delimiter in a GitHub body draft.
 #
-# Mechanical half of gh-body-audit. A single rg pass flags three classes that
+# Mechanical half of gh-body-audit. A single rg pass flags four classes that
 # gh-body-conventions § Math has a rule on:
 #   1. Unicode glyphs — any character in the Greek block, the two Mathematical
 #      Operators blocks, the Superscripts-and-Subscripts block, the Latin-1 math
@@ -19,9 +19,13 @@
 #      literal code, not math, so the math silently fails to render. This
 #      happens when the display form of the construct (how gh-body-conventions
 #      shows the literal syntax) is copied straight into a body.
-# Whether a class 1 or 2 hit sits in text its § Math rule covers, and whether a
+#   4. The $$ delimiter — two consecutive dollar signs anywhere on a line.
+#      gh-body-conventions § Math rules out $$...$$ display math in favor of a
+#      fenced code block whose info string is math.
+# Whether a class 1 or 2 hit sits in text its § Math rule covers, whether a
 # class 3 hit is neutralized math or a legitimate literal $`...`$ shown as
-# code/data, is out of scope here — SKILL.md judges both in main context.
+# code/data, and whether a class 4 hit is a $$ GitHub renders as a math
+# delimiter, is out of scope here — SKILL.md judges all three in main context.
 #
 # Limitations: the scan is line-oriented, so class 3 does not detect a code span
 # split across source lines. Because a regex cannot track which fences pair,
@@ -42,7 +46,7 @@ usage() {
   cat <<'EOF'
 Usage: body-math-scan.sh <body-file>
 
-Scans <body-file> for three classes of math that gh-body-conventions § Math
+Scans <body-file> for four classes of math that gh-body-conventions § Math
 has a rule on:
   - Unicode math characters (Greek, Math Operators, Supplemental Math
     Operators, Superscripts/Subscripts, the Latin-1 signs ± × ÷ and
@@ -51,6 +55,8 @@ has a rule on:
     GitHub regardless of delimiter form; use \mathrm{...} instead).
   - Inline math $`...`$ neutralized by an enclosing code span, which GitHub
     renders as literal code instead of math.
+  - The $$ delimiter (write display math as a fenced code block whose info
+    string is math).
 
 Prints rg output (line:match — rg emits no path prefix for a single file)
 and exits 1 if any hit is found.
@@ -99,7 +105,10 @@ command -v rg >/dev/null 2>&1 || { echo "error: ripgrep (rg) is required" >&2; e
 #   \$`[^`]*`\$          the wrapped inline-math construct itself (its LaTeX body
 #                        has no backticks). Detected anywhere inside the span, so
 #                        text co-resident with the math is still caught.
-rg -nP '[\x{00B1}\x{00B2}\x{00B3}\x{00B9}\x{00D7}\x{00F7}\x{0370}-\x{03FF}\x{2070}-\x{209F}\x{2200}-\x{22FF}\x{2A00}-\x{2AFF}\x{2020}\x{2021}]|\\operatorname\*?(?![A-Za-z])|(?<!`)(`{2,})(?!`)(?:(?!(?<!`)\1(?!`)).)*?\$`[^`]*`\$(?:(?!(?<!`)\1(?!`)).)*?(?<!`)\1(?!`)' "$BODY_FILE"
+#
+# The fourth alternative catches class 4: \$\$ matches two consecutive dollar
+# signs, so every line holding $$ is reported.
+rg -nP '[\x{00B1}\x{00B2}\x{00B3}\x{00B9}\x{00D7}\x{00F7}\x{0370}-\x{03FF}\x{2070}-\x{209F}\x{2200}-\x{22FF}\x{2A00}-\x{2AFF}\x{2020}\x{2021}]|\\operatorname\*?(?![A-Za-z])|(?<!`)(`{2,})(?!`)(?:(?!(?<!`)\1(?!`)).)*?\$`[^`]*`\$(?:(?!(?<!`)\1(?!`)).)*?(?<!`)\1(?!`)|\$\$' "$BODY_FILE"
 rc=$?
 # rg: 0 match, 1 no match, 2+ real error.
 case "$rc" in
