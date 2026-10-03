@@ -3,7 +3,7 @@
 # and code-span-neutralized inline math in a GitHub body draft.
 #
 # Mechanical half of gh-body-audit. A single rg pass flags three classes that
-# gh-body-conventions § Math forbids:
+# gh-body-conventions § Math has a rule on:
 #   1. Unicode glyphs — any character in the Greek block, the two Mathematical
 #      Operators blocks, the Superscripts-and-Subscripts block, the Latin-1 math
 #      signs (plus-minus, multiplication, division) and superscripts (two /
@@ -19,11 +19,9 @@
 #      literal code, not math, so the math silently fails to render. This
 #      happens when the display form of the construct (how gh-body-conventions
 #      shows the literal syntax) is copied straight into a body.
-# For classes 1 and 2, a hit inside a fenced code block, an inline code span, or
-# prose naming the macro is out of scope here — SKILL.md judges those in main
-# context. Class 3 is the exception: the enclosing code span IS the defect, so
-# it is flagged; SKILL.md then judges intent (neutralized math vs. a legitimate
-# literal $`...`$ shown as code/data).
+# Whether a class 1 or 2 hit sits in text its § Math rule covers, and whether a
+# class 3 hit is neutralized math or a legitimate literal $`...`$ shown as
+# code/data, is out of scope here — SKILL.md judges both in main context.
 #
 # Limitations: the scan is line-oriented, so class 3 does not detect a code span
 # split across source lines. Because a regex cannot track which fences pair,
@@ -44,7 +42,8 @@ usage() {
   cat <<'EOF'
 Usage: body-math-scan.sh <body-file>
 
-Scans <body-file> for three classes of math that gh-body-conventions forbids:
+Scans <body-file> for three classes of math that gh-body-conventions § Math
+has a rule on:
   - Unicode math characters (Greek, Math Operators, Supplemental Math
     Operators, Superscripts/Subscripts, the Latin-1 signs ± × ÷ and
     superscripts ¹ ² ³, †, ‡).
