@@ -37,7 +37,7 @@ Exit 0 = clean, 1 = hits found (printed as `line:match`), 2 = usage / environmen
 
 ### 3. Cold-reader audit (fresh-context subagent)
 
-Invoke `Agent` with `subagent_type: "general-purpose"`. Pass only the body, the target repo name, and the artifact kind. Do NOT pass chat history, the plan, the author's prior messages, or any context about why the body is being filed — the fresh context is the entire point.
+Invoke `Agent` with `subagent_type: "general-purpose"` and `model: "sonnet"`. Pass only the body, the target repo name, and the artifact kind. Do NOT pass chat history, the plan, the author's prior messages, or any context about why the body is being filed — the fresh context is the entire point.
 
 Prompt template:
 
