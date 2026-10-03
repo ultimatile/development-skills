@@ -11,11 +11,10 @@
 # Three frozen regex reconstructions are checked alongside the real assertions,
 # so the suite proves it guards the real regressions rather than just restating
 # current behavior (see the "non-tautology guard" differentials): the
-# Unicode-only PREFIX_REGEX shows a \operatorname body slipped through pre-fix,
+# Unicode-only PREFIX_REGEX shows a \operatorname body passes without class 2,
 # the classes-1+2 PRE_CODESPAN_REGEX shows a code-span-neutralized inline-math
-# body slipped through before class 3 was added, and the classes-1+2+3
-# PRE_DOUBLE_DOLLAR_REGEX shows a $$ display block slipped through before
-# class 4 was added.
+# body passes without class 3, and the classes-1+2+3 PRE_DOUBLE_DOLLAR_REGEX
+# shows a $$ display block passes without class 4.
 #
 # Run:
 #   bash test-body-math-scan.sh
@@ -28,24 +27,21 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCAN="$SCRIPT_DIR/body-math-scan.sh"
 
-# Frozen reconstruction of the scanner's regex BEFORE \operatorname detection was
-# added: the Unicode-codepoint class only, with no \operatorname alternative.
-# FROZEN HISTORICAL ARTIFACT: do not extend it. It exists solely so the
-# differential below can show a \operatorname-only body slipped through pre-fix.
+# The scanner's regex without class 2: the Unicode-codepoint class only, with
+# no \operatorname alternative. FROZEN: do not extend it. It exists solely so
+# the differential below can show a \operatorname-only body passes it.
 PREFIX_REGEX='[\x{00B1}\x{00B2}\x{00B3}\x{00B9}\x{00D7}\x{00F7}\x{0370}-\x{03FF}\x{2070}-\x{209F}\x{2200}-\x{22FF}\x{2A00}-\x{2AFF}\x{2020}\x{2021}]'
 
-# Frozen reconstruction of the scanner's regex BEFORE the class-3 (code-span-
-# neutralized inline math) alternative was added: classes 1 + 2 only (Unicode
-# glyphs + \operatorname). FROZEN HISTORICAL ARTIFACT: do not extend it. It
-# exists solely so the class-3 differential below can show a body with inline
-# math neutralized by a code span slipped through before this fix.
-PRE_CODESPAN_REGEX='[\x{00B1}\x{00B2}\x{00B3}\x{00B9}\x{00D7}\x{00F7}\x{0370}-\x{03FF}\x{2070}-\x{209F}\x{2200}-\x{22FF}\x{2A00}-\x{2AFF}\x{2020}\x{2021}]|\\operatorname\*?(?![A-Za-z])'
+# The scanner's regex without class 3 (code-span-neutralized inline math):
+# classes 1 + 2 only (Unicode glyphs + \operatorname), built on PREFIX_REGEX.
+# FROZEN: do not extend it. It exists solely so the class-3 differential below
+# can show a body with inline math neutralized by a code span passes it.
+PRE_CODESPAN_REGEX="$PREFIX_REGEX"'|\\operatorname\*?(?![A-Za-z])'
 
-# Frozen reconstruction of the scanner's regex BEFORE the class-4 ($$ delimiter)
-# alternative was added: classes 1 + 2 + 3. FROZEN HISTORICAL ARTIFACT: do not
-# extend it. It exists solely so the class-4 differential below can show a $$
-# display block slipped through before this fix.
-PRE_DOUBLE_DOLLAR_REGEX='[\x{00B1}\x{00B2}\x{00B3}\x{00B9}\x{00D7}\x{00F7}\x{0370}-\x{03FF}\x{2070}-\x{209F}\x{2200}-\x{22FF}\x{2A00}-\x{2AFF}\x{2020}\x{2021}]|\\operatorname\*?(?![A-Za-z])|(?<!`)(`{2,})(?!`)(?:(?!(?<!`)\1(?!`)).)*?\$`[^`]*`\$(?:(?!(?<!`)\1(?!`)).)*?(?<!`)\1(?!`)'
+# The scanner's regex without class 4 (the $$ delimiter): classes 1 + 2 + 3,
+# built on PRE_CODESPAN_REGEX. FROZEN: do not extend it. It exists solely so
+# the class-4 differential below can show a $$ display block passes it.
+PRE_DOUBLE_DOLLAR_REGEX="$PRE_CODESPAN_REGEX"'|(?<!`)(`{2,})(?!`)(?:(?!(?<!`)\1(?!`)).)*?\$`[^`]*`\$(?:(?!(?<!`)\1(?!`)).)*?(?<!`)\1(?!`)'
 
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
@@ -145,30 +141,30 @@ else
 fi
 
 # --- Non-tautology guard --------------------------------------------------
-# A \operatorname-only body (no Unicode glyph) is where the pre-fix Unicode-only
-# scanner and the fixed scanner diverge: pre-fix reports clean (the miss this
-# change fixes), the fixed scanner reports a hit. Asserting both directions
+# A \operatorname-only body (no Unicode glyph) is where the Unicode-only regex
+# and the scanner diverge: the Unicode-only regex reports clean (the miss
+# class 2 closes), the scanner reports a hit. Asserting both directions
 # proves the operatorname case is a genuine regression guard, not a restatement
 # of current behavior.
 OPNAME_BODY='Define $`\operatorname{Tr}(A)`$.'
-assert "operatorname: pre-fix regex -> clean (miss)" "$(frozen_rc "$PREFIX_REGEX" "$OPNAME_BODY")" 0
-assert "operatorname: fixed scan    -> hit"          "$(scan_rc "$OPNAME_BODY")"   1
+assert "operatorname: pre-class2 regex -> clean (miss)" "$(frozen_rc "$PREFIX_REGEX" "$OPNAME_BODY")" 0
+assert "operatorname: scan             -> hit"           "$(scan_rc "$OPNAME_BODY")"   1
 
 # A code-span-neutralized inline-math body (no Unicode glyph, no \operatorname)
-# is where the pre-class-3 regex (classes 1 + 2) and the fixed scanner diverge:
-# pre-class-3 reports clean (the miss this change fixes), the fixed scanner
-# reports a hit. Asserting both directions proves class 3 is a genuine
+# is where the pre-class-3 regex (classes 1 + 2) and the scanner diverge:
+# pre-class-3 reports clean (the miss class 3 closes), the scanner reports a
+# hit. Asserting both directions proves class 3 is a genuine
 # regression guard, not a restatement of current behavior.
 CODESPAN_BODY='Define `` $`\pm i`$ `` clearly.'
 assert "codespan: pre-class3 regex -> clean (miss)"  "$(frozen_rc "$PRE_CODESPAN_REGEX" "$CODESPAN_BODY")" 0
-assert "codespan: fixed scan       -> hit"           "$(scan_rc "$CODESPAN_BODY")"         1
+assert "codespan: scan             -> hit"             "$(scan_rc "$CODESPAN_BODY")"         1
 
 # A $$ display block (no Unicode glyph, no \operatorname, no code-span-wrapped
-# inline math) is where the pre-class-4 regex (classes 1 + 2 + 3) and the fixed
-# scanner diverge: pre-class-4 reports clean (the miss this change fixes), the
-# fixed scanner reports a hit.
+# inline math) is where the pre-class-4 regex (classes 1 + 2 + 3) and the
+# scanner diverge: pre-class-4 reports clean (the miss class 4 closes), the
+# scanner reports a hit.
 assert "display: pre-class4 regex -> clean (miss)"   "$(frozen_rc "$PRE_DOUBLE_DOLLAR_REGEX" "$DISPLAY_BODY")" 0
-assert "display: fixed scan       -> hit"            "$(scan_rc "$DISPLAY_BODY")"                             1
+assert "display: scan             -> hit"              "$(scan_rc "$DISPLAY_BODY")"                             1
 
 # --- Summary --------------------------------------------------------------
 echo
