@@ -203,23 +203,6 @@ Forward-looking preflight against the planned change. This skill is the **runner
 
 6. **Report the preflight table.** Hand the △ rows to the implementation step as setup actions.
 
-## Preflight framing per item (quick reference)
-
-A row is **not** the applicability authority and decides nothing: Step 3 reads each `<SKILLS_DIR>/quality-list/items/<slug>.md` body plus any applicable addendum, and that — with the index as the item set — decides whether it applies. Consult a row for its setup framing once the body has marked the item active.
-
-This list covers the `quality-list` contextual-lane items (and the contextual half of the dual-lane item) that Step 3 processes in main context. Mechanical-lane `quality-list` items have no row *in this quick reference* (they still get a row in the final preflight table, per Step 4).
-
-- **`invariant-derivation`** — Before patching, derive the full necessary-and-sufficient condition from first principles. List it in the plan.
-- **`purpose-verification`** — Identify the input that exposes the purpose end-to-end. Plan to exercise it before declaring done.
-- **`pattern-audit`** — Plan to re-derive any reused sibling pattern's correctness in the current context before relying on it.
-- **`scope-discipline`** — Resolve to evaluate findings on their merits, not narrowed to the originating task.
-- **`test-execution`** — Plan which test commands will be run, and capture the pre-existing failure baseline before any edit.
-- **`completion-hygiene`** — Plan which lint / format / type-check / build commands will be run. Note any debug artifacts to strip.
-- **`escape-hatch-necessity`** — Plan to derive any workaround's necessity before using it, treating it as a last resort rather than a default.
-- **`docstring-drift`** — List the docstring / comment / README surfaces describing any behavior the change alters, and plan a cold-read re-verification of each against the new behavior, with an execution probe where the behavior becomes library-owned.
-- **`discovery-surfacing`** — Extract any research plan's `Inconclusive` items into a watch list for the implementation phase.
-- **`ported-code-attribution`** (undeclared-port half) — If research surfaced an external implementation this scope structurally follows but hasn't named, plan the attribution surface now even though no comment names it yet.
-
 ## Output format
 
 ```
