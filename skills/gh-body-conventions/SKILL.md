@@ -73,14 +73,12 @@ Artifact-specific length expectations live in the referencing skills (`file-issu
 
 A **token** is any name, path, identifier, or reference the body contains.
 An **external reader** is one who can open the target repo and nothing private beyond it.
-Everything this section requires of a body, it requires of a reply on a review thread.
 
 The body must not contain a token whose referent an external reader cannot reach.
 A repo-relative path the body itself proposes to create designates nothing yet, and this requirement does not reach it.
 The body must also be followable: a reader who does not open the target repo can follow every sentence in it.
 A token whose referent an external reader can reach, and whose sentence asserts only its identity or location, carries no substance requirement — an issue number or a repo-relative path, for instance.
 A well-known external standard — an RFC or a language spec, for instance — is the one class of text the reader is assumed to hold, and a claim may rest on it as it stands.
-A reply's reader holds two texts beyond that class — the comment the reply answers and the diff hunk that comment is anchored to — and a claim may rest on either as it stands.
 A claim resting on what any other text *says* carries that substance itself, in the form that claim's own case selects; a sentence resting on two texts takes one form per claim, not one for the sentence:
 
 - **State the predicate** — where the exact wording is not what is at issue. Say what the pointed-at text establishes; for a rule or a behavior, that is its trigger, its effect, and the outcome in the case at hand.

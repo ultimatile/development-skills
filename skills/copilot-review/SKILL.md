@@ -60,7 +60,9 @@ For each finding:
 
 ## Respond to review
 
-Each Copilot finding lives on an inline thread; that thread is the unit of response. Each reply states the disposition its finding now holds, the reasoning, and what the run will do about the finding, in one or two sentences, within what `gh-body-conventions` § Exclusions requires of a reply.
+Each Copilot finding lives on an inline thread; that thread is the unit of response. Each reply states the disposition its finding now holds, the reasoning, and what the run will do about the finding, in one or two sentences. A reply states a disposition when its text settles which one of `finding-triage`'s dispositions the finding holds.
+
+`gh-body-conventions` § Exclusions binds each reply as it binds a body, with one difference: the reply's reader also holds the comment that opens the thread and the diff hunk that comment is anchored to, and a claim may rest on either as it stands.
 
 A thread is due a reply when all of these hold:
 
