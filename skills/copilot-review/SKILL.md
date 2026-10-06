@@ -62,6 +62,8 @@ For each finding:
 
 Each Copilot finding lives on an inline thread; that thread is the unit of response. Each reply names the disposition its finding now holds, by its `finding-triage` slug, and states in one or two sentences the reasoning and what the run will do about the finding.
 
+The requirement `gh-body-conventions` § Exclusions places on a body's tokens binds each reply as it binds a body, except that a `finding-triage` disposition slug may stand as a bare name whichever repository the pull request is in.
+
 A thread is due a reply when all of these hold:
 
 - the run has triaged its finding;
