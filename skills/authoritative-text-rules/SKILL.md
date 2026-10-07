@@ -5,7 +5,7 @@ description: Single source of truth for audit items covering text that an agent 
 
 # Authoritative Text Rules (SSOT)
 
-Skills that audit authoritative text apply these items by reference. When an item changes, referencing skills pick up the change automatically. A runner may carry a compressed mnemonic of an item, but never the item's full trigger, sweep, concern conditions, or N/A criterion — that copied detail is the manual-synchronization surface this rule removes — and the mnemonic is never the authority. The Items index below is the single source of truth for **which items exist**: runners derive their active item set by reading this index, never by hardcoding a parallel slug list.
+Skills that audit authoritative text apply these items by reference. A runner may carry a compressed mnemonic of an item, but never the item's full trigger, sweep, concern conditions, or N/A criterion — that copied detail is the manual-synchronization surface this rule removes — and the mnemonic is never the authority. The Items index below is the single source of truth for **which items exist**: runners derive their active item set by reading this index, never by hardcoding a parallel slug list.
 
 ## Scope
 
@@ -13,9 +13,9 @@ Skills that audit authoritative text apply these items by reference. When an ite
 
 A claim about a separate artifact, made inside a qualifying file, has a referent, and checking the claim against that referent belongs to the code-quality rule set `quality-list`, on its items' own triggers. An item here whose sweep reaches such a claim still audits it and reports on its own concern conditions — `case-space-totality`'s sweep is one that does.
 
-Skill bodies — script-wrapping ones included — rule and item definition files, and repository-level agent-instruction files (`CLAUDE.md`, `AGENTS.md`, files under `.claude/rules/`, `.claude/commands/`, `.claude/agents/`, and the equivalents other tools define) are the recurring instances. The list is illustrative: the property above decides membership, and new instruction-file conventions appear faster than any enumeration tracks.
+Skill bodies — script-wrapping ones included — rule and item definition files, and repository-level agent-instruction files (`CLAUDE.md`, `AGENTS.md`, files under `.claude/rules/`, `.claude/commands/`, `.claude/agents/`, and the equivalents other tools define) are the recurring instances. The list is illustrative: the property above decides membership.
 
-Source code is not authoritative text: a machine executes it. Prose that is read rather than executed — a README, an article, a design document, a docstring — is not authoritative text either; a docstring's claims are checked against the code they describe, and that check is `quality-list`'s, not this rule set's.
+Source code is not authoritative text: a machine executes it. Prose that is read rather than executed — a README, an article, a design document, a docstring — is not authoritative text either.
 
 **Classify per file, not per directory.** A skill directory can hold a skill body beside a package manifest, a lockfile, and scripts; the body is authoritative text and the rest is not.
 

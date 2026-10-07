@@ -5,8 +5,6 @@ description: Promote a review finding into a pre-commit audit rule that catches 
 
 # Finding-to-Audit
 
-A single fix prevents one bug. An audit rule prevents the entire class without waiting for the next bug to surface.
-
 ## Inputs
 
 The fix-commit lane uses a **root** on `diff-root`'s consumer contract, halt included; the review-findings lane uses none.
@@ -85,7 +83,7 @@ Promoting a finding to a rule is a proposal to be reviewed, not an edit to apply
 
 The rule then lands as a reviewed change in that repository. On recurrence of a class that already has an open proposal, comment on it instead of filing a duplicate.
 
-**Escape hatch — edit the host skill directly** only when filing is inappropriate: a skill not under version control, or an explicit opt-in for the case at hand. The same failure-mode-plus-proposal content still travels with the change (e.g. in the PR body), so the diff is never bare. Update any output tables in the host file.
+**Escape hatch — edit the host skill directly** only when filing is inappropriate: a skill not under version control, or an explicit opt-in for the case at hand. The same failure-mode-plus-proposal content still travels with the change (e.g. in the PR body). Update any output tables in the host file.
 
 ### 6. Backfill check
 
@@ -93,7 +91,5 @@ If the same issue class has surfaced more than once historically, strengthen the
 
 ## Principles
 
-- **Propose, don't apply.** A rule promotion targets a shared audit surface; default to a reviewed issue against its repository, not an in-place edit from the finding's context.
 - **General over specific.** The rule catches the bug class, not the reviewer's exact wording.
-- **Diff-inspectable only.** Anything requiring code execution belongs in `bug-to-contract`.
 - **Extend before adding.** Strengthening an existing audit item is preferable to adding a new one unless the topic is orthogonal to all existing items.

@@ -18,10 +18,10 @@ git status --porcelain                      # non-empty → changes to commit
 git log --oneline HEAD --not --remotes      # non-empty → commits no remote has
 ```
 
-The second command answers for a branch ahead of its upstream and for one that has no upstream yet, which `git log @{upstream}..HEAD` cannot. Route on the pair:
+Route on the pair:
 
 - **Changes to commit** — run steps 1 through 5.
-- **Nothing to commit, commits no remote has** — skip to step 4 and continue through step 5. Staging nothing and committing nothing fails, and the push is what this invocation is for.
+- **Nothing to commit, commits no remote has** — skip to step 4 and continue through step 5.
 - **Neither** — report that and make no change.
 
 ### 1. Stage
@@ -72,7 +72,7 @@ EOF
 )"
 ```
 
-Always use HEREDOC for the message to preserve formatting.
+Always use HEREDOC for the message.
 
 ### 4. Push
 
