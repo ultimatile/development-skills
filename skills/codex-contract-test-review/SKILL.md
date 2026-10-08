@@ -121,8 +121,6 @@ Block selection rationale:
 - `dig_deeper_nudge`: enumerates the failure modes that contract tests typically fall into — without this list the reviewer tends to stop at the first plausible concern
 - `missing_context_gating`: forbids "you should also test X" creep — depth control's main lever
 - `verification_loop`: explicit early-exit clause — without it the reviewer will manufacture findings to fill the structured slots
-- No `action_safety`: read-only review
-- No `completeness_contract`: scope is one test addition; one pass is sufficient
 
 ### 3. Run Codex
 
@@ -130,9 +128,9 @@ Block selection rationale:
 codex exec "<prompt>" < /dev/null -o /tmp/codex-contract-test-review.md
 ```
 
-- Always use `< /dev/null` to prevent stdin hanging in background / automated contexts
+- Always use `< /dev/null`
 - Set timeout to 600000ms (10 minutes); typical run is 30s–2min
-- Use `-o` to capture output for reliable retrieval
+- Use `-o` to capture output
 
 ### 4. Triage the feedback
 

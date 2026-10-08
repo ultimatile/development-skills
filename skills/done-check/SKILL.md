@@ -21,7 +21,7 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
 
 1. **Identify the diff under audit.** The caller supplies the **root** on `diff-root`'s consumer contract; apply it here, halt included, and build the committed half by that skill's per-command conversion.
 
-   Cover all four sources so recently-added implementation files are not missed:
+   Cover all four sources:
 
    ```bash
    git log --oneline <root-rev>..HEAD           # committed
@@ -31,13 +31,13 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
    git ls-files --others --exclude-standard # untracked paths
    ```
 
-   Read the contents of any untracked file relevant to the audit (paths alone do not let you check anything).
+   Read the contents of any untracked file relevant to the audit.
 
 2. **Spawn the fresh-context auditors.** Authors read intent; a fresh-context subagent reads literal text — removes the doc-vs-code drift blindspot. One auditor always runs, for `quality-list`'s mechanical / literal items. A second runs conditionally, for `authoritative-text-rules`, per the firing rule at the end of this step.
 
-   **This audit MUST NOT load a purely-mechanical `quality-list` item body into main context, and MUST NOT load any `authoritative-text-rules` item body there** — whether or not an earlier phase of the same session already did. Each subagent reads its own SSOT's index and the bodies it needs in its own fresh context, deriving its item set from that index; main only composes the prompts (diff + resolved paths) and dispatches. Main reads the contextual-lane `quality-list` bodies it audits in Step 3, and may read either SSOT's index — that is how Step 3 selects contextual items and how Step 4 predicts each auditor's row set.
+   **This audit MUST NOT load a purely-mechanical `quality-list` item body into main context, and MUST NOT load any `authoritative-text-rules` item body there** — whether or not an earlier phase of the same session already did. Each subagent reads its own SSOT's index and the bodies it needs in its own fresh context, deriving its item set from that index; main only composes the prompts (diff + resolved paths) and dispatches. Main reads the contextual-lane `quality-list` bodies it audits in Step 3, and may read either SSOT's index.
 
-   Both prompts below carry the two absolute paths Step 0 resolved; a subagent needs both.
+   Both prompts below carry the two absolute paths Step 0 resolved.
 
    **Auditor 1 — `quality-list` mechanical lane.** Always dispatched. Use the `Agent` tool with `subagent_type: "general-purpose"` and a prompt of the following shape:
 
@@ -99,15 +99,14 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
    derivative claims to mirror.
 
    Report concisely, aiming under 600 words. Completeness of the row
-   set outranks that: never drop or merge a row to fit, since Step 4
-   checks the returned slugs against the set the index predicts.
+   set outranks that: never drop or merge a row to fit.
    - one row per item, labelled with that item's slug exactly as the
      Items index spells it, carrying Result + Evidence + Note
    - a final list of any cross-cutting concerns spanning multiple
      items
    ```
 
-   Embed only the diff, the root Step 1 was given, and the two resolved absolute paths in the prompt. The diff is all four sources Step 1 identified — committed, staged, unstaged, and the contents of every relevant untracked file. The root is what an item body's or addendum's detection command needs to name a range. **Do not embed item body text** — the subagent reads the item files itself, keeping the main context free of the rule text.
+   Embed only the diff, the root Step 1 was given, and the two resolved absolute paths in the prompt. The diff is all four sources Step 1 identified — committed, staged, unstaged, and the contents of every relevant untracked file. **Do not embed item body text.**
 
    **Firing rule for auditor 2.** Dispatch the authoritative-text auditor when any path in the diff could be text an agent executes as instructions — markdown paths are the usual case. **Dispatch when unsure.**
 
@@ -152,8 +151,7 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
    twice.
 
    Report concisely, aiming under 600 words. Completeness of the row
-   set outranks that: never drop or merge a row to fit, since Step 4
-   checks the returned slugs against the set the index predicts.
+   set outranks that: never drop or merge a row to fit.
    - one row per item, labelled with that item's slug exactly as the
      Items index spells it, carrying Result + Evidence + Note
    - a final list of any cross-cutting concerns spanning multiple
@@ -164,7 +162,7 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
 
    Each dispatched subagent runs in parallel with main-context step 3 below; do not block waiting on any of them unless step 4 requires the result.
 
-3. **Audit the contextual items in main context.** Read `<SKILLS_DIR>/quality-list/SKILL.md`'s Items index and select every item whose lane is `contextual`, including the contextual half of dual-lane items (an index entry tagged `mechanical (+ contextual half)`, e.g. ported-code-attribution). These need information the subagent does not have — plan / intent / review history, or actual command execution against the working tree. The groupings below are non-exhaustive illustration; the index is the authoritative set:
+3. **Audit the contextual items in main context.** Read `<SKILLS_DIR>/quality-list/SKILL.md`'s Items index and select every item whose lane is `contextual`, including the contextual half of dual-lane items (an index entry tagged `mechanical (+ contextual half)`, e.g. ported-code-attribution). The groupings below are non-exhaustive illustration; the index is the authoritative set:
 
    - `invariant-derivation`, `purpose-verification`, `scope-discipline`, `discovery-surfacing` — need plan / intent / review history
    - `escape-hatch-necessity` — needs design intent and codebase context to judge whether a direct fix could replace the workaround (a workaround's *presence* may be grep-visible, but its *necessity* is not literal-text-decidable)
@@ -172,7 +170,7 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
    - `pattern-audit` — needs awareness of which patterns were consciously copied vs independently reinvented
    - `docstring-drift` — needs the diff's behavior-change context plus an execution probe when the changed behavior is library-owned
 
-   For each selected contextual item, `Read` the corresponding `<SKILLS_DIR>/quality-list/items/<slug>.md` file; if a detected language has an addendum section for that item (per Step 0 — e.g. `escape-hatch-necessity`'s Rust realization in `lang-<lang>.md` carries the concrete trigger / detection / mitigation guidance), read every such section too; this contextual pass self-loads every matching addendum itself, one per detected language (Step 0 only detects the languages). Which bodies this pass may open is Step 2's prohibition, stated there and not restated here.
+   For each selected contextual item, `Read` the corresponding `<SKILLS_DIR>/quality-list/items/<slug>.md` file; if a detected language has an addendum section for that item (per Step 0 — e.g. `escape-hatch-necessity`'s Rust realization in `lang-<lang>.md` carries the concrete trigger / detection / mitigation guidance), read every such section too.
 
    `ported-code-attribution` is dual-lane: the subagent handles the *declared* case (literal grep for "ported from" / "derived from" / external project names → verify attribution); main context handles the *undeclared* case where the conversation history shows research surfaced an external implementation that the diff structurally mirrors but no comment names. If research identified an upstream reference and the diff looks like it followed it, demand attribution even if no comment marks the port. Read `<SKILLS_DIR>/quality-list/items/ported-code-attribution.md` for both halves.
 
@@ -184,7 +182,7 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
 
    A return that is exactly one row per predicted slug and no others passes. Any other return — a slug missing, duplicated, or outside the set — gets one re-dispatch of that auditor with its prompt unchanged. If the second return still does not match, surface to the user, naming the offending slugs; do not proceed with that lane incomplete, and do not emit the table. However it failed to match, the return is not the row set the domain needs: a missing slug leaves the domain unfillable outright, and a duplicated or out-of-set row says the auditor worked some set other than the one predicted, so none of what it returned is known to cover that set.
 
-   Main context's contextual-lane rows take no such check. The check compares a returned set against one main predicted, and main's own rows arrive by no return — it selects them from the very index a prediction would be read from, so there is nothing for the comparison to hold apart. That holds whatever the report shape, delta runs included.
+   Main context's contextual-lane rows take no such check. That holds whatever the report shape, delta runs included.
 
    For each ⚠ from either subagent, decide — this is the `finding-triage` SSOT's `actionable` / `false-positive` split applied to a fresh-context audit concern:
 
@@ -193,7 +191,7 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
 
    The rule clause a subagent row quotes is what main context judges the ⚠ against, and in step 5 what it fixes against, for every row whose body step 2 forbids this audit to load into main context. `ported-code-attribution` falls outside that: step 3 opens its body here. When a row that needs a quoted clause carries none, re-dispatch that auditor once with its prompt unchanged; its return replaces the first, as an unmatched coverage check's does. If the replacing return raises the same ⚠ and still quotes no clause, leave the row ⚠ with that noted, and close it through step 5 like any other.
 
-   **The verdicts.** Every result, whatever its source, is exactly one of **✅ pass** (concrete evidence that the rule is satisfied), **⚠ concern** (the location and the literal text that violates the rule), or **⊘ N/A** (the item's own N/A criterion as stated). This sentence is the only definition; Step 2's prompts send subagents here rather than restating it. Evidence cell records the basis (command run, manual check, `file:line`, or `not run: <reason>`).
+   **The verdicts.** Every result, whatever its source, is exactly one of **✅ pass** (concrete evidence that the rule is satisfied), **⚠ concern** (the location and the literal text that violates the rule), or **⊘ N/A** (the item's own N/A criterion as stated). This sentence is the only definition. Evidence cell records the basis (command run, manual check, `file:line`, or `not run: <reason>`).
 
    **Cross-cutting concerns.** Each auditor also returns concerns spanning several items. They are not rows and do not enter the row domain, but step 5 binds them exactly as it binds a ⚠ row: each must be resolved, waived, or closed as a recorded deferral before proceeding. Report them under the table.
 
@@ -215,15 +213,13 @@ self-audit: <commit-range or "uncommitted">
 | ported-code-attribution       | ⊘ N/A  |                                         | no external code ported                        |
 ```
 
-The table's row domain is every item in the `<SKILLS_DIR>/quality-list/SKILL.md` Items index, in index order, followed — when step 2's firing rule dispatched auditor 2 — by every item in the `<SKILLS_DIR>/authoritative-text-rules/SKILL.md` Items index, in that index's order. One row per item, and no rows outside the two domains. The rows above illustrate the format and the result vocabulary (✅ pass / ⚠ concern / ⊘ N/A), not the full set. Dual-lane items render once with both half-results merged. Each block is generated from its own index, never maintained as an independent list.
-
-That domain is the full report's. Delta mode renders a subset of it, per the exception below, and a halted run renders none of it, on the terms step 6 states.
+The table's row domain is every item in the `<SKILLS_DIR>/quality-list/SKILL.md` Items index, in index order, followed — when step 2's firing rule dispatched auditor 2 — by every item in the `<SKILLS_DIR>/authoritative-text-rules/SKILL.md` Items index, in that index's order. One row per item, and no rows outside the two domains. The rows above illustrate the format and the result vocabulary (✅ pass / ⚠ concern / ⊘ N/A), not the full set. Each block is generated from its own index, never maintained as an independent list.
 
 ## Delta mode
 
 A caller may ask for the audit in **delta mode**. The narrowing is of the report, not of the audit: every step above runs in full, and the step 5 gate binds every ⚠ and every cross-cutting concern this audit produced, reported or not.
 
-The baseline is an input, not a memory. This skill records nothing between runs, so the caller asking for delta mode supplies the earlier audit's rows and concerns with the request — it holds them, having received them. Asked for delta mode with no baseline, the run reports in full.
+The baseline is an input, not a memory. This skill records nothing between runs, so the caller asking for delta mode supplies the earlier audit's rows and concerns with the request. Asked for delta mode with no baseline, the run reports in full.
 
 Against that baseline, report:
 

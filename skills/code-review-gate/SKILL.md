@@ -45,4 +45,4 @@ If every lane in the chain is abandoned without a valid review of the current di
 
 ## Telemetry notes
 
-At gate time, note the root and the lane used for each iteration (e.g. `root: main`, `lanes: [direct, direct, headless]`) so the post-run `review-telemetry` record can carry both in the gate's `config`. Record the waiver (if any) per the Exhaustion rule above: name it in `gaps`, and apply `review-telemetry`'s skipped-gate omission only when no iteration ever produced a valid review.
+At gate time, note the root and the lane used for each iteration (e.g. `root: main`, `lanes: [direct, direct, headless]`) so the post-run `review-telemetry` record can carry both in the gate's `config`.

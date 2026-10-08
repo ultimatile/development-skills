@@ -81,8 +81,6 @@ Block selection rationale:
 - `dig_deeper_nudge`: without it Codex tends to stop at the first plausible concern
 - `missing_context_gating`: redirects scope/YAGNI speculation into open questions instead of findings
 - `verification_loop`: trims speculative nits before they reach the user
-- No `action_safety`: plan review is read-only
-- No `completeness_contract`: one pass is sufficient; the plan is small
 
 ### 2. Run Codex
 
@@ -92,9 +90,9 @@ codex exec "<prompt>" < /dev/null -o /tmp/codex-plan-review.md
 
 **Important:**
 
-- Always use `< /dev/null` to prevent stdin hanging in background/automated contexts
+- Always use `< /dev/null`
 - Set timeout to 600000ms (10 minutes)
-- Use `-o` to capture output to a file for reliable retrieval
+- Use `-o` to capture output to a file
 
 ### 3. Triage the feedback
 

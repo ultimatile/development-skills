@@ -11,11 +11,11 @@ The pipeline crosses a **user-controlled merge gate** (Phase 4a → 4b): the use
 
 ## Pipeline entry
 
-This pipeline takes two inputs, stated before the first phase the run executes. A run entering at Phase 4a or 4b takes neither: from Phase 4a on, no step commits, uses a root, or opens a PR — 4a reads the sub-issue and edits the PR body, and 4b runs on `main` after the merge.
+This pipeline takes two inputs, stated before the first phase the run executes. A run entering at Phase 4a or 4b takes neither.
 
 - **Root** — the branch this change merges into, as a bare branch name, supplied by the caller on `diff-root`'s terms. Every gate here is a coverage invocation in that skill's sense, so all of them take this one value: every `/done-check` invocation (Phase 0 and the fix-loop substep), Phase 0.5's `/code-review-gate`, Phase 1's `/codex-review`, and — when the run reads fix commits rather than working from review findings alone — Phase 3's `/bug-to-contract` and `/finding-to-audit`. Phase 2 opens the PR against that same branch. This pipeline resolves no root: with none supplied, ask.
 
-- **Branch guard** — run the default-branch check in Rules. This entry check is in addition to the per-`/stage-commit-push` checks, not a replacement for them.
+- **Branch guard** — run the default-branch check in Rules.
 
 ## Phase 0: Done-check loop
 
@@ -27,14 +27,14 @@ This pipeline takes two inputs, stated before the first phase the run executes. 
    - Run `/done-check` again (fresh, full audit — do not bias the next pass with the previous concerns list)
    - Re-triage
    - Run `/stage-commit-push`
-5. Repeat until done-check's step 5 gate is satisfied over both domains — its rows and its cross-cutting concerns. That gate owns which dispositions close each; do not restate them here.
+5. Repeat until done-check's step 5 gate is satisfied over both domains — its rows and its cross-cutting concerns. That gate owns which dispositions close each.
 
 What binds this phase is that the audit closing it saw the diff that proceeds — step 4 secures that by re-running the audit after every fix.
 
 ## Phase 0.5: Claude code-review gate
 
 1. Run `/stage-commit-push`.
-2. Run `/code-review-gate` against the current diff, passing the root stated at pipeline entry, the absolute path of the working tree step 1 ran in as the review tree, and an effort chosen on the gate's terms. The gate skill owns effort semantics, the lane chain, lane-failure handling, and exhaustion.
+2. Run `/code-review-gate` against the current diff, passing the root stated at pipeline entry, the absolute path of the working tree step 1 ran in as the review tree, and an effort chosen on the gate's terms.
 3. Triage the output — classify each finding under the `finding-triage` SSOT dispositions.
 4. If actionable findings exist, apply the **fix-loop substeps** (see Rules), re-running `/code-review-gate` with the inputs step 2 passed. Repeat until no actionable findings remain.
 
@@ -44,7 +44,7 @@ When that diff received a valid gate review (i.e. the gate was not waived), attr
 
 ## Phase 1: Codex review loop
 
-1. Ensure the diff Phase 0.5 reviewed is committed, which is the state `/codex-review`'s `--base` mode is defined over. Run `/stage-commit-push`.
+1. Ensure the diff Phase 0.5 reviewed is committed. Run `/stage-commit-push`.
 2. Run `/codex-review` to review the branch diff, passing the root stated at pipeline entry
 3. Triage the output — classify each finding under the `finding-triage` SSOT dispositions
 4. If actionable findings exist, apply the **fix-loop substeps** (see Rules) and repeat until no actionable findings remain.
@@ -52,7 +52,7 @@ When that diff received a valid gate review (i.e. the gate was not waived), attr
 ## Phase 2: Copilot review
 
 1. Run `/file-pullreq` in **gate mode** — drafts the PR title + body following `gh-body-conventions` and the standard body skeleton, discharges its evidence claims, runs the laundering pass, and gets the user's approval. The skill stops at approval and emits the approved title + body for the next step. It does NOT create the PR itself.
-2. Run `/copilot-review` in its normal mode, passing the approved title + body and **the root as this pipeline's `--base`** — this creates the PR with `--reviewer @copilot` and polls until the review arrives. The root is a branch name, which is what that flag takes; `/codex-review`'s `--base` one phase earlier is a different value, a merge base derived from the same root. Omitting it opens the PR against the repository default branch, and every gate above measured from the branch this run was told it merges into, so the two would then disagree.
+2. Run `/copilot-review` in its normal mode, passing the approved title + body and **the root as this pipeline's `--base`** — this creates the PR with `--reviewer @copilot` and polls until the review arrives. The root is a branch name, which is what that flag takes; `/codex-review`'s `--base` one phase earlier is a different value, a merge base derived from the same root.
 3. Triage the review — filter to the latest review's comments only (by `pull_request_review_id`)
 4. If actionable findings exist, apply the **fix-loop substeps** (see Rules), replacing the re-review step with two actions in this order: reply per `copilot-review` § Respond to review, then run `${CLAUDE_SKILL_DIR}/../copilot-review/scripts/pr-with-copilot-review.sh --re-review <PR_URL>`. Triage only new comments. Repeat until no actionable findings remain.
 5. Reply per `copilot-review` § Respond to review.
@@ -173,7 +173,7 @@ Runs only after the user has merged.
 
 - **Select the response before fixing.** Select the edit per `finding-triage`'s **Response selection (actionable findings)**; a finding fitting `invariant-premise-check` or `opens-a-question` re-triages per those dispositions. For a premise check, if unsure, ask codex a single targeted question via `codex exec "<fix proposal + one specific question about the premise>" -o /tmp/fix-check.md`. The commit is owned by whichever `/stage-commit-push` step the current phase runs.
 
-- **Oscillation detection.** The fix-loop substeps place this check at substep 1. If the same conceptual topic (not the same literal comment, but the same underlying question — e.g., "is this input valid?", "does this property hold?", "should this parameter accept both values?") appears across 2+ consecutive review iterations, stop fixing and escalate to the user. Repeated findings on one topic signal that the underlying invariant is not understood well enough for a confident fix.
+- **Oscillation detection.** If the same conceptual topic (not the same literal comment, but the same underlying question — e.g., "is this input valid?", "does this property hold?", "should this parameter accept both values?") appears across 2+ consecutive review iterations, stop fixing and escalate to the user. Repeated findings on one topic signal that the underlying invariant is not understood well enough for a confident fix.
 
   **Escalation order.** Before presenting the fix-direction question (panic vs allow vs convert vs ...), FIRST ask whether the original plan scope is correct. Oscillation in the fix-direction space is the symptom that the contract is empty or depends on something outside the plan's scope — refining the fix without rescoping just re-anchors the same empty contract from a different angle. Ask in this order:
 
@@ -182,7 +182,5 @@ Runs only after the user has merged.
   3. **If no upstream issue**: present what is known, what is uncertain, and ask the user to choose among the surviving fix options.
 
   The "no-clarifying-questions" mode does NOT override this rule. Convergence of three independent reviewers on the same API-contract concern is the signal regardless of mode.
-
-- **Pause at the merge gate.** Phase 4b runs only after the user merges. Do not run `gh pr merge` from Claude unless explicitly asked.
 
 - **Contract-test review is bounded.** `/codex-contract-test-review` allows at most one revise-and-re-review cycle. If it doesn't converge, the contract itself is unclear — escalate, don't loop.

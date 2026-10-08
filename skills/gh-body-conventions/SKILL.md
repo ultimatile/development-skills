@@ -37,7 +37,7 @@ Write the body to a file (typically under `/tmp/`) and pass it to the `gh-post` 
 - Do NOT wrap the inline-math construct `` $`...`$ `` in an enclosing code span. GitHub then renders the literal math syntax as inline code, not math — the failure mode when the *display* form of the construct (the literal syntax this section shows) is copied straight into a body.
 - Plain text inside backticks is fine when the symbol must match a code identifier verbatim (e.g., `` `alpha_t` ``).
 - Do NOT write raw Unicode math characters (α, β, ⊗, ∑, ∇, †, etc.) in text GitHub renders as neither code nor math. Use `` $`\alpha`$ ``, `` $`\otimes`$ ``, `` $`\sum`$ ``, `` $`\nabla`$ ``, `` $`\dagger`$ `` instead.
-- Do NOT use `\operatorname` (or `\operatorname*`) in text GitHub renders as math. GitHub's math renderer does not render it — a GitHub-specific limitation, not a MathJax one (github/markup#1688). Use `\mathrm{...}` instead, or `\mathop{\mathrm{...}}` when operator spacing matters.
+- Do NOT use `\operatorname` (or `\operatorname*`) in text GitHub renders as math. GitHub's math renderer does not render it. Use `\mathrm{...}` instead, or `\mathop{\mathrm{...}}` when operator spacing matters.
 - Avoid `\_` in GitHub/LaTeX math. Use `` $`\mathrm{\textunderscore}`$ `` when an underscore glyph is required in math mode.
 - Do NOT use `\textunderscore` inside `\text{...}` or `\texttt{...}`. Restructure the expression, or put the literal identifier in Markdown backticks outside math when exact code spelling matters.
 - When two inline math spans are separated by punctuation, put a space before the second math opener. Write `` $`K_1`$/ $`K_2`$ ``, not `` $`K_1`$/$`K_2`$ ``.
@@ -112,7 +112,6 @@ Work done in another session, or in a stretch of this one since summarized, leav
 - A claim with no available record is re-run or dropped.
   It is not softened into a hedge.
 - Text edited after its claims were discharged is discharged again before it is shown or filed.
-  Revise-and-re-run loops are the usual source: a revision made to clear another check can introduce a claim that check does not read.
 
 A statement is an evidence claim if it asserts an execution or reports what an execution produced, or if the property it states could only be known by running something — a suite passing, a coverage figure, a timing — however phrased.
 A statement of an artifact's existence, or of a property establishable by reading the code (a test file added, a tolerance value, an identifier, which cases a test covers), is not one; it is checked against the code, not against a record, even where something was also run to confirm it. Reading the code is not an execution, so saying you read it changes nothing; reporting a run is a separate statement, and that one is an evidence claim.

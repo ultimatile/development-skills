@@ -104,7 +104,7 @@ Forward-looking preflight against the planned change. This skill is the **runner
    the scope description and what you read in the codebase.
    ```
 
-   Embed the scope description (Step 1), the language(s) Step 0 detected, the root when Step 1 named a range, and the two resolved paths. The root is what an item body's or addendum's detection command needs to name a range. **Do not embed item body text** — the subagent reads the item files itself.
+   Embed the scope description (Step 1), the language(s) Step 0 detected, the root when Step 1 named a range, and the two resolved paths. **Do not embed item body text.**
 
    Start Step 3 immediately rather than waiting; the two run in parallel. Block on the subagent's return once you reach Step 4.
 

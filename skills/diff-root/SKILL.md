@@ -27,11 +27,11 @@ A **coverage** invocation must hold everything the change will merge, so that no
 
 An **incremental** invocation reviews only what is new since a point some coverage invocation already held, for early feedback on that increment. Its root is that point — usually the last approved commit, named as a SHA because a branch ref moves off it. It establishes no coverage of its own, so every commit that lands must still fall inside some coverage invocation's range.
 
-A caller that does not know the merge target **asks the user**. Do not substitute a guess — not the repository default branch, not the ref the branch was cut from, not a fork point. The cut-from ref is the sharpest of those traps: a branch is routinely cut from a local ref that is ahead of or behind what it will merge into, and nothing in the repository records the merge target at all.
+A caller that does not know the merge target **asks the user**. Do not substitute a guess — not the repository default branch, not the ref the branch was cut from, not a fork point.
 
 ## Spelling
 
-A root is either a **branch** or a **commit**. A commit root — a SHA or tag, which an incremental gate uses to fix a point a moving branch ref cannot name — is a revision already: use it unchanged, and note it never reaches a forge argument, since no PR opens against a SHA.
+A root is either a **branch** or a **commit**. A commit root — a SHA or tag — is a revision already: use it unchanged, and note it never reaches a forge argument, since no PR opens against a SHA.
 
 A branch root is supplied as a **bare branch name**, and that is the only spelling a caller may pass.
 
@@ -40,13 +40,13 @@ Two metavariables keep the uses apart, and every rule below and in every consume
 - `<root>` — the root as supplied.
 - `<root-rev>` — its revision spelling. For a branch root that is `origin/<root>`; for a commit root the two are the same string.
 
-**Revision arguments take `<root-rev>`** — `git log`, `git diff`, `git merge-base`, and anything else resolving a ref. A bare branch name there resolves to the local branch, which is routinely ahead of or behind the remote one the work merges into, so writing `<root>` where `<root-rev>` belongs reintroduces exactly the wrong-scope review this contract exists to prevent.
+**Revision arguments take `<root-rev>`** — `git log`, `git diff`, `git merge-base`, and anything else resolving a ref.
 
 **A branch name on the forge takes `<root>`** — `gh pr create --base`, `gh pr edit --base`. So does a comparison against this repository's default branch, which is read prefixed and must have that prefix stripped before comparing, since `<root>` carries none.
 
 One input spelling is what keeps this decidable. A rule accepting either could not tell a remote-tracking ref from a branch whose own first segment happens to match a remote's name — `upstream/release` under an `upstream` remote is both readings at once, and picking wrong selects a different history and a different PR base.
 
-**One repository.** These rules assume `origin` is the repository the work merges into — the one the branch is pushed to and the PR opens in. A cross-fork arrangement, where `origin` is a fork and the PR targets a different repository, is outside them: a bare branch name cannot name a repository, so a root supplied there would send the gates to the fork's branch while the PR targets the other one's. Nothing else in this skill set carries a target remote either — the pipeline's branch guard, the PR-base derivation, and the push all read `origin`. In that arrangement, halt and surface it rather than stretching these rules over it.
+**One repository.** These rules assume `origin` is the repository the work merges into — the one the branch is pushed to and the PR opens in. A cross-fork arrangement, where `origin` is a fork and the PR targets a different repository, is outside them: a bare branch name cannot name a repository, so a root supplied there would send the gates to the fork's branch while the PR targets the other one's. In that arrangement, halt and surface it rather than stretching these rules over it.
 
 Where a rule needs the repository default branch, read it bare, in one block:
 
@@ -59,7 +59,7 @@ Both lines are load-bearing. The `sed` is what makes the result comparable with 
 
 ## Per-command conversion
 
-Every conversion below starts with a refresh. For a branch root, `<root-rev>` is a local cache of a branch that lives on the forge, so run `git fetch origin <root>` before building any range from it. Skip that and the range measures from wherever the cache last stood, which goes stale exactly where it matters most: a long-lived integration branch advances on the forge every time one of its pull requests merges. A commit root is immutable and needs no refresh.
+Every conversion below starts with a refresh. For a branch root, `<root-rev>` is a local cache of a branch that lives on the forge, so run `git fetch origin <root>` before building any range from it. A commit root is immutable and needs no refresh.
 
 | Command | Form | Why this form |
 | -- | -- | -- |

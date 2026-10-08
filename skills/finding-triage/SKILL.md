@@ -7,7 +7,7 @@ description: Single source of truth for per-finding review-triage dispositions a
 
 Skills that triage review findings apply these dispositions by reference; do not copy the class definitions into them, point at them by name.
 
-A reviewer (Codex, Copilot, a fresh-context auditor) produces findings without the project context you hold — test results, design intent, scope constraints, conversation history. Triage is the step that converts a raw finding into a disposition. This file is the catalogue of dispositions and the response-selection rules for actionable findings; neither varies by reviewer, so both live in one place.
+A reviewer (Codex, Copilot, a fresh-context auditor) produces findings without the project context you hold — test results, design intent, scope constraints, conversation history. Triage is the step that converts a raw finding into a disposition. This file is the catalogue of dispositions and the response-selection rules for actionable findings; neither varies by reviewer.
 
 ## Scope: stateless, per-finding
 
@@ -62,7 +62,7 @@ An `actionable` disposition settles validity; it does not settle the edit. Selec
 
 - **Coverage-gap claim** (case-space is defined), `bounded` → add the missing case (`fix-in-place`) when load-bearing is true; `delete` the claim that declares the domain when it is false.
 - **Coverage-gap claim**, `unbounded` → never add the case, at any severity. `generalize` when load-bearing is true; `delete` when it is false. When `generalize` is selected but the defining predicate is not derivable from the finding and the target text, re-triage to `opens-a-question` instead.
-- **Drift between copies of one rule** — the same rule stated in more than one place, whether or not the drift affects behavior → `deduplicate` when load-bearing is true (the collapsed statement carries the corrected content); `delete` when it is false. Rewriting the divergent copies in place is not an outcome: it opens new consistency surfaces, and drift between N copies costs N comparisons to detect while a broken reference costs one grep.
+- **Drift between copies of one rule** — the same rule stated in more than one place, whether or not the drift affects behavior → `deduplicate` when load-bearing is true (the collapsed statement carries the corrected content); `delete` when it is false. Rewriting the divergent copies in place is not an outcome.
 - **Otherwise** (a statement misdescribes the behavior it annotates, a wrong action, a typo) → `fix-in-place`: correct it, when load-bearing is true; `delete` when it is false.
 
 The selected edit is applied in the current run; a re-triage out of `actionable` exits instead. Declining the fix is such an exit; this section does not settle which disposition a declined finding takes, and the entry conditions in **The dispositions** above govern that question.
@@ -71,7 +71,7 @@ The regeneration signal — whether the target sentence was written to answer a 
 
 ## Pre-existing instances do not license dismissal
 
-A finding is not downgraded to `false-positive`, `defer` or `wontfix` merely because the surrounding code already exhibits the same flaw. Pre-existing instances of a problem are unextracted debt, not a convention that licenses adding another — "matches the surrounding code" describes the debt, it does not dismiss the finding. Dismissal still requires the disposition's own bar: for `false-positive`, context that makes *this* finding wrong; for `defer`, an explicit out-of-scope decision; for `wontfix`, the user's direction to close it, with the cost of the fix stated. The mere presence of prior offenders meets none of them.
+A finding is not downgraded to `false-positive`, `defer` or `wontfix` merely because the surrounding code already exhibits the same flaw. Pre-existing instances of a problem are unextracted debt, not a convention that licenses adding another — "matches the surrounding code" describes the debt, it does not dismiss the finding. Dismissal still requires the disposition's own bar: for `false-positive`, context that makes *this* finding wrong; for `defer`, an explicit out-of-scope decision; for `wontfix`, the user's direction to close it, with the cost of the fix stated.
 
 ## opens-a-question vs uncertain-validity
 
@@ -84,7 +84,7 @@ A finding can pass through both in sequence: resolve validity first (`uncertain-
 
 ## The tell for opens-a-question
 
-An `opens-a-question` finding often first reads as a **user gate** — "ask the user to decide X." The diagnostic: a *genuine* user gate stays a gate after investigation, whereas an `opens-a-question` **dissolves the moment someone investigates** — it was never user-owned. If the escalation would evaporate once a probe runs, route it through `research`, not straight to the user. Escalate only the residue that survives investigation: scope authority, taste, external constraint.
+An `opens-a-question` finding often first reads as a **user gate** — "ask the user to decide X." The diagnostic: a *genuine* user gate stays a gate after investigation, whereas an `opens-a-question` **dissolves the moment someone investigates** — it was never user-owned. If the escalation would evaporate once a probe runs, route it through `research`, not straight to the user.
 
 ## Verifying external-system claims
 
