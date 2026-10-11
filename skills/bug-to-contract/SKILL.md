@@ -7,8 +7,6 @@ description: Promote a review finding or bug fix into a contract test that preve
 
 Review findings and bug fixes address symptoms. This skill asks: **what implicit specification was violated, and is that specification now tested?**
 
-A single fix prevents one bug. A contract test prevents the entire class.
-
 ## Inputs
 
 This skill works from two kinds of input. The fix-commit lane uses a **root** on `diff-root`'s consumer contract, halt included; the review-findings lane uses none.
@@ -96,7 +94,6 @@ Present to the user:
 
 ## Important principles
 
-- **General over specific**: A regression test for the exact input that broke is weak. A contract test for the property that was violated prevents the entire bug class.
 - **Name the contract**: If you can't name the implicit specification in one sentence, you haven't understood the issue yet.
 - **Patterns are escalation-worthy**: A cluster of findings in the same category (e.g., three layout-related issues in one review cycle) indicates a systematically untested contract. Escalate this to the user.
-- **Don't boil the ocean**: One contract test per finding is enough. Incremental contract coverage is the goal.
+- **Don't boil the ocean**: One contract test per finding is enough.

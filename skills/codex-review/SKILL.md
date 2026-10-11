@@ -76,7 +76,7 @@ Typical false positive patterns:
 When presenting review output, triage each finding:
 
 1. **Read the review output** and identify each distinct finding (usually formatted as `[P1/P2] summary — file:line`)
-2. **Cross-check against project context** you already have — test results, prior conversation, code you've read. You have far more context than the reviewer did.
+2. **Cross-check against project context** you already have — test results, prior conversation, code you've read.
 3. **Classify each finding** under the `finding-triage` SSOT dispositions, applying each per its definition there. The common codex-review cases are `actionable`, `false-positive`, and `uncertain-validity`.
 4. **Present the triage** to the user, not the raw output. Lead with actionable items, note dismissed items with reasoning.
 

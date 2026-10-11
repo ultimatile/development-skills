@@ -10,7 +10,7 @@ Create a GitHub PR, request Copilot review, poll until it arrives, and triage th
 
 ## How it works
 
-**Use `pr-with-copilot-review.sh` for the entire flow.** Do NOT create the PR separately with `gh pr create` and then try to poll — the script handles PR creation, Copilot review request (`--reviewer @copilot`), and polling in one shot.
+**Use `pr-with-copilot-review.sh` for the entire flow.** Do NOT create the PR separately with `gh pr create` and then try to poll.
 
 ### Normal mode: create PR + review + poll
 
@@ -39,8 +39,6 @@ If the PR was already created and review already requested:
 ```bash
 ${CLAUDE_SKILL_DIR}/scripts/pr-with-copilot-review.sh --poll https://github.com/owner/repo/pull/123
 ```
-
-This skips PR creation and review request, going straight to polling.
 
 ### Environment variables
 

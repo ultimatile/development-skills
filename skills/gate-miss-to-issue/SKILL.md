@@ -25,7 +25,7 @@ A gate's failure is invisible to the gates downstream of it — they judge the p
 
 Hand `file-issue` these four points:
 
-- **Gate (proposed)** — the skill + step you argue should have caught it, or *none yet*; the gate-owner confirms or redirects.
+- **Gate (proposed)** — the skill + step you argue should have caught it, or *none yet*.
 - **Miss** — the defect, and where it was finally caught; link the work-repo PR / issue for provenance.
 - **Blind spot** — the generalizable procedure gap.
-- **Proposed improvement** — a concrete procedure change (a new sweep, a tightened definition, an added probe class). A proposal; the fix is settled in the issue.
+- **Proposed improvement** — a concrete procedure change (a new sweep, a tightened definition, an added probe class).

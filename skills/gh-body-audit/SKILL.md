@@ -37,7 +37,7 @@ Exit 0 = clean, 1 = hits found (printed as `line:match`), 2 = usage / environmen
 
 ### 3. Cold-reader audit (fresh-context subagent)
 
-Invoke `Agent` with `subagent_type: "general-purpose"` and `model: "sonnet"`. Pass only the body, the target repo name, and the artifact kind. Do NOT pass chat history, the plan, the author's prior messages, or any context about why the body is being filed — the fresh context is the entire point.
+Invoke `Agent` with `subagent_type: "general-purpose"` and `model: "sonnet"`. Pass only the body, the target repo name, and the artifact kind. Do NOT pass chat history, the plan, the author's prior messages, or any context about why the body is being filed.
 
 Prompt template:
 
@@ -79,7 +79,7 @@ Combine the math-scan hit (if any) and the cold-reader report into a single stat
 
 Settle the second kind by checking that the referent is where an external reader, as § Exclusions defines one, would find it — not by reading the token. § Exclusions' exemption for a repo-relative path the body proposes to create applies first. Where the referent must be, by the token's form:
 
-- a repo-relative path, any position it carries dropped: at the revision the body is about. For a PR body that is its head (the drafting checkout's `HEAD` until the PR is filed) or its base, present at either being enough, since a body names files the PR removes as well as ones it adds; for an issue body, the default branch.
+- a repo-relative path, any position it carries dropped: at the revision the body is about. For a PR body that is its head (the drafting checkout's `HEAD` until the PR is filed) or its base, present at either being enough; for an issue body, the default branch.
 - an issue or PR number: in the repository it names, the target repo for a bare `#N`.
 - a published identifier: at its resolver.
 - a URL: at itself.
