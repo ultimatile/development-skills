@@ -32,9 +32,9 @@ Each finding receives exactly one disposition. A finding may be *re-triaged* to 
 
 - **invariant-premise-check** — the finding's *conclusion* may be correct, but its *premise* may be wrong. Applies to claims about mathematical properties, semantic validity, or precondition necessity. Before committing a fix, **verify the premise** — check whether the invariant the finding assumes actually holds, by reading code and tests and running targeted experiments. When the premise is an external-system-behavior claim, verify it per **Verifying external-system claims** below. Resolves to `actionable` (premise holds → fix it) or `false-positive` (premise fails → the finding's conclusion does not follow). The mechanism for verifying the premise is the caller's; this SSOT owns only the class.
 
-- **defer** — the finding is valid and its fix is understood, but it is **out of scope** for the current task. Record it (follow-up issue, note) and do not fix now. Distinct from `opens-a-question`: here the resolution is known and local, only the *timing* is deferred; in `opens-a-question` the resolution itself is unknown. Distinct from `wontfix`: there the user directs that nothing be carried past this run.
+- **defer** — the finding is valid and its fix is understood, and the user directs that it not be fixed in this run, by any direction other than one that meets `wontfix` below. Record it (follow-up issue, note) and do not fix now. Entering this entry or `wontfix` takes the finding out of `actionable` or `opens-a-question`, whichever it held. Being out of scope for the current task does not make a fix need the scope judgment `opens-a-question` names: a finding the user has not directed be left unfixed holds the entry it would hold in scope.
 
-- **wontfix** — the finding is valid and its fix is understood, and the user directs that it be closed within this run: no fix made, and no follow-up filed to carry it past. The decision is the user's alone; the run records the disposition and the user's reasoning, which states what the fix would have cost. Both a reason to postpone and a reason to abandon can hold of one finding; where they do, the user's direction, not the reason, selects.
+- **wontfix** — the finding is valid and its fix is understood, and the user directs both that it not be fixed and that nothing be filed or noted to carry it past this run. The decision is the user's alone; the run records the disposition and the user's reasoning, which states what the fix would have cost. Both a reason to postpone and a reason to abandon can hold of one finding; where they do, the user's direction, not the reason, selects.
 
 ## Response selection (actionable findings)
 
@@ -71,14 +71,14 @@ The regeneration signal — whether the target sentence was written to answer a 
 
 ## Pre-existing instances do not license dismissal
 
-A finding is not downgraded to `false-positive`, `defer` or `wontfix` merely because the surrounding code already exhibits the same flaw. Pre-existing instances of a problem are unextracted debt, not a convention that licenses adding another — "matches the surrounding code" describes the debt, it does not dismiss the finding. Dismissal still requires the disposition's own bar: for `false-positive`, context that makes *this* finding wrong; for `defer`, an explicit out-of-scope decision; for `wontfix`, the user's direction to close it, with the cost of the fix stated.
+A finding is not downgraded to `false-positive`, `defer` or `wontfix` merely because the surrounding code already exhibits the same flaw. Pre-existing instances of a problem are unextracted debt, not a convention that licenses adding another — "matches the surrounding code" describes the debt, it does not dismiss the finding. Dismissal still requires the disposition's own bar: for `false-positive`, context that makes *this* finding wrong; for `defer` and `wontfix`, the user's direction the entry names.
 
 ## opens-a-question vs uncertain-validity
 
 The two name **different unknowns**:
 
 - `uncertain-validity` — "**is the finding real?**" Validity unknown; resolution (if real) presumed local.
-- `opens-a-question` — "the finding **is** real, but its **resolution is non-local**." Validity known; resolution unknown.
+- `opens-a-question` — "the finding **is** real, but its **resolution is non-local**." Validity known; resolution not a local edit.
 
 A finding can pass through both in sequence: resolve validity first (`uncertain-validity` → real), then, if the fix turns out non-local, re-triage to `opens-a-question`.
 
