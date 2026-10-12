@@ -89,7 +89,7 @@ A token whose referent is there is a `false-positive`; one whose referent is not
 - **True positive** (`actionable`) — fix before proceeding.
 - **False positive due to missing context** — record explicitly why (e.g., the token resolved, or it is a bare name the target repo holds). Where one rule disposes of several hits, record them together and name that rule once. Per `finding-triage`, false-positive classification is itself a triage step the user can challenge; do not silently override.
 
-Any unresolved ⚠ blocks the caller's next step. Return the report; the caller revises the draft, re-discharges its evidence claims, and re-runs `gh-body-audit`. Iterate until clean, or each remaining ⚠ is closed, as `finding-triage` defines closed, and the report names the disposition that closed it.
+Any unresolved ⚠ blocks the caller's next step. Return the report; the caller revises the draft, re-discharges its evidence claims, and re-runs `gh-body-audit`. Iterate until clean, or each remaining ⚠ is closed, as `finding-triage` defines closed.
 
 ## What this skill does NOT do
 
