@@ -193,9 +193,9 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
 
    **The verdicts.** Every result, whatever its source, is exactly one of **✅ pass** (concrete evidence that the rule is satisfied), **⚠ concern** (the location and the literal text that violates the rule), or **⊘ N/A** (the item's own N/A criterion as stated). This sentence is the only definition. Evidence cell records the basis (command run, manual check, `file:line`, or `not run: <reason>`).
 
-   **Cross-cutting concerns.** Each auditor also returns concerns spanning several items. They are not rows and do not enter the row domain, but step 5 binds them exactly as it binds a ⚠ row: each must be resolved, waived, or closed as a recorded deferral before proceeding. Report them under the table.
+   **Cross-cutting concerns.** Each auditor also returns concerns spanning several items. They are not rows and do not enter the row domain, but step 5 binds them exactly as it binds a ⚠ row. Report them under the table.
 
-5. If any ⚠ remains, fix before proceeding. State concretely what will change. Do not proceed until each concern is resolved, explicitly waived by the user with reasoning, or closed as a recorded deferral per `finding-triage`'s `defer` — a follow-up issue filed with the user's approval. A deferral closes the concern's handling, not its verdict: the row stays ⚠ with the deferral recorded in its Note.
+5. If any ⚠ remains, fix before proceeding. State concretely what will change. Do not proceed until each concern is resolved or closed, as `finding-triage` defines closed. A deferral closes the concern's handling, not its verdict: the row stays ⚠ with the deferral recorded in its Note.
 
 6. Report the audit table, followed by any cross-cutting concerns and their triage. Only a run that reaches this step emits a table at all: every halt above — a rule set that is not under `<SKILLS_DIR>`, a coverage check still unmatched after its re-dispatch — ends the run without one, however many such halts the steps above come to hold. Delta mode narrows this report rather than removing it (below).
 

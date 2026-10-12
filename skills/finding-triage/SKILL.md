@@ -15,7 +15,7 @@ Every disposition here is judged on **one finding in isolation** — no dependen
 
 ## The dispositions
 
-Each finding receives exactly one disposition. A finding may be *re-triaged* to a different disposition after investigation (e.g. `uncertain-validity` → `actionable`), but at any moment it holds one.
+Each finding receives exactly one disposition. A finding may be *re-triaged* to a different disposition after investigation (e.g. `uncertain-validity` → `actionable`), but at any moment it holds one. What an entry tells the run to do with a finding binds only while the finding holds that entry.
 
 - **actionable** — a real issue the reviewer correctly identified, whose resolution is a **local edit**: one the run makes directly, needing none of the non-local work that defines `opens-a-question` below, however many sites it touches — `generalize`, `delete`, and `deduplicate` below are local in this sense. Which edit is selected per **Response selection (actionable findings)** below. A run that judges the edit out of scope for the current task asks the user whether to make it in this run, and makes it only if the user says to.
 
@@ -30,11 +30,17 @@ Each finding receives exactly one disposition. A finding may be *re-triaged* to 
 
   The correct handling is to **re-enter `research`** with the finding as the task, then escalate only the genuinely user-owned residue (scope authority, taste, an external constraint).
 
-- **invariant-premise-check** — the finding's *conclusion* may be correct, but its *premise* may be wrong. Applies to claims about mathematical properties, semantic validity, or precondition necessity. Before committing a fix, **verify the premise** — check whether the invariant the finding assumes actually holds, by reading code and tests and running targeted experiments. When the premise is an external-system-behavior claim, verify it per **Verifying external-system claims** below. Resolves to `actionable` (premise holds → fix it) or `false-positive` (premise fails → the finding's conclusion does not follow). The mechanism for verifying the premise is the caller's; this SSOT owns only the class.
+- **invariant-premise-check** — the finding's *conclusion* may be correct, but its *premise* may be wrong. Applies to claims about mathematical properties, semantic validity, or precondition necessity. Before committing a fix, **verify the premise** — check whether the invariant the finding assumes actually holds, by reading code and tests and running targeted experiments. When the premise is an external-system-behavior claim, verify it per **Verifying external-system claims** below. Once the premise is verified, the finding resolves to `actionable` (premise holds → fix it) or `false-positive` (premise fails → the finding's conclusion does not follow). The mechanism for verifying the premise is the caller's; this SSOT owns only the class.
 
 - **defer** — the finding is valid and its fix is understood, and the user directs that it not be fixed in this run, by any direction other than one that meets `wontfix` below. A fix is understood, here and in `wontfix`, exactly when it is the local edit `actionable` names. Keep a follow-up for it and do not fix now; a follow-up is an issue or a note that carries the finding to a later fix. Entering this entry or `wontfix` takes the finding out of `actionable`.
 
-- **wontfix** — the finding is valid and its fix is understood, and the user directs both that it not be fixed in this run and that no follow-up be kept. The decision is the user's alone; the run records the disposition and the user's reasoning, which states what the fix would have cost. Both a reason to postpone and a reason to abandon can hold of one finding; where they do, the user's direction, not the reason, selects.
+- **wontfix** — the finding is valid and its fix is understood, and the user directs both that it not be fixed in this run and that no follow-up be kept. The decision is the user's alone; the run records the disposition and the user's reasoning, which states what the fix would have cost. Both a reason to postpone and a reason to drop the fix can hold of one finding; where they do, the user's direction, not the reason, selects.
+
+- **abandoned** — the user directs that no further work be done on the finding in this run, and either whether it is valid is not known, or it is valid and its fix is not the local edit `actionable` names. The decision is the user's alone; the run records the disposition and the user's reasoning, and keeps a follow-up where the user directs that one be kept. Meeting this condition takes a finding out of `uncertain-validity`, `invariant-premise-check` or `opens-a-question`, whichever it held.
+
+## Closed findings
+
+A finding is **closed** when it holds `false-positive`, `defer`, `wontfix` or `abandoned` and the run has done what that entry directs.
 
 ## Response selection (actionable findings)
 
@@ -71,7 +77,7 @@ The regeneration signal — whether the target sentence was written to answer a 
 
 ## Pre-existing instances do not license dismissal
 
-A finding is not downgraded to `false-positive`, `defer` or `wontfix` merely because the surrounding code already exhibits the same flaw. Pre-existing instances of a problem are unextracted debt, not a convention that licenses adding another — "matches the surrounding code" describes the debt, it does not dismiss the finding. Dismissal still requires the disposition's own bar: for `false-positive`, context that makes *this* finding wrong; for `defer` and `wontfix`, the user's direction the entry names.
+A finding is not downgraded to `false-positive`, `defer`, `wontfix` or `abandoned` merely because the surrounding code already exhibits the same flaw. Pre-existing instances of a problem are unextracted debt, not a convention that licenses adding another — "matches the surrounding code" describes the debt, it does not dismiss the finding. Dismissal still requires the disposition's own bar: for `false-positive`, context that makes *this* finding wrong; for `defer`, `wontfix` and `abandoned`, the user's direction the entry names.
 
 ## opens-a-question vs uncertain-validity
 
