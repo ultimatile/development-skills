@@ -34,7 +34,13 @@ Each finding receives exactly one disposition. A finding may be *re-triaged* to 
 
 - **defer** — the finding is valid and its fix is understood, and the user directs that it not be fixed in this run, by any direction other than one that meets `wontfix` below. A fix is understood, here and in `wontfix`, exactly when it is the local edit `actionable` names. Keep a follow-up for it and do not fix now; a follow-up is an issue or a note that carries the finding to a later fix. Entering this entry or `wontfix` takes the finding out of `actionable`.
 
-- **wontfix** — the finding is valid and its fix is understood, and the user directs both that it not be fixed in this run and that no follow-up be kept. The decision is the user's alone; the run records the disposition and the user's reasoning, which states what the fix would have cost. Both a reason to postpone and a reason to abandon can hold of one finding; where they do, the user's direction, not the reason, selects.
+- **wontfix** — the finding is valid and its fix is understood, and the user directs both that it not be fixed in this run and that no follow-up be kept. The decision is the user's alone; the run records the disposition and the user's reasoning, which states what the fix would have cost. Both a reason to postpone and a reason to drop the fix can hold of one finding; where they do, the user's direction, not the reason, selects.
+
+- **abandoned** — whether the finding is valid is not known, or it is valid and its fix is not the local edit `actionable` names, and the user directs that the investigation that would settle it not be run in this run. The decision is the user's alone; the run records the disposition and the user's reasoning, and keeps a follow-up where the user directs that one be kept. Meeting this condition takes a finding out of `uncertain-validity`, `invariant-premise-check` or `opens-a-question`, whichever it held.
+
+## Closed and open findings
+
+A finding is **closed** when it holds `actionable`, `false-positive`, `defer`, `wontfix` or `abandoned` and the run has done what that entry directs. A finding holding `uncertain-validity`, `invariant-premise-check` or `opens-a-question` is **open**, and so is one holding any of the other five whose direction the run has not yet carried out.
 
 ## Response selection (actionable findings)
 
@@ -71,7 +77,7 @@ The regeneration signal — whether the target sentence was written to answer a 
 
 ## Pre-existing instances do not license dismissal
 
-A finding is not downgraded to `false-positive`, `defer` or `wontfix` merely because the surrounding code already exhibits the same flaw. Pre-existing instances of a problem are unextracted debt, not a convention that licenses adding another — "matches the surrounding code" describes the debt, it does not dismiss the finding. Dismissal still requires the disposition's own bar: for `false-positive`, context that makes *this* finding wrong; for `defer` and `wontfix`, the user's direction the entry names.
+A finding is not downgraded to `false-positive`, `defer`, `wontfix` or `abandoned` merely because the surrounding code already exhibits the same flaw. Pre-existing instances of a problem are unextracted debt, not a convention that licenses adding another — "matches the surrounding code" describes the debt, it does not dismiss the finding. Dismissal still requires the disposition's own bar: for `false-positive`, context that makes *this* finding wrong; for `defer`, `wontfix` and `abandoned`, the user's direction the entry names.
 
 ## opens-a-question vs uncertain-validity
 
