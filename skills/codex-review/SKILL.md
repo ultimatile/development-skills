@@ -102,7 +102,7 @@ Each iteration runs a full, unbiased review of the entire diff against base. Do 
 
 5. **Re-triage** — a finding dismissed as false positive in iteration N may become relevant in iteration N+1 if the fix changed the surrounding code. Don't carry over dismissals blindly.
 
-6. **Repeat** until no actionable findings remain — a finding the user's direction has taken to `defer` or `wontfix` no longer stands as an open actionable finding, in this loop and in any loop wrapping it.
+6. **Repeat** until no actionable findings remain. A finding holding `defer`, `wontfix` or `abandoned` keeps that disposition when a later iteration reports it again, in this loop and in any loop wrapping it.
 
 ### What "clean" means
 
