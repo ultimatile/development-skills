@@ -27,7 +27,7 @@ This pipeline takes two inputs, stated before the first phase the run executes. 
    - Run `/done-check` again (fresh, full audit — do not bias the next pass with the previous concerns list)
    - Re-triage
    - Run `/stage-commit-push`
-5. Repeat until done-check's step 5 gate is satisfied over both domains — its rows and its cross-cutting concerns. That gate states how each closes.
+5. Repeat until done-check's step 5 gate is satisfied over both domains — its rows and its cross-cutting concerns.
 
 What binds this phase is that the audit closing it saw the diff that proceeds — step 4 secures that by re-running the audit after every fix.
 
