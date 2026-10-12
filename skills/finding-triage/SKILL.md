@@ -17,13 +17,13 @@ Every disposition here is judged on **one finding in isolation** — no dependen
 
 Each finding receives exactly one disposition. A finding may be *re-triaged* to a different disposition after investigation (e.g. `uncertain-validity` → `actionable`), but at any moment it holds one.
 
-- **actionable** — a real issue the reviewer correctly identified, whose resolution is a **local edit**: one the run makes directly, needing none of the non-local work that defines `opens-a-question` below, however many sites it touches — `generalize`, `delete`, and `deduplicate` below are local in this sense. Which edit is selected per **Response selection (actionable findings)** below.
+- **actionable** — a real issue the reviewer correctly identified, whose resolution is a **local edit**: one the run makes directly, needing none of the non-local work that defines `opens-a-question` below, however many sites it touches — `generalize`, `delete`, and `deduplicate` below are local in this sense. Which edit is selected per **Response selection (actionable findings)** below. A run that judges the edit out of scope for the current task asks the user whether to make it in this run, and makes it only if the user says to.
 
 - **false-positive** — plausible but wrong given context the reviewer lacked (test results, deliberate design choice, a system constraint that rules out the hypothesized input). Dismiss **with explicit reasoning** stated to the user. Never silently override a finding: false-positive classification is itself a triage step the user can challenge. This should be rare enough to be worth paper-trailing. When the dismissal rests on the behavior of an external system (a markdown renderer, parser, compiler, ABI, API), verify it before dismissing per **Verifying external-system claims** below.
 
 - **uncertain-validity** — you cannot yet tell whether the finding is real. The open question is **validity**. Investigate — read code, run a targeted probe — until it resolves to `actionable` or `false-positive`. When the targeted probe judges an external-system-behavior claim, verify it per **Verifying external-system claims** below. Do not carry an unresolved `uncertain-validity` past the point where a fix would be committed.
 
-- **opens-a-question** — the finding **is real**, but its resolution is **non-local**: it needs investigation, a design choice, or a scope judgment beyond a local edit. Both default responses are wrong here:
+- **opens-a-question** — the finding **is real**, but its resolution is **non-local**: it needs investigation or a design choice beyond a local edit. Both default responses are wrong here:
 
   - "fix in place" is wrong — the fix is not local.
   - "escalate to the user" is wrong — the resolution is probe-able.
@@ -32,13 +32,13 @@ Each finding receives exactly one disposition. A finding may be *re-triaged* to 
 
 - **invariant-premise-check** — the finding's *conclusion* may be correct, but its *premise* may be wrong. Applies to claims about mathematical properties, semantic validity, or precondition necessity. Before committing a fix, **verify the premise** — check whether the invariant the finding assumes actually holds, by reading code and tests and running targeted experiments. When the premise is an external-system-behavior claim, verify it per **Verifying external-system claims** below. Resolves to `actionable` (premise holds → fix it) or `false-positive` (premise fails → the finding's conclusion does not follow). The mechanism for verifying the premise is the caller's; this SSOT owns only the class.
 
-- **defer** — the finding is valid and its fix is understood, but it is **out of scope** for the current task. Record it (follow-up issue, note) and do not fix now. Distinct from `opens-a-question`: here the resolution is known and local, only the *timing* is deferred; in `opens-a-question` the resolution itself is unknown. Distinct from `wontfix`: there the user directs that nothing be carried past this run.
+- **defer** — the finding is valid and its fix is understood, and the user directs that it not be fixed in this run, by any direction other than one that meets `wontfix` below. A fix is understood, here and in `wontfix`, exactly when it is the local edit `actionable` names. Keep a follow-up for it and do not fix now; a follow-up is an issue or a note that carries the finding to a later fix. Entering this entry or `wontfix` takes the finding out of `actionable`.
 
-- **wontfix** — the finding is valid and its fix is understood, and the user directs that it be closed within this run: no fix made, and no follow-up filed to carry it past. The decision is the user's alone; the run records the disposition and the user's reasoning, which states what the fix would have cost. Both a reason to postpone and a reason to abandon can hold of one finding; where they do, the user's direction, not the reason, selects.
+- **wontfix** — the finding is valid and its fix is understood, and the user directs both that it not be fixed in this run and that no follow-up be kept. The decision is the user's alone; the run records the disposition and the user's reasoning, which states what the fix would have cost. Both a reason to postpone and a reason to abandon can hold of one finding; where they do, the user's direction, not the reason, selects.
 
 ## Response selection (actionable findings)
 
-An `actionable` disposition settles validity; it does not settle the edit. Select the edit with the rules below — per-finding and stateless, like every disposition above — and apply it in the current run.
+An `actionable` disposition settles validity; it does not settle the edit. Select the edit with the rules below — per-finding and stateless, like every disposition above.
 
 **Inputs**: the finding; the target text; the evidence the run has already produced (test results, executed probes); and the predicate below.
 
@@ -65,20 +65,20 @@ An `actionable` disposition settles validity; it does not settle the edit. Selec
 - **Drift between copies of one rule** — the same rule stated in more than one place, whether or not the drift affects behavior → `deduplicate` when load-bearing is true (the collapsed statement carries the corrected content); `delete` when it is false. Rewriting the divergent copies in place is not an outcome.
 - **Otherwise** (a statement misdescribes the behavior it annotates, a wrong action, a typo) → `fix-in-place`: correct it, when load-bearing is true; `delete` when it is false.
 
-The selected edit is applied in the current run; a re-triage out of `actionable` exits instead. Declining the fix is such an exit; this section does not settle which disposition a declined finding takes, and the entry conditions in **The dispositions** above govern that question.
+The selected edit is applied in the current run, subject to the question `actionable` puts to the user for an out-of-scope edit; a re-triage out of `actionable` exits instead. Declining the fix is such an exit; this section does not settle which disposition a declined finding takes, and the entry conditions in **The dispositions** above govern that question.
 
 The regeneration signal — whether the target sentence was written to answer a prior finding — is iteration history, out of scope here per **Scope: stateless, per-finding**.
 
 ## Pre-existing instances do not license dismissal
 
-A finding is not downgraded to `false-positive`, `defer` or `wontfix` merely because the surrounding code already exhibits the same flaw. Pre-existing instances of a problem are unextracted debt, not a convention that licenses adding another — "matches the surrounding code" describes the debt, it does not dismiss the finding. Dismissal still requires the disposition's own bar: for `false-positive`, context that makes *this* finding wrong; for `defer`, an explicit out-of-scope decision; for `wontfix`, the user's direction to close it, with the cost of the fix stated.
+A finding is not downgraded to `false-positive`, `defer` or `wontfix` merely because the surrounding code already exhibits the same flaw. Pre-existing instances of a problem are unextracted debt, not a convention that licenses adding another — "matches the surrounding code" describes the debt, it does not dismiss the finding. Dismissal still requires the disposition's own bar: for `false-positive`, context that makes *this* finding wrong; for `defer` and `wontfix`, the user's direction the entry names.
 
 ## opens-a-question vs uncertain-validity
 
-The two name **different unknowns**:
+The two differ in **what is known**:
 
-- `uncertain-validity` — "**is the finding real?**" Validity unknown; resolution (if real) presumed local.
-- `opens-a-question` — "the finding **is** real, but its **resolution is non-local**." Validity known; resolution unknown.
+- `uncertain-validity` — "**is the finding real?**" Validity unknown.
+- `opens-a-question` — "the finding **is** real, but its **resolution is non-local**." Validity known.
 
 A finding can pass through both in sequence: resolve validity first (`uncertain-validity` → real), then, if the fix turns out non-local, re-triage to `opens-a-question`.
 
