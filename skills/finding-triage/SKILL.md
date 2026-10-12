@@ -36,7 +36,7 @@ Each finding receives exactly one disposition. A finding may be *re-triaged* to 
 
 - **wontfix** — the finding is valid and its fix is understood, and the user directs both that it not be fixed in this run and that no follow-up be kept. The decision is the user's alone; the run records the disposition and the user's reasoning, which states what the fix would have cost. Both a reason to postpone and a reason to drop the fix can hold of one finding; where they do, the user's direction, not the reason, selects.
 
-- **abandoned** — whether the finding is valid is not known, or it is valid and its fix is not the local edit `actionable` names, and the user directs that this unknown — its validity, or its fix — not be settled in this run. The decision is the user's alone; the run records the disposition and the user's reasoning, and keeps a follow-up where the user directs that one be kept. Meeting this condition takes a finding out of `uncertain-validity`, `invariant-premise-check` or `opens-a-question`, whichever it held.
+- **abandoned** — the user directs that no further work be done on the finding in this run, and either whether it is valid is not known, or it is valid and its fix is not the local edit `actionable` names. The decision is the user's alone; the run records the disposition and the user's reasoning, and keeps a follow-up where the user directs that one be kept. Meeting this condition takes a finding out of `uncertain-validity`, `invariant-premise-check` or `opens-a-question`, whichever it held.
 
 ## Closed findings
 
