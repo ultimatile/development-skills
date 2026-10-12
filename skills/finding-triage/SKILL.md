@@ -15,7 +15,7 @@ Every disposition here is judged on **one finding in isolation** — no dependen
 
 ## The dispositions
 
-Each finding receives exactly one disposition. A finding may be *re-triaged* to a different disposition after investigation (e.g. `uncertain-validity` → `actionable`), but at any moment it holds one.
+Each finding receives exactly one disposition. A finding may be *re-triaged* to a different disposition after investigation (e.g. `uncertain-validity` → `actionable`), but at any moment it holds one. What an entry tells the run to do with a finding binds only while the finding holds that entry.
 
 - **actionable** — a real issue the reviewer correctly identified, whose resolution is a **local edit**: one the run makes directly, needing none of the non-local work that defines `opens-a-question` below, however many sites it touches — `generalize`, `delete`, and `deduplicate` below are local in this sense. Which edit is selected per **Response selection (actionable findings)** below. A run that judges the edit out of scope for the current task asks the user whether to make it in this run, and makes it only if the user says to.
 
@@ -36,7 +36,7 @@ Each finding receives exactly one disposition. A finding may be *re-triaged* to 
 
 - **wontfix** — the finding is valid and its fix is understood, and the user directs both that it not be fixed in this run and that no follow-up be kept. The decision is the user's alone; the run records the disposition and the user's reasoning, which states what the fix would have cost. Both a reason to postpone and a reason to drop the fix can hold of one finding; where they do, the user's direction, not the reason, selects.
 
-- **abandoned** — whether the finding is valid is not known, or it is valid and its fix is not the local edit `actionable` names, and the user directs that the investigation that would settle it not be run in this run. The decision is the user's alone; the run records the disposition and the user's reasoning, and keeps a follow-up where the user directs that one be kept. Meeting this condition takes a finding out of `uncertain-validity`, `invariant-premise-check` or `opens-a-question`, whichever it held.
+- **abandoned** — whether the finding is valid is not known, or it is valid and its fix is not the local edit `actionable` names, and the user directs that this unknown — its validity, or its fix — not be settled in this run. The decision is the user's alone; the run records the disposition and the user's reasoning, and keeps a follow-up where the user directs that one be kept. Meeting this condition takes a finding out of `uncertain-validity`, `invariant-premise-check` or `opens-a-question`, whichever it held.
 
 ## Closed and open findings
 
