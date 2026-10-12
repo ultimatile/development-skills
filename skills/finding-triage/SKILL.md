@@ -30,7 +30,7 @@ Each finding receives exactly one disposition. A finding may be *re-triaged* to 
 
   The correct handling is to **re-enter `research`** with the finding as the task, then escalate only the genuinely user-owned residue (scope authority, taste, an external constraint).
 
-- **invariant-premise-check** — the finding's *conclusion* may be correct, but its *premise* may be wrong. Applies to claims about mathematical properties, semantic validity, or precondition necessity. Before committing a fix, **verify the premise** — check whether the invariant the finding assumes actually holds, by reading code and tests and running targeted experiments. When the premise is an external-system-behavior claim, verify it per **Verifying external-system claims** below. Resolves to `actionable` (premise holds → fix it) or `false-positive` (premise fails → the finding's conclusion does not follow). The mechanism for verifying the premise is the caller's; this SSOT owns only the class.
+- **invariant-premise-check** — the finding's *conclusion* may be correct, but its *premise* may be wrong. Applies to claims about mathematical properties, semantic validity, or precondition necessity. Before committing a fix, **verify the premise** — check whether the invariant the finding assumes actually holds, by reading code and tests and running targeted experiments. When the premise is an external-system-behavior claim, verify it per **Verifying external-system claims** below. Once the premise is verified, the finding resolves to `actionable` (premise holds → fix it) or `false-positive` (premise fails → the finding's conclusion does not follow). The mechanism for verifying the premise is the caller's; this SSOT owns only the class.
 
 - **defer** — the finding is valid and its fix is understood, and the user directs that it not be fixed in this run, by any direction other than one that meets `wontfix` below. A fix is understood, here and in `wontfix`, exactly when it is the local edit `actionable` names. Keep a follow-up for it and do not fix now; a follow-up is an issue or a note that carries the finding to a later fix. Entering this entry or `wontfix` takes the finding out of `actionable`.
 
@@ -38,9 +38,9 @@ Each finding receives exactly one disposition. A finding may be *re-triaged* to 
 
 - **abandoned** — whether the finding is valid is not known, or it is valid and its fix is not the local edit `actionable` names, and the user directs that this unknown — its validity, or its fix — not be settled in this run. The decision is the user's alone; the run records the disposition and the user's reasoning, and keeps a follow-up where the user directs that one be kept. Meeting this condition takes a finding out of `uncertain-validity`, `invariant-premise-check` or `opens-a-question`, whichever it held.
 
-## Closed and open findings
+## Closed findings
 
-A finding is **closed** when it holds `actionable`, `false-positive`, `defer`, `wontfix` or `abandoned` and the run has done what that entry directs. A finding holding `uncertain-validity`, `invariant-premise-check` or `opens-a-question` is **open**, and so is one holding any of the other five whose direction the run has not yet carried out.
+A finding is **closed** when it holds `false-positive`, `defer`, `wontfix` or `abandoned` and the run has done what that entry directs.
 
 ## Response selection (actionable findings)
 
@@ -100,4 +100,4 @@ What follows binds a verdict that rests on a claim about an **external system's 
 
 **Scope.** This fires only for claims about an external system's *behavior*, and only at the point a verdict is committed (a fix shipped, a finding dismissed) — not for intermediate reasoning.
 
-**When the authoritative implementation is unavailable or too costly to run.** Cost decides whether you can pay to confirm; it never makes a proxy into sufficient evidence. If you cannot run the authoritative implementation, the claim does not resolve via a proxy: the finding stays open rather than advancing to a committed verdict, and whether the verification is worth its cost — or whether an alternative authoritative source exists — escalates to the user.
+**When the authoritative implementation is unavailable or too costly to run.** Cost decides whether you can pay to confirm; it never makes a proxy into sufficient evidence. If you cannot run the authoritative implementation, the claim does not resolve via a proxy: the finding stays unresolved rather than advancing to a committed verdict, and whether the verification is worth its cost — or whether an alternative authoritative source exists — escalates to the user.

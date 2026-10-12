@@ -1,6 +1,6 @@
 ---
 name: gh-body-audit
-description: Audit a drafted or filed GitHub issue / PR body against gh-body-conventions via a fresh-context subagent.
+description: Audit a drafted or filed GitHub issue / PR body against gh-body-conventions via a fresh-context subagent. Any unresolved ⚠ blocks the caller.
 allowed-tools: Bash(*/gh-body-audit/body-math-scan.sh:*)
 ---
 
@@ -89,7 +89,7 @@ A token whose referent is there is a `false-positive`; one whose referent is not
 - **True positive** (`actionable`) — fix before proceeding.
 - **False positive due to missing context** — record explicitly why (e.g., the token resolved, or it is a bare name the target repo holds). Where one rule disposes of several hits, record them together and name that rule once. Per `finding-triage`, false-positive classification is itself a triage step the user can challenge; do not silently override.
 
-The caller's next step requires a report for the draft as it will be filed in which every ⚠ is closed, as `finding-triage` defines closed. Return the report. A caller that revises the draft re-discharges its evidence claims and re-runs `gh-body-audit` on the revised draft.
+Any unresolved ⚠ blocks the caller's next step. Return the report; the caller revises the draft, re-discharges its evidence claims, and re-runs `gh-body-audit`. Iterate until clean, or each remaining ⚠ is closed, as `finding-triage` defines closed.
 
 ## What this skill does NOT do
 
