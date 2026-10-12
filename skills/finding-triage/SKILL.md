@@ -32,7 +32,7 @@ Each finding receives exactly one disposition. A finding may be *re-triaged* to 
 
 - **invariant-premise-check** — the finding's *conclusion* may be correct, but its *premise* may be wrong. Applies to claims about mathematical properties, semantic validity, or precondition necessity. Before committing a fix, **verify the premise** — check whether the invariant the finding assumes actually holds, by reading code and tests and running targeted experiments. When the premise is an external-system-behavior claim, verify it per **Verifying external-system claims** below. Resolves to `actionable` (premise holds → fix it) or `false-positive` (premise fails → the finding's conclusion does not follow). The mechanism for verifying the premise is the caller's; this SSOT owns only the class.
 
-- **defer** — the finding is valid and its fix is understood, and the user directs that it not be fixed in this run, by any direction other than one that meets `wontfix` below. A fix is understood, here and in `wontfix`, when making it needs no investigation and no design choice, whatever scope judgment remains. Record it (follow-up issue, note) and do not fix now. Entering this entry or `wontfix` takes the finding out of `actionable` or `opens-a-question`, whichever it held.
+- **defer** — the finding is valid and its fix is understood, and the user directs that it not be fixed in this run, by any direction other than one that meets `wontfix` below. A fix is understood, here and in `wontfix`, when making it needs no investigation and no design choice, whatever scope judgment remains. Record it (follow-up issue, note) and do not fix now. Entering this entry or `wontfix` takes the finding out of `actionable` or `opens-a-question`, whichever it held. A run that judges a finding out of scope for the current task asks the user whether to fix it in this run before fixing it.
 
 - **wontfix** — the finding is valid and its fix is understood, and the user directs both that it not be fixed and that no record be kept for fixing it later. The decision is the user's alone; the run records the disposition and the user's reasoning, which states what the fix would have cost. Both a reason to postpone and a reason to abandon can hold of one finding; where they do, the user's direction, not the reason, selects.
 
@@ -77,7 +77,7 @@ A finding is not downgraded to `false-positive`, `defer` or `wontfix` merely bec
 
 The two differ in **what is known**:
 
-- `uncertain-validity` — "**is the finding real?**" Validity unknown; resolution (if real) presumed local.
+- `uncertain-validity` — "**is the finding real?**" Validity unknown.
 - `opens-a-question` — "the finding **is** real, but its **resolution is non-local**." Validity known.
 
 A finding can pass through both in sequence: resolve validity first (`uncertain-validity` → real), then, if the fix turns out non-local, re-triage to `opens-a-question`.
