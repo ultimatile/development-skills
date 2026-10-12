@@ -195,7 +195,7 @@ Post-hoc audit against the current diff. This skill is the **runner**; item defi
 
    **Cross-cutting concerns.** Each auditor also returns concerns spanning several items. They are not rows and do not enter the row domain, but step 5 binds them exactly as it binds a ⚠ row. Report them under the table.
 
-5. For each ⚠ that is `actionable`, state concretely what will change. Do not proceed until each concern is closed, as `finding-triage` defines closed. Closing a concern settles its handling, not its verdict: the row stays ⚠ with the disposition recorded in its Note.
+5. For each ⚠ that is `actionable`, state concretely what will change. Do not proceed until each concern is closed, as `finding-triage` defines closed. A deferral closes the concern's handling, not its verdict: the row stays ⚠ with the deferral recorded in its Note.
 
 6. Report the audit table, followed by any cross-cutting concerns and their triage. Only a run that reaches this step emits a table at all: every halt above — a rule set that is not under `<SKILLS_DIR>`, a coverage check still unmatched after its re-dispatch — ends the run without one, however many such halts the steps above come to hold. Delta mode narrows this report rather than removing it (below).
 
