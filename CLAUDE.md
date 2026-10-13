@@ -130,6 +130,6 @@ When `review-telemetry` records a run whose change has landed on `main` here, `s
 git describe --tags --always <landing-commit>^
 ```
 
-`<landing-commit>` is the squash-merge commit (`gh pr view <N> --json mergeCommit`), or on the direct lane the commit itself.
-Run it after the landing steps above, so the checkout holds that commit, and record what it returns.
+`<landing-commit>` is the squash-merge commit (`gh pr view <N> --json mergeCommit`), fetched with `git fetch origin`, or on the direct lane the commit itself.
+Record what the command returns.
 A run whose change has not landed takes the skill's definition unchanged.
