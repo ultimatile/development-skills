@@ -121,3 +121,15 @@ The branch commits are drafts; only the squash-merge commit lands on `main`. Two
 
 - **Bump at most once.** Bump `metadata.version` a single time on the branch — on the first `feat` / `fix` change — and leave it untouched on the fix-up commits that answer review feedback. All branch commits squash into one, which must carry exactly one bump; re-bumping per fix-up commit is wrong.
 - **Tag after the merge, never on the branch.** The squash merge creates a new commit on `main` whose SHA exists nowhere on the branch, so a tag placed on a branch commit would not point at the published change. Once the PR merges, check out `main`, pull, then `git tag <version>` on the squash-merge commit and `git push origin <version>`.
+
+## Telemetry record for a run of this repository
+
+When `review-telemetry` records a run whose change has landed on `main` here, `skills_version` is the published state that change landed on, and this replaces that skill's definition of the field for the run — its command and its attestation alike:
+
+```sh
+git describe --tags --always <landing-commit>^
+```
+
+`<landing-commit>` is the squash-merge commit (`gh pr view <N> --json mergeCommit --jq .mergeCommit.oid`), fetched with `git fetch origin`, or on the direct lane the commit itself.
+Record what the command returns.
+A run whose change has not landed takes the skill's definition unchanged.
