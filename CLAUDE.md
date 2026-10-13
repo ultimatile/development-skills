@@ -92,6 +92,7 @@ For every commit, on `main` or on a branch:
 1. Make the code / skill / doc changes.
 
 2. Update `.claude-plugin/marketplace.json` as applicable:
+
    - Bump `metadata.version` — **only on `feat` / `fix` commits**; skip on `docs` / `chore`. On a branch this happens once for the whole branch, not once per commit (see "Landing a branch").
    - Update `plugins[0].skills` (only if adding or removing a skill).
 
@@ -108,6 +109,7 @@ For every commit, on `main` or on a branch:
    **Verify before tagging.** Confirm the commit landed and `HEAD` is the new commit (`git log --oneline -1`) _before_ `git tag`. Tagging blind after a formatter-aborted commit ("Every commit", step 4) applies the version to the previous, unrelated `HEAD` — a broken state. If a tag was misapplied, `git tag -d <version>` and re-tag once the real commit exists.
 
 2. Push:
+
    - `feat` / `fix`: `git push && git push origin <new-version>` (commit then tag explicitly).
    - `docs` / `chore` / `style`: `git push`.
 
