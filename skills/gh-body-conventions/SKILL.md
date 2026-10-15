@@ -54,7 +54,7 @@ Pin a citation to a fixed revision — a commit in a file URL or a version in a 
 A reference to a whole artifact — an issue, a pull request, a comment, a review, a file, for instance — whose sentence relies only on the artifact's identity needs no pin.
 Where the target admits no fixed revision, carry what the sentence relies on in the body, in whichever of § Exclusions' two forms the claim selects.
 
-Cite lines of a file in the repository the body is filed in by a bare permalink — no link label, the full commit SHA in the URL — standing alone on its own line.
+Cite one or more lines of a file in the repository the body is filed in by a bare permalink — no link label, the full commit SHA in the URL — standing alone on its own line outside any sentence.
 
 For a single line inside a pull request's own diff, prefer an inline review comment on that line to a reference in the body.
 
@@ -84,7 +84,7 @@ A well-known external standard — an RFC or a language spec, for instance — i
 A claim resting on what any other text *says* carries that substance itself, in the form that claim's own case selects; a sentence resting on two texts takes one form per claim, not one for the sentence:
 
 - **State the predicate** — where the exact wording is not what is at issue. Say what the pointed-at text establishes; for a rule or a behavior, that is its trigger, its effect, and the outcome in the case at hand.
-- **Quote it, frozen** — where the exact wording is what is at issue. Reproduce the wording in the body, and cite the source where it is public. For lines of a file in the repository the body is filed in, the snippet GitHub renders from the permalink § References prescribes is that reproduction; for lines of a file in any other repository, the reproduction is a fenced code block of those lines beside the citation. The reproduction is what makes the sentence followable; § References governs the citation.
+- **Quote it, frozen** — where the exact wording is what is at issue. Reproduce the wording inline, and cite the source where it is public. The reproduction is what makes the sentence followable; § References governs the citation.
 
 Common shapes whose referents an external reader cannot reach:
 
