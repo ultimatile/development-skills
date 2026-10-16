@@ -79,8 +79,9 @@ An **external reader** is one who can open the target repo and nothing private b
 The body must not contain a token whose referent an external reader cannot reach.
 A repo-relative path the body itself proposes to create designates nothing yet, and this requirement does not reach it.
 The body must also be followable: a reader who does not open the target repo can follow every sentence in it.
-A body is read both as the page GitHub renders and as its Markdown source, and it is followable for each; the source is what the REST API returns as `body`, and what `gh issue view` and `gh pr view` print as the body when their output is not a terminal.
-What a sentence relies on is carried in text that reaches readers of both forms; neither of these carries it: content GitHub adds in rendering — the snippet a permalink renders as, for instance — and source text GitHub leaves out of the rendered page — an HTML comment, for instance.
+A body is read both as the page GitHub renders and as its Markdown source — what the REST API returns as `body`, and what `gh issue view` and `gh pr view` print as the body when their output is not a terminal — and it is followable as each.
+Text of the source reaches the page when the body's `gh api markdown` output (mode `gfm`, the target repo as context) holds it as displayed text or as a link target.
+Text that reaches only one form carries nothing a sentence relies on — the lines a permalink's snippet shows reach only the page, and the text of an HTML comment, or of a link reference definition no link uses, reaches only the source, for instance.
 A token whose referent an external reader can reach, and whose sentence asserts only its identity or location, carries no substance requirement — an issue number or a repo-relative path, for instance.
 A well-known external standard — an RFC or a language spec, for instance — is the one class of text the reader is assumed to hold, and a claim may rest on it as it stands.
 A claim resting on what any other text *says* carries that substance itself, in the form that claim's own case selects; a sentence resting on two texts takes one form per claim, not one for the sentence:
