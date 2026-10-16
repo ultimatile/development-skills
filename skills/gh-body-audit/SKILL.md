@@ -66,11 +66,11 @@ it is. A span that is both is one hit carrying both kinds.
 Out of scope: formatting, grammar, math notation, line width,
 sub-clause line breaks.
 
-Report the first kind against two readings of the body: as written,
-and as if the text of every HTML comment and of every link reference
+Look for the first kind under two readings of the body, and report a
+sentence that is a hit under either: the body as written, and the body
+as if the text of every HTML comment and of every link reference
 definition no link uses were absent, since neither appears on the
-rendered page. Mark which reading each such hit came from. Report the
-second kind against the body as written.
+rendered page. Look for the second kind in the body as written.
 
 Do NOT browse the repo or run tools. Judge from the body text alone.
 
