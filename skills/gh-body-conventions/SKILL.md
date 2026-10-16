@@ -55,7 +55,7 @@ A reference to a whole artifact — an issue, a pull request, a comment, a revie
 Where the target admits no fixed revision, carry what the sentence relies on in the body, in whichever of § Exclusions' two forms the claim selects.
 
 A citation of one or more lines of a file in the repository the body is filed in takes one form: a bare permalink — no link label, the full commit SHA in the URL — standing alone on its own line outside any sentence.
-The lines its snippet shows appear only on the page GitHub renders, not in the Markdown source the REST API returns as `body`, and do not count as the body carrying a claim's substance.
+The lines its snippet shows do not count as the body carrying a claim's substance.
 
 For a single line inside a pull request's own diff, prefer an inline review comment on that line to a reference in the body.
 
