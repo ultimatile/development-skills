@@ -27,7 +27,7 @@ Before drafting, identify:
 
 - **Target repo and base branch.** `gh repo view` and `git symbolic-ref --short refs/remotes/origin/HEAD` if unclear.
 - **Linked issue.** Read the issue body and comments — especially any `research` plan they carry.
-- **Whether the work went through `research`.** When `## Impact` is kept, fold the plan's `Impact list` into it if yes, and derive it from the local diff and commits if no. Report `## Verification` against the plan's `Test plan` if yes, rather than folding that in, and let it report the checks this run made if no. Either way, do not transcribe the plan's process bookkeeping — see the reader-facing note below the skeleton.
+- **Whether the work went through `research`.** When `## Impact` is kept, fold the plan's `Impact list` into it if yes, and derive it from the local diff and commits if no. Report `## Verification` against the plan's `Test plan` if yes, without copying the `Test plan` into it, and let it report the checks this run made if no. The plan's `Checklist of changes` goes into no section. Either way, do not transcribe the plan's process bookkeeping — see the reader-facing note below the skeleton.
 
 ### 2. Draft
 
@@ -55,8 +55,9 @@ Produce a title and body following the conventions above and the skeleton below.
 
 ## Notes  (optional)
 
-<known caveats, risks, follow-ups, reasons for edits whose reason the
- Summary does not give>
+<known caveats, risks, follow-ups — including any behavior the plan
+ deferred, framed as the limitation itself (what the PR does not do, and
+ why), NOT as a "plan said X / actual Y" delta or a plan-comment link>
 ```
 
 The PR body is **reader-facing**: it documents the merged artifact for a future bisect reader / maintainer, not the research process that produced it. Do **not** add a `Plan reference`, `Discovery contract status`, or `Open questions from the research plan` section even when the work went through `research-and-implement` — those transcribe plan-internal bookkeeping (opaque plan-comment IDs, inconclusive-item enumerations) that rots fast and means nothing to a reader without the plan in front of them. A deferred behavior a reader genuinely needs goes in `Notes`, framed as the code's own limitation rather than a plan delta. (A `## Plan-vs-actual delta` appended later by the caller is the one sanctioned exception — it is the audit surface for umbrella-tracked work and lives at the bottom of the body.)
