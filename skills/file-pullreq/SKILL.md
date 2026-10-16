@@ -27,7 +27,7 @@ Before drafting, identify:
 
 - **Target repo and base branch.** `gh repo view` and `git symbolic-ref --short refs/remotes/origin/HEAD` if unclear.
 - **Linked issue.** Read the issue body and comments — especially any `research` plan they carry.
-- **Whether the work went through `research`.** If yes: fold the plan's `Impact list` into `## Impact` when that section is kept, and report `## Verification` against its `Test plan` rather than folding that in. If no, derive `## Impact` from the local diff and commits when that section is kept, and let `## Verification` report the checks this run made. In both cases, `## Changes` entries follow § Changes entries below, and the body does not transcribe the plan's process bookkeeping — see the reader-facing note below the skeleton.
+- **Whether the work went through `research`.** If yes: fold the plan's `Impact list` into `## Impact`, and report `## Verification` against its `Test plan` rather than folding that in. If no, derive `## Impact` from the local diff and commits, and let `## Verification` report the checks this run made. In both cases, fill `## Impact` and `## Changes` only when each section is kept, write `## Changes` entries from the local diff and commits per § Changes entries below, and do not transcribe the plan's process bookkeeping — see the reader-facing note below the skeleton.
 
 ### 2. Draft
 
@@ -72,8 +72,7 @@ Section headings are optional for trivial PRs — a 5-line body covering Summary
 
 #### Changes entries
 
-An entry names one or more files, the part of the Summary's intent they carry, and why the change lives in them.
-Beyond that, an entry states nothing but facts about those files' state after the change, and each only where that reason rests on it.
+An entry names one or more files, the part of the Summary's intent they carry, and why the change lives in them, and states nothing else about those files.
 Which files get an entry, and how many entries there are, is the drafter's choice.
 
 ### 3. Discharge evidence claims
