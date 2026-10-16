@@ -27,7 +27,7 @@ Before drafting, identify:
 
 - **Target repo and base branch.** `gh repo view` and `git symbolic-ref --short refs/remotes/origin/HEAD` if unclear.
 - **Linked issue.** Read the issue body and comments — especially any `research` plan they carry.
-- **Whether the work went through `research`.** If yes: fold the plan's `Impact list` into `## Impact` when that section is kept, and report `## Verification` against its `Test plan` rather than folding that in. If no, derive `## Impact` from the local diff and commits, and let `## Verification` report the checks this run made. In both cases `## Changes` entries follow § Changes entries below. Either way, do not transcribe the plan's process bookkeeping — see the reader-facing note below the skeleton.
+- **Whether the work went through `research`.** If yes: fold the plan's `Impact list` into `## Impact` when that section is kept, and report `## Verification` against its `Test plan` rather than folding that in. If no, derive `## Impact` from the local diff and commits when that section is kept, and let `## Verification` report the checks this run made. In both cases, `## Changes` entries follow § Changes entries below, and the body does not transcribe the plan's process bookkeeping — see the reader-facing note below the skeleton.
 
 ### 2. Draft
 
@@ -74,8 +74,9 @@ Section headings are optional for trivial PRs — a 5-line body covering Summary
 
 When the body has a `## Changes` section, give an entry to each file the PR touches that carries part of the Summary's intent, naming what of that intent the file carries and why the change lives in that file.
 An entry may state a fact about what the file now contains only where that reason rests on it.
+An entry covers exactly one file.
 A file that carries no part of the intent gets no entry.
-Before the body is posted, check the entries as they then stand against the files the PR touches: add an entry for a file that carries part of the intent and has none, remove an entry for a file that carries none, and rewrite any other entry that does not meet the sentences above.
+Before the body is posted, check the entries as they then stand against the files the PR touches: add an entry for a file that carries part of the intent and has none, remove an entry for a file the PR does not touch or that carries none, and rewrite any other entry that does not meet the sentences above in this subsection.
 
 ### 3. Discharge evidence claims
 
