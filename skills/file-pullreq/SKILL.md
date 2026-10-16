@@ -27,7 +27,7 @@ Before drafting, identify:
 
 - **Target repo and base branch.** `gh repo view` and `git symbolic-ref --short refs/remotes/origin/HEAD` if unclear.
 - **Linked issue.** Read the issue body and comments — especially any `research` plan they carry.
-- **Whether the work went through `research`.** If yes: fold the plan's `Impact list` into `## Impact` when that section is kept; rewrite its `Checklist of changes` into `## Changes` entries per § Changes entries below; and report `## Verification` against its `Test plan` rather than folding that in. If no, derive `## Changes` and `## Impact` from the local diff and commits, and let `## Verification` report the checks this run made. Either way, do not transcribe the plan's process bookkeeping — see the reader-facing note below the skeleton.
+- **Whether the work went through `research`.** When `## Impact` is kept, fold the plan's `Impact list` into it if yes, and derive it from the local diff and commits if no. Report `## Verification` against the plan's `Test plan` if yes, without copying the `Test plan` into it, and let it report the checks this run made if no. The plan's `Checklist of changes` goes into no section. Whether or not the work went through `research`, do not transcribe the plan's process bookkeeping — see the reader-facing note below the skeleton.
 
 ### 2. Draft
 
@@ -40,10 +40,6 @@ Produce a title and body following the conventions above and the skeleton below.
 
 <one-paragraph problem statement and resolution, semantic line breaks>
 <Closes #N> on its own line; <Depends on #M> if applicable.
-
-## Changes
-
-<entries — see § Changes entries below>
 
 ## Impact
 
@@ -69,11 +65,6 @@ The PR body is **reader-facing**: it documents the merged artifact for a future 
 The `## Plan-vs-actual delta` section is appended later by the caller; do not pre-create an empty delta section here.
 
 Section headings are optional for trivial PRs — a 5-line body covering Summary + Verification often needs no headings.
-
-#### Changes entries
-
-An entry states what is now true, not what was done to make it true.
-Before the body is posted, read every entry back as it then stands and restate any that describes the editing.
 
 ### 3. Discharge evidence claims
 
