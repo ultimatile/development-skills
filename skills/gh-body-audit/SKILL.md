@@ -66,12 +66,6 @@ it is. A span that is both is one hit carrying both kinds.
 Out of scope: formatting, grammar, math notation, line width,
 sub-clause line breaks.
 
-Look for the first kind under two readings of the body, and report a
-sentence that is a hit under either: the body as written, and the body
-as if the text of every HTML comment and of every link reference
-definition no link uses were absent, since neither appears on the
-rendered page. Look for the second kind in the body as written.
-
 Do NOT browse the repo or run tools. Judge from the body text alone.
 
 --- body ---
@@ -99,4 +93,4 @@ Any unresolved ⚠ blocks the caller's next step. Return the report; the caller 
 
 ## What this skill does NOT do
 
-Does not draft or file the body (caller's job). Does not maintain the rule set (`gh-body-conventions` is SSOT — update it first, then add the corresponding check here if a new mechanical rule is needed). Does not discharge `gh-body-conventions` § Evidence claims: that rule compares the body against the drafting session's record of what ran, which is exactly the context this check's subagent is denied — the caller discharges it in main context before invoking this check. Does not check hard-wrap, sub-clause line endings, or reference anchoring (whether a citation is pinned to a fixed revision as `gh-body-conventions` § References requires — the drafter's to check). Does not check other source text that reaches only the source, as `gh-body-conventions` § Exclusions decides by rendering — the drafter's to check.
+Does not draft or file the body (caller's job). Does not maintain the rule set (`gh-body-conventions` is SSOT — update it first, then add the corresponding check here if a new mechanical rule is needed). Does not discharge `gh-body-conventions` § Evidence claims: that rule compares the body against the drafting session's record of what ran, which is exactly the context this check's subagent is denied — the caller discharges it in main context before invoking this check. Does not check hard-wrap, sub-clause line endings, or reference anchoring (whether a citation is pinned to a fixed revision as `gh-body-conventions` § References requires — the drafter's to check).
