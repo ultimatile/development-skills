@@ -27,7 +27,7 @@ Before drafting, identify:
 
 - **Target repo and base branch.** `gh repo view` and `git symbolic-ref --short refs/remotes/origin/HEAD` if unclear.
 - **Linked issue.** Read the issue body and comments — especially any `research` plan they carry.
-- **Whether the work went through `research`.** If yes: fold the plan's `Impact list` into `## Impact` when that section is kept; rewrite its `Checklist of changes` into `## Changes` entries per § Changes entries below; and report `## Verification` against its `Test plan` rather than folding that in. If no, derive `## Changes` and `## Impact` from the local diff and commits, and let `## Verification` report the checks this run made. Either way, do not transcribe the plan's process bookkeeping — see the reader-facing note below the skeleton.
+- **Whether the work went through `research`.** If yes: fold the plan's `Impact list` into `## Impact` when that section is kept, and report `## Verification` against its `Test plan` rather than folding that in. If no, derive `## Impact` from the local diff and commits, and let `## Verification` report the checks this run made. Either way, `## Changes` entries follow § Changes entries below, and do not transcribe the plan's process bookkeeping — see the reader-facing note below the skeleton.
 
 ### 2. Draft
 
@@ -72,8 +72,9 @@ Section headings are optional for trivial PRs — a 5-line body covering Summary
 
 #### Changes entries
 
-An entry states what is now true, not what was done to make it true.
-Before the body is posted, read every entry back as it then stands and restate any that describes the editing.
+Give each file the PR touches an entry naming the part of the Summary's intent that file carries and why the change lives in that file, not what the file now contains.
+Files that carry the same part for the same reason share one entry.
+Before the body is posted, read every entry back as it then stands and rewrite any that describes what the file now contains instead of naming the part of the intent it carries and why the change lives there.
 
 ### 3. Discharge evidence claims
 
