@@ -72,11 +72,10 @@ Section headings are optional for trivial PRs — a 5-line body covering Summary
 
 #### Changes entries
 
-When the body has a `## Changes` section, give an entry to each file the PR touches that carries part of the Summary's intent, naming what of that intent the file carries and why the change lives in that file.
-An entry may state a fact about what the file now contains only where that reason rests on it.
-An entry covers exactly one file.
-A file that carries no part of the intent gets no entry.
-Before the body is posted, check the entries as they then stand against the files the PR touches: add an entry for a file that carries part of the intent and has none, remove an entry for a file the PR does not touch or that carries none, and rewrite any other entry that does not meet the sentences above in this subsection.
+An entry names one or more files, the part of the Summary's intent they carry, and why the change lives in them.
+Beyond that, an entry states nothing but facts about what those files now contain, and each only where that reason rests on it.
+Which files get an entry, and how many entries there are, is the drafter's choice.
+Before every run of step 4, read every entry back as it then stands and rewrite any that does not meet the sentences above in this subsection, dropping it instead when none of its files carries part of the intent.
 
 ### 3. Discharge evidence claims
 
