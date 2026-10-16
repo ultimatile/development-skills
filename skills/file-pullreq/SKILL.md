@@ -27,7 +27,7 @@ Before drafting, identify:
 
 - **Target repo and base branch.** `gh repo view` and `git symbolic-ref --short refs/remotes/origin/HEAD` if unclear.
 - **Linked issue.** Read the issue body and comments — especially any `research` plan they carry.
-- **Whether the work went through `research`.** If yes: fold the plan's `Impact list` into `## Impact`, and report `## Verification` against its `Test plan` rather than folding that in. If no, derive `## Impact` from the local diff and commits, and let `## Verification` report the checks this run made. In both cases, fill `## Impact` and `## Changes` only when each section is kept, write `## Changes` entries from the local diff and commits per § Changes entries below, and do not transcribe the plan's process bookkeeping — see the reader-facing note below the skeleton.
+- **Whether the work went through `research`.** If yes: fold the plan's `Impact list` into `## Impact` when that section is kept, and report `## Verification` against its `Test plan` rather than folding that in. If no, derive `## Impact` from the local diff and commits when that section is kept, and let `## Verification` report the checks this run made. Either way, do not transcribe the plan's process bookkeeping — see the reader-facing note below the skeleton.
 
 ### 2. Draft
 
@@ -40,10 +40,6 @@ Produce a title and body following the conventions above and the skeleton below.
 
 <one-paragraph problem statement and resolution, semantic line breaks>
 <Closes #N> on its own line; <Depends on #M> if applicable.
-
-## Changes
-
-<entries — see § Changes entries below>
 
 ## Impact
 
@@ -69,11 +65,6 @@ The PR body is **reader-facing**: it documents the merged artifact for a future 
 The `## Plan-vs-actual delta` section is appended later by the caller; do not pre-create an empty delta section here.
 
 Section headings are optional for trivial PRs — a 5-line body covering Summary + Verification often needs no headings.
-
-#### Changes entries
-
-An entry names one or more files, the part of the Summary's intent they carry, and why the change lives in them, and states nothing else about those files.
-Which files get an entry, and how many entries there are, is the drafter's choice.
 
 ### 3. Discharge evidence claims
 
