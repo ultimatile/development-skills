@@ -73,9 +73,8 @@ Section headings are optional for trivial PRs — a 5-line body covering Summary
 #### Changes entries
 
 An entry names one or more files, the part of the Summary's intent they carry, and why the change lives in them.
-Beyond that, an entry states nothing but facts about what those files now contain, and each only where that reason rests on it.
+Beyond that, an entry states nothing but facts about those files' state after the change, and each only where that reason rests on it.
 Which files get an entry, and how many entries there are, is the drafter's choice.
-Before every run of step 4, read every entry back as it then stands and rewrite any that does not meet the sentences above in this subsection, dropping it instead when none of its files carries part of the intent.
 
 ### 3. Discharge evidence claims
 
