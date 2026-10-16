@@ -10,7 +10,7 @@ Two checks: a mechanical math scan (Unicode-math glyphs, the GitHub-unsupported 
 
 ## Why a cold-reader subagent
 
-The author has just drafted the text. They read what they *meant*, not what the text *literally says*. A fresh-context subagent with no access to the chat history, the plan, or the author's notes, and told not to browse the repo, is, for the body's source, the reader `gh-body-conventions` § Exclusions' followability requirement is written for; reachability is settled in step 4, where the repo is in reach.
+The author has just drafted the text. They read what they *meant*, not what the text *literally says*. A fresh-context subagent with no access to the chat history, the plan, or the author's notes, and told not to browse the repo, is the reader `gh-body-conventions` § Exclusions' followability requirement is written for; reachability is settled in step 4, where the repo is in reach.
 
 ## Procedure
 
@@ -93,4 +93,4 @@ Any unresolved ⚠ blocks the caller's next step. Return the report; the caller 
 
 ## What this skill does NOT do
 
-Does not draft or file the body (caller's job). Does not maintain the rule set (`gh-body-conventions` is SSOT — update it first, then add the corresponding check here if a new mechanical rule is needed). Does not discharge `gh-body-conventions` § Evidence claims: that rule compares the body against the drafting session's record of what ran, which is exactly the context this check's subagent is denied — the caller discharges it in main context before invoking this check. Does not check hard-wrap, sub-clause line endings, or reference anchoring (whether a citation is pinned to a fixed revision as `gh-body-conventions` § References requires — the drafter's to check). Does not check that the rendered page is followable where it differs from the source, as `gh-body-conventions` § Exclusions requires of both — the drafter's to check.
+Does not draft or file the body (caller's job). Does not maintain the rule set (`gh-body-conventions` is SSOT — update it first, then add the corresponding check here if a new mechanical rule is needed). Does not discharge `gh-body-conventions` § Evidence claims: that rule compares the body against the drafting session's record of what ran, which is exactly the context this check's subagent is denied — the caller discharges it in main context before invoking this check. Does not check hard-wrap, sub-clause line endings, or reference anchoring (whether a citation is pinned to a fixed revision as `gh-body-conventions` § References requires — the drafter's to check).

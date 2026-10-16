@@ -55,6 +55,7 @@ A reference to a whole artifact — an issue, a pull request, a comment, a revie
 Where the target admits no fixed revision, carry what the sentence relies on in the body, in whichever of § Exclusions' two forms the claim selects.
 
 A citation of one or more lines of a file in the repository the body is filed in takes one form: a bare permalink — no link label, the full commit SHA in the URL — standing alone on its own line outside any sentence.
+The lines its snippet shows appear only on the page GitHub renders, not in the Markdown source the REST API returns as `body`, and do not count as the body carrying a claim's substance.
 
 For a single line inside a pull request's own diff, prefer an inline review comment on that line to a reference in the body.
 
@@ -79,8 +80,6 @@ An **external reader** is one who can open the target repo and nothing private b
 The body must not contain a token whose referent an external reader cannot reach.
 A repo-relative path the body itself proposes to create designates nothing yet, and this requirement does not reach it.
 The body must also be followable: a reader who does not open the target repo can follow every sentence in it.
-A body is read both as the page GitHub renders and as its Markdown source, which the REST API returns as `body`, and each must be followable.
-The lines a permalink's snippet shows reach only the page and do not count as the body carrying a claim's substance.
 A token whose referent an external reader can reach, and whose sentence asserts only its identity or location, carries no substance requirement — an issue number or a repo-relative path, for instance.
 A well-known external standard — an RFC or a language spec, for instance — is the one class of text the reader is assumed to hold, and a claim may rest on it as it stands.
 A claim resting on what any other text *says* carries that substance itself, in the form that claim's own case selects; a sentence resting on two texts takes one form per claim, not one for the sentence:
