@@ -85,7 +85,7 @@ See `gh-body-audit/SKILL.md` for the procedure.
 
 ### 5. Show for approval
 
-Present the laundered draft to the user verbatim before filing, together with the labels step 6 will add. Do not file without confirmation.
+Present the laundered draft to the user verbatim before filing. Do not file without confirmation.
 
 If the user requests changes, revise, re-discharge its evidence claims, re-run the laundering pass, and re-show. Do not file partially — the next step runs only after explicit approval.
 
@@ -102,7 +102,7 @@ gh-post issue create \
 
 Add a `--label` flag to `gh-post issue create` for each of these, and no other labels:
 
-- `perishable`, when the premise is code-coupled by step 1's premise-type classification and the target repo has a label named `perishable`, unless the user declined it at step 5.
+- `perishable`, when the premise is code-coupled by step 1's premise-type classification and the target repo has a label named `perishable`.
 - Each label the user named, and each label required by the repo's issue template for this kind of issue.
 
 Add an `--assignee` flag for each assignee the user named. `--label` and `--assignee` are forwarded to `gh` verbatim.
