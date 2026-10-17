@@ -41,8 +41,8 @@ Before drafting, identify:
 - Whether this is a bug, feature, design discussion, or umbrella sub-issue. The default body shape covers the first three; umbrella sub-issues use the shape defined in `Variants > Umbrella sub-issue` above.
 - Any related issues/PRs to link.
 - **Premise type (rot exposure).** Is the premise an **absence** (a capability / perf / test not built yet) or **coupled to current code state** (a specific construct is wrong / missing a test / a stopgap with a known expiry)?
-  - Absence → no tag; it stays valid until built, so it is exempt from rot-sweeps.
-  - Code-coupled → apply the `perishable` label so a rot-sweep filters to this set instead of re-reading the whole backlog. If a known issue/refactor would obviate or reshape it, additionally link that trigger in the body (or fold it in there as a checklist item) so the re-check is event-driven (when the trigger lands) rather than waiting for a periodic sweep.
+  - Absence → it stays valid until built, so it is exempt from rot-sweeps.
+  - Code-coupled → step 6 decides whether the issue takes the `perishable` label, which a rot-sweep filters on. If a known issue/refactor would obviate or reshape it, link that trigger in the body (or fold it in there as a checklist item) so the re-check is event-driven (when the trigger lands) rather than waiting for a periodic sweep.
 
 ### 2. Draft
 
@@ -100,7 +100,10 @@ gh-post issue create \
   --body-file /tmp/<descriptive-name>.md
 ```
 
-If labels or assignees are appropriate and the user mentioned them, add `--label` / `--assignee` flags — these are forwarded to `gh` verbatim. Do not invent labels; only use ones the user named or that are obviously required by the repo's template.
+Add a `--label` flag to `gh-post issue create` for each of these, and no other labels:
+
+- `perishable`, when the premise is code-coupled by step 1's premise-type classification and the target repo has a label named `perishable`. When the premise is code-coupled and the target repo has no such label, offer to create it there; if the user accepts, create it and add it.
+- Each label the user asked this issue to carry, and each label the target repo states this issue must carry.
 
 ### 7. Report
 
