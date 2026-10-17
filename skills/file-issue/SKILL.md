@@ -103,9 +103,9 @@ gh-post issue create \
 Add a `--label` flag to `gh-post issue create` for each of these, and no other labels:
 
 - `perishable`, when the premise is code-coupled by step 1's premise-type classification and the target repo has a label named `perishable`.
-- Each label the user named, and each label required by the repo's issue template for this kind of issue.
+- Each label the user asked this issue to carry.
 
-Add an `--assignee` flag for each assignee the user named. `--label` and `--assignee` are forwarded to `gh` verbatim.
+Add an `--assignee` flag for each assignee the user asked this issue to have. `--label` and `--assignee` are forwarded to `gh` verbatim.
 
 ### 7. Report
 
