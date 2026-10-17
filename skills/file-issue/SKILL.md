@@ -41,8 +41,8 @@ Before drafting, identify:
 - Whether this is a bug, feature, design discussion, or umbrella sub-issue. The default body shape covers the first three; umbrella sub-issues use the shape defined in `Variants > Umbrella sub-issue` above.
 - Any related issues/PRs to link.
 - **Premise type (rot exposure).** Is the premise an **absence** (a capability / perf / test not built yet) or **coupled to current code state** (a specific construct is wrong / missing a test / a stopgap with a known expiry)?
-  - Absence → no tag; it stays valid until built, so it is exempt from rot-sweeps.
-  - Code-coupled → the issue takes the `perishable` label, applied in step 6. If a known issue/refactor would obviate or reshape it, additionally link that trigger in the body (or fold it in there as a checklist item) so the re-check is event-driven (when the trigger lands) rather than waiting for a periodic sweep.
+  - Absence → it stays valid until built, so it is exempt from rot-sweeps.
+  - Code-coupled → step 6 decides whether the issue takes the `perishable` label, which a rot-sweep filters on. If a known issue/refactor would obviate or reshape it, additionally link that trigger in the body (or fold it in there as a checklist item) so the re-check is event-driven (when the trigger lands) rather than waiting for a periodic sweep.
 
 ### 2. Draft
 
@@ -102,8 +102,8 @@ gh-post issue create \
 
 Add a `--label` flag to `gh-post issue create` for each of these, and no other labels:
 
-- `perishable`, when step 1 classified the premise as code-coupled and the target repo has a label named `perishable`. A repo without that label gets the issue without it.
-- Each label the user named or the repo's issue template requires.
+- `perishable`, when the premise is code-coupled by step 1's premise-type classification and the target repo has a label named `perishable`.
+- Each label the user named, and each label required by the repo's issue template for this kind of issue.
 
 Add an `--assignee` flag for each assignee the user named. `--label` and `--assignee` are forwarded to `gh` verbatim.
 

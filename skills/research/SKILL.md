@@ -245,9 +245,9 @@ Run `gh-body-audit` on the plan body with artifact kind `issue` before any `gh-p
 
 After 7.0 clears, route the plan based on what `$ARGUMENTS` resolves to:
 
-- **Existing single-scope issue** → `gh-post issue comment $ARGUMENTS` (per `file-issue` step 6) with the plan as body.
+- **Existing single-scope issue** → write the plan to `/tmp/<descriptive-name>.md`, then run `gh-post issue comment $ARGUMENTS --body-file /tmp/<descriptive-name>.md`.
 - **Existing umbrella issue** (the body contains a Phases table or sub-tasks list) → spawn a new sub-issue whose body IS the plan, following `file-issue`'s `Variants > Umbrella sub-issue` shape: `Parent: #<umbrella>` on the first line, `Phase N: <topic>` title, Goal / Scope / Out of scope / Acceptance derived from the plan. After creation, append the new sub-issue's number to the umbrella's Phases table row. Do not also post the plan as an umbrella comment.
-- **New task** → `gh-post issue create` (per `file-issue` step 6) with the plan in the body; report the new issue number.
+- **New task** → write the plan to `/tmp/<descriptive-name>.md`, then run `gh-post issue create --title "<title>" --body-file /tmp/<descriptive-name>.md`; report the new issue number.
 
 Where the routed body is derived from the plan rather than posted verbatim — an umbrella sub-issue's Goal / Scope / Out of scope / Acceptance, or one of several issues a multi-commit plan splits into — discharge that body's evidence claims and run `gh-body-audit` against it with artifact kind `issue`; any ⚠ blocks filing on `gh-body-audit` step 4's terms. Show the derived body for approval before filing it; if the user requests changes, revise, re-discharge, re-run the check, and re-show.
 
