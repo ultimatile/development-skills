@@ -102,7 +102,7 @@ gh-post issue create \
 
 Add a `--label` flag to `gh-post issue create` for each of these, and no other labels:
 
-- `perishable`, when the premise is code-coupled by step 1's premise-type classification and the target repo has a label named `perishable`.
+- `perishable`, when the premise is code-coupled by step 1's premise-type classification and the target repo has a label named `perishable`. When the premise is code-coupled and the target repo has no such label, offer to create it there; if the user accepts, create it and add it.
 - Each label the user asked this issue to carry, and each label the target repo states this issue must carry.
 
 ### 7. Report
