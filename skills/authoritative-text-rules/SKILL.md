@@ -34,3 +34,4 @@ Items carry no lane tag: every judgment below is available from the literal text
 - [clause-composition](items/clause-composition.md)
 - [executor-fitness](items/executor-fitness.md)
 - [consumer-closure](items/consumer-closure.md)
+- [sentence-necessity](items/sentence-necessity.md)
