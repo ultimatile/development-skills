@@ -13,7 +13,7 @@
    - a judgment a step of the remaining text requires and does not settle, for which the deleted text states a criterion, an instance, or a non-instance that the remaining text does not;
    - the identification of one remaining statement of a condition as a copy of another remaining statement.
 4. Repeat steps 2 and 3 on the spans of each kept sentence, a span being any part of it that punctuation sets off and whose deletion leaves the sentence grammatical, and quote each span step 3 does not keep, except one inside a larger span step 3 does not keep.
-5. Where deleting together every sentence and span that step 3 does not keep loses one of step 3's list, tested against the texts step 2 names for them, report them as one concern in place of the concern conditions. Its response is deleting them one at a time in text order, testing each against the text as it then stands, and keeping any that step 3 then keeps.
+5. Where deleting together every sentence and span that step 3 does not keep loses one of step 3's list, tested against the texts step 2 names for them, report them as one concern in place of the concern conditions. Its response is deleting the first of them in text order; the next run of this item tests the rest.
 
 **Concern conditions:**
 
@@ -24,5 +24,5 @@
 
 **Tie-breaks.**
 
-- Against `clause-composition`: a statement of a condition that another remaining statement also states is kept here, as is a caller's statement of its own response to a state of a unit it invokes, as that item's **Not duplication.** paragraph describes.
+- Against `clause-composition`: a statement of a condition that another remaining statement also states is kept here. So is a caller's statement of its own response to a state of a unit it invokes, as that item's **Not duplication.** paragraph describes.
 - Against `single-reading`: a sentence or span that loses something under one reading of itself or of the remaining text and nothing under another is kept here.
