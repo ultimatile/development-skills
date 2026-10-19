@@ -11,7 +11,7 @@
    - the outcome of one case of a split the remaining text makes between cases, where no other branch among those the split lists gives that case the same outcome;
    - a judgment a step of the remaining text requires and does not settle, for which the deleted text states a criterion, an instance, or a non-instance that the remaining text does not;
    - the identification of one remaining statement of a condition as a copy of another remaining statement.
-4. Repeat steps 2 and 3 on the spans of each kept sentence, a span being a clause, parenthetical, or phrase that punctuation sets off and whose deletion leaves the sentence grammatical, and quote each span the second concern condition reports that no larger such span contains.
+4. Repeat steps 2 and 3 on the spans of each kept sentence, a span being any part of it that punctuation sets off and whose deletion leaves the sentence grammatical, and quote each span the second concern condition reports that no larger reported span contains.
 5. Where deleting together every sentence and span that step 3 does not keep and no tie-break assigns to another item loses one of step 3's list, tested against the texts step 2 names for them, report them as one concern in place of the concern conditions. Its response is deleting them one at a time in text order, testing each against the text as it then stands, and keeping any that step 3 then keeps.
 
 **Concern conditions:**
