@@ -14,12 +14,13 @@
    - the identification of one remaining statement of a condition as a copy of another remaining statement;
    - the application, to the step holding the deleted text, of a remaining statement elsewhere that the deleted text names.
 4. Repeat steps 2 and 3 on the spans of each kept sentence, a span being any part of it that punctuation sets off and whose deletion leaves the sentence grammatical, and quote each span step 3 does not keep, except one inside a larger span step 3 does not keep.
-5. Where deleting together a set of sentences and spans that step 3 does not keep loses one of step 3's list, tested against the text step 2 builds with all of them deleted, report each such set no proper subset of which loses one, as one concern in place of the concern conditions for its members.
+5. Where deleting together a set of sentences and spans that step 3 does not keep loses one of step 3's list, tested against the text step 2 builds with all of them deleted, report each such set no proper subset of which loses one, in place of the other concern conditions for its members.
 
 **Concern conditions:**
 
 - A sentence step 1 takes that step 3 does not keep, quoted
 - A span step 4 quotes
+- A set step 5 reports
 
 **N/A:** the trigger does not fire.
 
