@@ -5,7 +5,7 @@
 **Sweep.**
 
 1. Take sentences `single-reading`'s Sweep takes.
-2. Test them in path order and in order within each file, each against the file together with the files that file references directly as rule content, with the tested text and everything this sweep has reported removed from all of them. Where the tested text sits in a prompt the executor sends to another agent, the executor here is that prompt's receiver, and what remains is that prompt together with the files the prompt tells its receiver to read, with the same removals.
+2. Test them in path order and in order within each file, each against the file together with the files that file references directly as rule content, with the tested text and everything this sweep has reported removed. Where the tested text sits in a prompt the executor sends to another agent, the executor here is that prompt's receiver, and what remains is that prompt together with the files the prompt tells its receiver to read, with the same removals.
 3. A sentence or span is kept when deleting the tested text loses one of these:
    - an action the executor takes, skips, or takes differently, including the use of an input named in the remaining text, where the tested text excludes that use;
    - the outcome of one case of a split the remaining text makes between cases, where no other branch of that split gives that case an outcome;
@@ -15,8 +15,8 @@
 
 **Concern conditions:**
 
-- A sentence step 1 takes loses none of step 3's list on deletion
-- A span of a kept sentence loses none of step 3's list on deletion
+- A sentence step 1 takes that step 3 does not keep
+- A span step 4 tests that step 3 does not keep
 
 **N/A:** the trigger above does not fire.
 
