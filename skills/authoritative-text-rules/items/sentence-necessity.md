@@ -24,4 +24,4 @@
 
 - Against `case-space-totality`: branches of one split that give a case conflicting outcomes with no stated precedence are that item's.
 - Against `clause-composition`: a condition stated in two places is that item's wherever that item is not N/A.
-- Against `single-reading`: a sentence that loses something under one reading and nothing under another is `single-reading`'s.
+- Against `single-reading`: a sentence or span that loses something under one reading and nothing under another is `single-reading`'s.
