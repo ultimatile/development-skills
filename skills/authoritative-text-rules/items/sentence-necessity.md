@@ -5,8 +5,8 @@
 **Sweep.**
 
 1. Take sentences `single-reading`'s Sweep takes.
-2. Test each against the text with only that sentence deleted: what remains of its file together with every file joined to what remains by a rule-content reference, as `clause-composition`'s step 1 finds them. Where the sentence sits in a prompt the executor sends to another agent, the executor here is that prompt's receiver, and the text is that prompt together with the files the prompt tells its receiver to read. A deletion carries only the punctuation and agreement it forces.
-3. A sentence or span is kept when a tie-break below keeps it or when deleting it loses one of these:
+2. Test each against the text with only that sentence deleted: what remains of its file together with the files that remaining text references directly as rule content. Where the sentence sits in a prompt the executor sends to another agent, the executor here is that prompt's receiver, and the text is that prompt together with the files the prompt tells its receiver to read. A deletion carries only the punctuation and agreement it forces.
+3. A sentence or span is kept when a tie-break below keeps it or when deleting it loses one of these, for the executor of the deleted text's file or of a file referencing that file as rule content, found as `clause-composition`'s step 1 finds inbound references:
    - an action the executor takes, skips, or takes differently;
    - a use, excluded by the deleted text, of an input the remaining text names;
    - the outcome of one case of a split the remaining text makes between cases, where no other branch among those the split lists gives that case the same outcome;
@@ -14,11 +14,11 @@
    - the identification of one remaining statement of a condition as a copy of another remaining statement;
    - the application, to the step holding the deleted text, of a remaining statement elsewhere that the deleted text names.
 4. Repeat steps 2 and 3 on the spans of each kept sentence, a span being any part of it that punctuation sets off and whose deletion leaves the sentence grammatical, and quote each span step 3 does not keep, except one inside a larger span step 3 does not keep.
-5. Where deleting together every sentence and span that step 3 does not keep loses one of step 3's list, tested against the text step 2 builds with all of them deleted, report them as one concern in place of the concern conditions.
+5. Where deleting together a set of sentences and spans that step 3 does not keep loses one of step 3's list, tested against the text step 2 builds with all of them deleted, report each smallest such set as one concern in place of the concern conditions for its members.
 
 **Concern conditions:**
 
-- A sentence step 1 takes that step 3 does not keep
+- A sentence step 1 takes that step 3 does not keep, quoted
 - A span step 4 quotes
 
 **N/A:** the trigger does not fire.
