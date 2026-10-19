@@ -13,7 +13,7 @@
    - a judgment a step of the remaining text requires and does not settle, for which the deleted text states a criterion, an instance, or a non-instance that the remaining text does not;
    - the identification of one remaining statement of a condition as a copy of another remaining statement.
 4. Repeat steps 2 and 3 on the spans of each kept sentence, a span being any part of it that punctuation sets off and whose deletion leaves the sentence grammatical, and quote each span step 3 does not keep, except one inside a larger span step 3 does not keep.
-5. Where deleting together every sentence and span that step 3 does not keep loses one of step 3's list, tested against the texts step 2 names for them, report them as one concern in place of the concern conditions. Its response is deleting the first of them in text order; the next run of this item tests the rest.
+5. Where deleting together every sentence and span that step 3 does not keep loses one of step 3's list, tested against the text step 2 builds with all of them deleted, report them as one concern in place of the concern conditions. Its response is deleting the first of them in text order.
 
 **Concern conditions:**
 
