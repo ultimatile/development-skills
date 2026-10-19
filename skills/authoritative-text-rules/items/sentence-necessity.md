@@ -6,7 +6,7 @@
 
 1. Take sentences `single-reading`'s Sweep takes.
 
-2. Test each against the text with only that sentence deleted: what remains of its file together with the files that remaining text references directly as rule content, in the sense `clause-composition`'s step 1 gives that term. Where the sentence sits in a prompt the executor sends to another agent, the executor in this step and in step 3 is that prompt's receiver, and the text is that prompt together with the files the prompt tells its receiver to read. A deletion carries only the punctuation and agreement it forces.
+2. Test each against the text with only that sentence deleted: what remains of its file together with the files that remaining text references directly as rule content, in the sense `clause-composition`'s step 1 gives that term. Where the sentence sits in a prompt the executor sends to another agent, the executor in this step and in step 3's first bullet is that prompt's receiver, and the text is that prompt together with the files the prompt tells its receiver to read. A deletion carries only the punctuation and agreement it forces.
 
 3. A sentence or span is kept when a tie-break below keeps it, or when deleting it costs one of these executors one of the losses listed after them:
 
