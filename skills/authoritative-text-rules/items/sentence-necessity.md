@@ -5,7 +5,7 @@
 **Sweep.**
 
 1. Take the sentences `single-reading`'s Sweep takes.
-2. Test them in file order, each against the file with the tested text and everything this sweep has already reported removed, and read what remains as a whole, together with the files that file references directly as rule content. Where the tested text sits in a prompt the executor sends to another agent, the executor here is that prompt's receiver, and what remains is that prompt together with the files the prompt tells its receiver to read.
+2. Test them in file order, each against the file with the tested text and everything this sweep has already reported removed, together with the files that file references directly as rule content. Where the tested text sits in a prompt the executor sends to another agent, the executor here is that prompt's receiver, and what remains is that prompt together with the files the prompt tells its receiver to read.
 3. A sentence or span is kept when deleting the tested text loses one of these:
    - an action the executor takes, skips, or takes differently, including the use of an input named in the remaining text, where the tested text excludes that use;
    - the outcome of one case of a split the remaining text makes between cases, where no other branch of that split gives that case an outcome;
