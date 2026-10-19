@@ -11,7 +11,7 @@
    - the outcome of one case of a split the remaining text makes between cases, where no other branch of that split gives that case an outcome;
    - a judgment a step of the remaining text requires and does not itself settle, whose outcome the tested text can change;
    - the identification of one remaining statement of a condition as a copy of another remaining statement.
-4. Once every sentence has been tested, repeat steps 2 and 3 on the spans of each kept sentence, a span being any contiguous part of it, taking spans by earliest start and, at one start, longest first, and quote each span the second concern condition below reports. The deletion carries only the punctuation and agreement it forces.
+4. Once every sentence has been tested, repeat steps 2 and 3 on the spans of each kept sentence, a span being any contiguous part of it that overlaps no text already reported, taking spans by earliest start and, at one start, longest first, and quote each span the second concern condition below reports. The deletion carries only the punctuation and agreement it forces.
 
 **Concern conditions:**
 
