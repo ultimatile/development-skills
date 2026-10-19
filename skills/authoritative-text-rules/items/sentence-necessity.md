@@ -14,7 +14,7 @@
    - the identification of one remaining statement of a condition as a copy of another remaining statement;
    - the application, to the step holding the deleted text, of a remaining statement elsewhere that the deleted text names.
 4. Repeat steps 2 and 3 on the spans of each kept sentence, a span being any part of it that punctuation sets off and whose deletion leaves the sentence grammatical, and quote each span step 3 does not keep, except one inside a larger span step 3 does not keep.
-5. Apply steps 2 and 3 to each set of sentences and spans that step 3 does not keep, deleting the whole set at once. Report each set step 3 keeps that has no proper subset step 3 keeps, in place of the other concern conditions for its members.
+5. Apply steps 2 and 3 to each set of sentences and spans that step 3 does not keep, deleting the whole set at once from the files holding its members and building step 2's text around all of those files. Report each set step 3 keeps that has no proper subset step 3 keeps, in place of the other concern conditions for its members.
 
 **Concern conditions:**
 
