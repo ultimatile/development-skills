@@ -124,6 +124,6 @@ gh api graphql \
   " \
   | jq -c --slurpfile replies "$replies" '
       def marked: sub("\\s+$"; "") | split("\n") | last // ""
-        | (capture("^<!-- disposition: (?<slug>[a-z]+(-[a-z]+)*) -->$") | .slug) // empty;
+        | (capture("\\A<!-- disposition: (?<slug>[a-z]+(-[a-z]+)*) -->\\z") | .slug) // empty;
       ($replies[0][.head_id | tostring] // []) as $bodies
       | . + {reply_bodies: $bodies, disposition: ([$bodies[] | marked] | last)}'

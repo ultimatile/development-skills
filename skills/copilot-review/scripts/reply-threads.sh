@@ -61,11 +61,11 @@ while IFS= read -r line || [[ -n "$line" ]]; do
       select(length == 1) | .[0]
       | select(
         type == "object"
-        and (.id | type == "number" and (tojson | test("^[1-9][0-9]*$")))
-        and (.disposition | type == "string" and test("^[a-z]+(-[a-z]+)*$"))
+        and (.id | type == "number" and . == floor and . > 0)
+        and (.disposition | type == "string" and test("\\A[a-z]+(-[a-z]+)*\\z"))
         and (.body | type == "string" and test("\\S") and (test("[\r\n]") | not) and (contains("<!--") | not))
       )
-      | {id, body: "`\(.disposition)` — \(.body | sub("\\s+$"; ""))\n\n<!-- disposition: \(.disposition) -->"}
+      | {id: (.id | floor), body:"`\(.disposition)` — \(.body | sub("\\s+$"; ""))\n\n<!-- disposition: \(.disposition) -->"}
     ' <<<"$line" >>"$replies" 2>/dev/null; then
     echo "error: line $n: expected {\"id\": <positive int>, \"disposition\": <slug>, \"body\": <one non-blank line without <!-->}" >&2
     exit 2

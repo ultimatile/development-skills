@@ -2,9 +2,8 @@
 # Contract test for the output of list-pr-threads.sh, of
 # pr-with-copilot-review.sh's poll, and of the replies reply-threads.sh posts.
 #
-# Requires jq 1.7 or later, whose tojson keeps a number literal's spelling
-# (the `1.0` id case relies on it), and gh-post on PATH: reply-threads.sh is
-# run through the real gh-post, with gh stubbed beneath it.
+# Requires jq, and gh-post on PATH: reply-threads.sh is run through the real
+# gh-post, with gh stubbed beneath it.
 #
 # Run:
 #   bash test-scripts.sh
@@ -204,7 +203,7 @@ post() { : >"$RECORD"; "$REPLY" owner/repo 1 2>/dev/null; }
 posted() { jq -r "select(.url | endswith(\"/comments/$1/replies\")) | .body" "$RECORD"; }
 
 printf '%s\n' \
-  '{"id": 401, "disposition": "defer", "body": "tracked as a follow-up.  "}' \
+  '{"id": 401.0, "disposition": "defer", "body": "tracked as a follow-up.  "}' \
   '' \
   '{"id": 402, "disposition": "false-positive", "body": "see note[^1] [^1]: not a definition, a `#` and a > mid-line"}' \
   '{"id": 403, "disposition": "wontfix", "body": "``` not a fence, [ref]: https://example.org"}' \
@@ -232,11 +231,12 @@ not json
 {"id": 1, "body": "an old-shape line"}
 {"id": 0, "disposition": "defer", "body": "x"}
 {"id": -1, "disposition": "defer", "body": "x"}
-{"id": 1.0, "disposition": "defer", "body": "x"}
+{"id": 1.5, "disposition": "defer", "body": "x"}
 {"id": "1", "disposition": "defer", "body": "x"}
 {"id": true, "disposition": "defer", "body": "x"}
 {"id": 1, "disposition": "Defer", "body": "x"}
 {"id": 1, "disposition": "defer-", "body": "x"}
+{"id": 1, "disposition": "defer\n", "body": "x"}
 {"id": 1, "disposition": "defer", "body": ""}
 {"id": 1, "disposition": "defer", "body": "   "}
 {"id": 1, "disposition": "defer", "body": 7}
