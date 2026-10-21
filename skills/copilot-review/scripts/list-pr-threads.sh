@@ -20,7 +20,8 @@
 #     "disposition": <str|null>,  # slug in the marker of the latest reply
 #                                 # carrying one, null when none does; the
 #                                 # marker is the reply's last non-blank
-#                                 # line, exactly `<!-- disposition: <slug> -->`
+#                                 # line, trailing whitespace aside, and
+#                                 # reads `<!-- disposition: <slug> -->`
 #                                 # as reply-threads.sh writes it
 #     "head_author": <str>,
 #     "head_body_excerpt": <str>  # first 120 chars of head body

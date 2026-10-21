@@ -2,8 +2,9 @@
 # Contract test for the output of list-pr-threads.sh, of
 # pr-with-copilot-review.sh's poll, and of the replies reply-threads.sh posts.
 #
-# Requires jq, and gh-post on PATH: reply-threads.sh is run through the real
-# gh-post, with gh stubbed beneath it.
+# Requires jq 1.7 or later, whose tojson keeps a number literal's spelling
+# (the `1.0` id case relies on it), and gh-post on PATH: reply-threads.sh is
+# run through the real gh-post, with gh stubbed beneath it.
 #
 # Run:
 #   bash test-scripts.sh
@@ -185,6 +186,7 @@ marker_cases='
 [307, ["<!-- disposition: defer -->\n\nthen text"], null, "a marker not on the last line"]
 [308, ["x\n\n<!-- disposition: invariant-premise-check -->\n\n\n"], "invariant-premise-check", "a marker followed by blank lines"]
 [309, ["x\r\n\r\n<!-- disposition: defer -->\r\n"], "defer", "a marker in a CRLF body"]
+[312, ["x\n\n<!-- disposition: defer -->   "], "defer", "a marker followed by spaces"]
 [310, ["x\n\n<!-- disposition: Defer -->"], null, "a malformed slug"]
 [311, ["x\n\n<!-- disposition: de--fer -->"], null, "a slug with a doubled hyphen"]
 '

@@ -58,7 +58,7 @@ For each finding:
 
 ## Respond to review
 
-Each Copilot finding lives on an inline thread; that thread is the unit of response. Each reply carries the disposition its finding now holds, by its `finding-triage` slug, and a body of one or two sentences, on one line, stating the reasoning and what the run will do about the finding. `reply-threads.sh` writes the slug at the front of the reply, so the body does not repeat it.
+Each Copilot finding lives on an inline thread; that thread is the unit of response. Each reply carries the disposition its finding now holds, by its `finding-triage` slug, and a body of one or two sentences, on one line and without `<!--`, stating the reasoning and what the run will do about the finding. `reply-threads.sh` writes the slug at the front of the reply, so the body does not repeat it. When it exits 2, it has sent nothing: correct the line its message names and send the batch again.
 
 The requirement `gh-body-conventions` § Exclusions places on a body's tokens binds each reply as it binds a body, except that a `finding-triage` disposition slug may stand as a bare name whichever repository the pull request is in.
 

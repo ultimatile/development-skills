@@ -8,7 +8,8 @@
 #   {"id": <int>, "disposition": <slug>, "body": <str>}
 #     id           head_id of the thread, as list-pr-threads.sh prints it
 #     disposition  lowercase words joined by single hyphens
-#     body         one line, without `<!--`
+#     body         one non-blank line, without `<!--`; trailing whitespace
+#                  is dropped
 #
 # Each reply is posted as
 #
@@ -71,7 +72,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
       )
       | {id, body: "`\(.disposition)` — \(.body | sub("\\s+$"; ""))\n\n<!-- disposition: \(.disposition) -->"}
     ' <<<"$line" >>"$replies" 2>/dev/null; then
-    echo "error: line $n: expected {\"id\": <positive int>, \"disposition\": <slug>, \"body\": <one line without <!-->}" >&2
+    echo "error: line $n: expected {\"id\": <positive int>, \"disposition\": <slug>, \"body\": <one non-blank line without <!-->}" >&2
     exit 2
   fi
 done <"$input"
