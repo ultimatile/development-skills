@@ -276,6 +276,14 @@ printf '%s\n' '{"id": 401.0, "disposition": "defer", "body": "x"}' | post
 check "reply: a non-integer id spelling is left to gh-post, which rejects it" "3" "$?"
 check "reply: a non-integer id spelling sends nothing" "0" "$(sent)"
 
+out="$("$REPLY" -h </dev/null)"
+check "reply: -h exits 0" "0" "$?"
+check "reply: -h prints the header" "Post replies to PR inline review threads, each marked with its disposition." "$(head -n 1 <<<"$out")"
+
+: >"$RECORD"
+printf '%s\n' '{"id": 401, "disposition": "defer", "body": "fine"}' | "$REPLY" -- owner/repo 1 >/dev/null 2>&1
+check "reply: arguments after -- are positional" "0 1" "$? $(sent)"
+
 for argv in "owner/repo" "owner/repo 1 extra" "--unknown owner/repo 1"; do
   : >"$RECORD"
   printf '%s\n' '{"id": 401, "disposition": "defer", "body": "fine"}' | "$REPLY" $argv >/dev/null 2>&1
