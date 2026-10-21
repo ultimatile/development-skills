@@ -250,6 +250,13 @@ LINES
 : | post
 check "reply: empty input exits 0" "0" "$?"
 
+for argv in "owner/repo" "owner/repo 1 extra" "--unknown owner/repo 1"; do
+  : >"$RECORD"
+  printf '%s\n' '{"id": 401, "disposition": "defer", "body": "fine"}' | "$REPLY" $argv >/dev/null 2>&1
+  check "reply: usage error ($argv) exits 2" "2" "$?"
+  check "reply: usage error ($argv) sends nothing" "0" "$(wc -l <"$RECORD" | tr -d ' ')"
+done
+
 printf '%s\n' \
   '{"id": 401, "disposition": "defer", "body": "one."}' \
   '{"id": 402, "disposition": "defer", "body": "two."}' \

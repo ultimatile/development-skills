@@ -18,9 +18,9 @@
 #   <!-- disposition: <slug> -->
 #
 # through `gh-post reply-inline`, and list-pr-threads.sh reads the slug back
-# from that last line. Every line is validated before anything is sent; an
-# invalid line exits 2 with nothing sent. Otherwise the exit status is
-# gh-post's.
+# from that last line. Every line is validated before anything is sent; a
+# usage error or an invalid line exits 2 with nothing sent. Otherwise the exit
+# status is gh-post's, which validates OWNER/REPO and PR itself.
 
 set -euo pipefail
 
@@ -47,11 +47,6 @@ fi
 
 repo="${positional[0]}"
 pr="${positional[1]}"
-
-if [[ "$repo" != */* || "$repo" == */*/* || "$repo" == /* || "$repo" == */ ]]; then
-  echo "error: invalid OWNER/REPO: $repo" >&2
-  exit 2
-fi
 
 input=$(mktemp)
 replies=$(mktemp)
