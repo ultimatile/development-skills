@@ -200,6 +200,7 @@ done < <(jq -c . <<<"$marker_cases")
 REPLY="$SCRIPT_DIR/reply-threads.sh"
 export RECORD="$tmpdir/record.jsonl"
 post() { : >"$RECORD"; "$REPLY" owner/repo 1 2>/dev/null; }
+sent() { wc -l <"$RECORD" | tr -d ' '; }
 posted() { jq -r "select(.url | endswith(\"/comments/$1/replies\")) | .body" "$RECORD"; }
 
 printf '%s\n' \
@@ -209,7 +210,7 @@ printf '%s\n' \
   '{"id": 403, "disposition": "wontfix", "body": "``` not a fence, [ref]: https://example.org"}' \
   | post
 check "reply: a valid batch exits 0" "0" "$?"
-check "reply: one post per line, blank lines skipped" "3" "$(wc -l <"$RECORD" | tr -d ' ')"
+check "reply: one post per line, blank lines skipped" "3" "$(sent)"
 check "reply: slug in front, marker last" $'`defer` — tracked as a follow-up.\n\n<!-- disposition: defer -->' "$(posted 401)"
 for id in 402 403; do
   check "reply: the formatted body $id still ends in its marker" \
@@ -225,7 +226,7 @@ check "reply: posted replies list with their dispositions" "401 defer 402 false-
 while IFS= read -r line; do
   printf '%s\n' '{"id": 401, "disposition": "defer", "body": "fine"}' "$line" | post
   check "reply: invalid line $line exits 2" "2" "$?"
-  check "reply: invalid line $line sends nothing" "0" "$(wc -l <"$RECORD" | tr -d ' ')"
+  check "reply: invalid line $line sends nothing" "0" "$(sent)"
 done <<'LINES'
 not json
 {"id": 1, "body": "an old-shape line"}
@@ -254,7 +255,7 @@ for argv in "owner/repo" "owner/repo 1 extra" "--unknown owner/repo 1"; do
   : >"$RECORD"
   printf '%s\n' '{"id": 401, "disposition": "defer", "body": "fine"}' | "$REPLY" $argv >/dev/null 2>&1
   check "reply: usage error ($argv) exits 2" "2" "$?"
-  check "reply: usage error ($argv) sends nothing" "0" "$(wc -l <"$RECORD" | tr -d ' ')"
+  check "reply: usage error ($argv) sends nothing" "0" "$(sent)"
 done
 
 printf '%s\n' \

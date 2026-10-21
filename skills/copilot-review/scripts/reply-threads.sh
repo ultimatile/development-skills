@@ -6,7 +6,8 @@
 #
 # Input (one JSON object per line; blank lines are skipped):
 #   {"id": <int>, "disposition": <slug>, "body": <str>}
-#     id           head_id of the thread, as list-pr-threads.sh prints it
+#     id           head_id of the thread, as list-pr-threads.sh prints it; any
+#                  positive integer value, sent in integer form
 #     disposition  lowercase words joined by single hyphens
 #     body         one non-blank line, without `<!--`; trailing whitespace
 #                  is dropped
@@ -19,8 +20,9 @@
 #
 # through `gh-post reply-inline`, and list-pr-threads.sh reads the slug back
 # from that last line. Every line is validated before anything is sent; a
-# usage error or an invalid line exits 2 with nothing sent. Otherwise the exit
-# status is gh-post's, which validates OWNER/REPO and PR itself.
+# usage error or an invalid line exits 2 with nothing sent. Once every line
+# has passed, the exit status is gh-post's, which validates OWNER/REPO and PR
+# itself.
 
 set -euo pipefail
 
