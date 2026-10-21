@@ -23,8 +23,8 @@
 #                                 # line, trailing whitespace aside, and
 #                                 # reads `<!-- disposition: <slug> -->`
 #                                 # as reply-threads.sh writes it; a reply
-#                                 # without it does not count, one posted
-#                                 # before reply-threads.sh existed included
+#                                 # without it does not count, whoever
+#                                 # posted it
 #     "head_author": <str>,
 #     "head_body_excerpt": <str>  # first 120 chars of head body
 #   }

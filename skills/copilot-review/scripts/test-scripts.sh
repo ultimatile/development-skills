@@ -182,7 +182,8 @@ make_pr() {
   ' >"$dir/threads.json"
 }
 
-# Each case: head id, its replies, the disposition the listing must report.
+# Each case: head id, its replies, the disposition the listing must report,
+# and the label its check is reported under.
 marker_cases='
 [301, [], null, "no reply"]
 [302, ["`defer` — later.\n\n<!-- disposition: defer -->"], "defer", "a marked reply"]
@@ -288,6 +289,9 @@ printf '%s\n' \
   '{"id": 403, "disposition": "defer", "body": "three."}' \
   | STUB_FAIL=/comments/402/replies post
 check "reply: a failed send propagates gh's status" "1" "$?"
+err="$(printf '%s\n' '{"id": 401, "disposition": "defer", "body": "x"}' | "$REPLY" 'owner/..' 1 2>&1 >/dev/null)"
+check "reply: a gh-post failure is reported under reply-threads.sh's name" \
+  "error: reply-threads.sh: gh-post reply-inline exited 2" "$(tail -n 1 <<<"$err")"
 jq -nc '{head: 401}, {head: 402}, {head: 403}' \
   | jq -c --slurpfile rec "$RECORD" '.head as $h | {head: $h, replies: [$rec[] | select(.url | endswith("/comments/\($h)/replies")) | .body]}' \
   | make_pr "$tmpdir/partial"

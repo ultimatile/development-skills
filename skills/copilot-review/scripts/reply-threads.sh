@@ -74,4 +74,9 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   fi
 done <"$input"
 
-gh-post reply-inline "$repo" "$pr" <"$replies"
+status=0
+gh-post reply-inline "$repo" "$pr" <"$replies" || status=$?
+if ((status != 0)); then
+  echo "error: reply-threads.sh: gh-post reply-inline exited $status" >&2
+fi
+exit "$status"
