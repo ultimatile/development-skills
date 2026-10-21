@@ -17,6 +17,11 @@
 #     "reply_count": <int>,       # number of comments after the head
 #     "reply_bodies": [<str>],    # bodies of the comments after the head,
 #                                 # oldest first
+#     "disposition": <str|null>,  # slug in the marker of the latest reply
+#                                 # carrying one, null when none does; the
+#                                 # marker is the reply's last non-blank
+#                                 # line, exactly `<!-- disposition: <slug> -->`
+#                                 # as reply-threads.sh writes it
 #     "head_author": <str>,
 #     "head_body_excerpt": <str>  # first 120 chars of head body
 #   }
@@ -116,4 +121,8 @@ gh api graphql \
       }
     | @json
   " \
-  | jq -c --slurpfile replies "$replies" '. + {reply_bodies: ($replies[0][.head_id | tostring] // [])}'
+  | jq -c --slurpfile replies "$replies" '
+      def marked: sub("\\s+$"; "") | split("\n") | last // ""
+        | (capture("^<!-- disposition: (?<slug>[a-z]+(-[a-z]+)*) -->$") | .slug) // empty;
+      ($replies[0][.head_id | tostring] // []) as $bodies
+      | . + {reply_bodies: $bodies, disposition: ([$bodies[] | marked] | last)}'

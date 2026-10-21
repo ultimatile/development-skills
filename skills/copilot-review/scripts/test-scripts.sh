@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Contract test for the output of list-pr-threads.sh and of
-# pr-with-copilot-review.sh's poll.
+# Contract test for the output of list-pr-threads.sh, of
+# pr-with-copilot-review.sh's poll, and of the replies reply-threads.sh posts.
 #
-# Requires jq.
+# Requires jq, and gh-post on PATH: reply-threads.sh is run through the real
+# gh-post, with gh stubbed beneath it.
 #
 # Run:
 #   bash test-scripts.sh
@@ -22,14 +23,21 @@ cat >"$tmpdir/bin/gh" <<'STUB'
 # Stub gh: pick a fixture by endpoint, apply the --jq filter with jq.
 # A call whose arguments contain $STUB_FAIL exits 1.
 # A list read without --paginate gets the first 4 entries.
+# A reply POST appends {url, body} to $RECORD, read from its --input file.
 [[ -n "${STUB_FAIL:-}" && "$*" == *"$STUB_FAIL"* ]] && exit 1
 filter=""
 url=""
+input=""
 args=("$@")
 for ((i = 0; i < ${#args[@]}; i++)); do
   [[ "${args[i]}" == "--jq" ]] && filter="${args[i + 1]}"
+  [[ "${args[i]}" == "--input" ]] && input="${args[i + 1]}"
   [[ "${args[i]}" == repos/* ]] && url="${args[i]}"
 done
+if [[ "$url" == */replies ]]; then
+  jq -c --arg url "$url" '{url: $url, body}' "$input" >>"$RECORD"
+  exit 0
+fi
 page=""
 [[ " $* " == *" --paginate "* ]] || page=".[0:4] | "
 case "$*" in
@@ -148,6 +156,109 @@ for call in /comments graphql; do
   check "list: a failed $call read exits 1" "1" "$?"
   check "list: a failed $call read prints no thread" "" "$out"
 done
+
+# A pull request whose Copilot threads carry the given replies: one JSON
+# object per thread, {"head": <id>, "replies": [<body>]}, read from stdin into
+# fixture directory $1.
+make_pr() {
+  local dir="$1" spec
+  spec="$(jq -sc .)"
+  mkdir -p "$dir"
+  cp "$tmpdir/reviews.json" "$dir/"
+  jq -n --argjson spec "$spec" '
+    [$spec[] | {id: .head, user: {login: "Copilot"}, pull_request_review_id: 20, in_reply_to_id: null, path: "m.md", line: 1, body: "head"}]
+    + [$spec[] | .head as $h | .replies | to_entries[] | {id: ($h * 100 + .key), user: {login: "someone"}, pull_request_review_id: 31, in_reply_to_id: $h, path: "m.md", line: 1, body: .value}]
+  ' >"$dir/comments.json"
+  jq -n --argjson spec "$spec" '
+    {data: {repository: {pullRequest: {reviewThreads: {nodes: [$spec[] | {isResolved: false, isOutdated: false, comments: {totalCount: (1 + (.replies | length)), nodes: [{databaseId: .head, author: {login: "copilot-pull-request-reviewer"}, path: "m.md", line: 1, body: "head"}]}}]}}}}}
+  ' >"$dir/threads.json"
+}
+
+# Each case: head id, its replies, the disposition the listing must report.
+marker_cases='
+[301, [], null, "no reply"]
+[302, ["`defer` — later.\n\n<!-- disposition: defer -->"], "defer", "a marked reply"]
+[303, ["`defer` — later.\n\n<!-- disposition: defer -->", "is this not a `false-positive`?"], "defer", "a later hand-written slug mention"]
+[304, ["`defer` — later.\n\n<!-- disposition: defer -->", "`wontfix` — no.\n\n<!-- disposition: wontfix -->"], "wontfix", "the latest of two marked replies"]
+[305, ["> quoted\n> <!-- disposition: defer -->"], null, "a quoted marker"]
+[306, ["x\n\n<!-- disposition: defer --> and more"], null, "a marker with trailing text"]
+[307, ["<!-- disposition: defer -->\n\nthen text"], null, "a marker not on the last line"]
+[308, ["x\n\n<!-- disposition: invariant-premise-check -->\n\n\n"], "invariant-premise-check", "a marker followed by blank lines"]
+[309, ["x\r\n\r\n<!-- disposition: defer -->\r\n"], "defer", "a marker in a CRLF body"]
+[310, ["x\n\n<!-- disposition: Defer -->"], null, "a malformed slug"]
+[311, ["x\n\n<!-- disposition: de--fer -->"], null, "a slug with a doubled hyphen"]
+'
+jq -c '{head: .[0], replies: .[1]}' <<<"$marker_cases" | make_pr "$tmpdir/marked"
+out="$(FIXTURES="$tmpdir/marked" "$LIST" owner/repo 1)"
+while IFS= read -r case; do
+  head="$(jq -r '.[0]' <<<"$case")"
+  check "list: disposition, $(jq -r '.[3]' <<<"$case")" "$(jq -c '.[2]' <<<"$case")" "$(jq -c "select(.head_id == $head) | .disposition" <<<"$out")"
+done < <(jq -c . <<<"$marker_cases")
+
+# --- reply-threads.sh -------------------------------------------------------
+REPLY="$SCRIPT_DIR/reply-threads.sh"
+export RECORD="$tmpdir/record.jsonl"
+post() { : >"$RECORD"; "$REPLY" owner/repo 1 2>/dev/null; }
+posted() { jq -r "select(.url | endswith(\"/comments/$1/replies\")) | .body" "$RECORD"; }
+
+printf '%s\n' \
+  '{"id": 401, "disposition": "defer", "body": "tracked as a follow-up.  "}' \
+  '' \
+  '{"id": 402, "disposition": "false-positive", "body": "see note[^1] [^1]: not a definition, a `#` and a > mid-line"}' \
+  '{"id": 403, "disposition": "wontfix", "body": "``` not a fence, [ref]: https://example.org"}' \
+  | post
+check "reply: a valid batch exits 0" "0" "$?"
+check "reply: one post per line, blank lines skipped" "3" "$(wc -l <"$RECORD" | tr -d ' ')"
+check "reply: slug in front, marker last" $'`defer` — tracked as a follow-up.\n\n<!-- disposition: defer -->' "$(posted 401)"
+for id in 402 403; do
+  check "reply: the formatted body $id still ends in its marker" \
+    "$(jq -r "select(.id == $id) | \"<!-- disposition: \(.disposition) -->\"" <<<'{"id":402,"disposition":"false-positive"} {"id":403,"disposition":"wontfix"}')" \
+    "$(posted $id | tail -n 1)"
+done
+
+# Round trip: what was posted lists with the disposition it was sent with.
+jq -c '{head: (.url | capture("/comments/(?<h>[0-9]+)/").h | tonumber), replies: [.body]}' "$RECORD" | make_pr "$tmpdir/posted"
+check "reply: posted replies list with their dispositions" "401 defer 402 false-positive 403 wontfix" \
+  "$(FIXTURES="$tmpdir/posted" "$LIST" owner/repo 1 | jq -r '"\(.head_id) \(.disposition)"' | paste -sd' ' -)"
+
+while IFS= read -r line; do
+  printf '%s\n' '{"id": 401, "disposition": "defer", "body": "fine"}' "$line" | post
+  check "reply: invalid line $line exits 2" "2" "$?"
+  check "reply: invalid line $line sends nothing" "0" "$(wc -l <"$RECORD" | tr -d ' ')"
+done <<'LINES'
+not json
+{"id": 1, "body": "an old-shape line"}
+{"id": 0, "disposition": "defer", "body": "x"}
+{"id": -1, "disposition": "defer", "body": "x"}
+{"id": 1.0, "disposition": "defer", "body": "x"}
+{"id": "1", "disposition": "defer", "body": "x"}
+{"id": true, "disposition": "defer", "body": "x"}
+{"id": 1, "disposition": "Defer", "body": "x"}
+{"id": 1, "disposition": "defer-", "body": "x"}
+{"id": 1, "disposition": "defer", "body": ""}
+{"id": 1, "disposition": "defer", "body": "   "}
+{"id": 1, "disposition": "defer", "body": 7}
+{"id": 1, "disposition": "defer", "body": "two\nlines"}
+{"id": 1, "disposition": "defer", "body": "two\rlines"}
+{"id": 1, "disposition": "defer", "body": "two\r\nlines"}
+{"id": 1, "disposition": "defer", "body": "hidden <!-- text"}
+{"id": 1, "disposition": "defer", "body": "x"} {"id": 2, "disposition": "defer", "body": "y"}
+LINES
+
+: | post
+check "reply: empty input exits 0" "0" "$?"
+
+printf '%s\n' \
+  '{"id": 401, "disposition": "defer", "body": "one."}' \
+  '{"id": 402, "disposition": "defer", "body": "two."}' \
+  '{"id": 403, "disposition": "defer", "body": "three."}' \
+  | STUB_FAIL=/comments/402/replies post
+check "reply: a failed send propagates gh's status" "1" "$?"
+jq -nc '{head: 401}, {head: 402}, {head: 403}' \
+  | jq -c --slurpfile rec "$RECORD" '.head as $h | {head: $h, replies: [$rec[] | select(.url | endswith("/comments/\($h)/replies")) | .body]}' \
+  | make_pr "$tmpdir/partial"
+check "reply: after a failed send, the sent thread is settled and the rest stay due" "401 defer 402 null 403 null" \
+  "$(FIXTURES="$tmpdir/partial" "$LIST" owner/repo 1 | jq -r '"\(.head_id) \(.disposition)"' | paste -sd' ' -)"
 
 # --- pr-with-copilot-review.sh --poll ---------------------------------------
 poll="$(COPILOT_POLL_INITIAL=0 "$POLL" --poll https://github.com/owner/repo/pull/1 2>/dev/null)"

@@ -1,7 +1,7 @@
 ---
 name: copilot-review
 description: Create a GitHub PR with Copilot as reviewer and poll until the review arrives.
-allowed-tools: Bash(*/copilot-review/scripts/pr-with-copilot-review.sh:*), Bash(*/copilot-review/scripts/list-pr-threads.sh:*)
+allowed-tools: Bash(*/copilot-review/scripts/pr-with-copilot-review.sh:*), Bash(*/copilot-review/scripts/list-pr-threads.sh:*), Bash(*/copilot-review/scripts/reply-threads.sh:*)
 ---
 
 # Copilot Review
@@ -58,28 +58,29 @@ For each finding:
 
 ## Respond to review
 
-Each Copilot finding lives on an inline thread; that thread is the unit of response. Each reply names the disposition its finding now holds, by its `finding-triage` slug, and states in one or two sentences the reasoning and what the run will do about the finding.
+Each Copilot finding lives on an inline thread; that thread is the unit of response. Each reply carries the disposition its finding now holds, by its `finding-triage` slug, and a body of one or two sentences, on one line, stating the reasoning and what the run will do about the finding. `reply-threads.sh` writes the slug at the front of the reply, so the body does not repeat it.
 
 The requirement `gh-body-conventions` § Exclusions places on a body's tokens binds each reply as it binds a body, except that a `finding-triage` disposition slug may stand as a bare name whichever repository the pull request is in.
 
 A thread is due a reply when all of these hold:
 
 - the run has triaged its finding;
-- no reply on the thread names a disposition, or the latest reply that names one does not name the disposition the finding now holds;
+- the thread's `disposition` in the `list-pr-threads.sh` listing is not the disposition the finding now holds, `null` included;
 - the finding is not `actionable`, or its fix is pushed.
 
-Reply within each due thread via `gh-post reply-inline` — a single batch covers every due thread:
+Reply within each due thread via `reply-threads.sh` — a single batch covers every due thread:
 
 ```bash
 # 1. List the Copilot-headed threads, one JSON object per line. `head_id` is the
 #    id `pr-with-copilot-review.sh` printed ahead of the thread's finding, and
-#    `reply_bodies` holds the thread's replies, oldest first.
+#    `disposition` is the slug in the marker `reply-threads.sh` ends each reply
+#    with, taken from the latest reply on the thread that carries one, or null.
 ${CLAUDE_SKILL_DIR}/scripts/list-pr-threads.sh {owner}/{repo} {number}
 
-# 2. Build a JSONL file: one {"id": <head_id>, "body": "<reply text>"} per due thread.
+# 2. Build a JSONL file: one {"id": <head_id>, "disposition": "<slug>", "body": "<body>"} per due thread.
 
 # 3. Send the batch.
-gh-post reply-inline {owner}/{repo} {number} < /tmp/replies.jsonl
+${CLAUDE_SKILL_DIR}/scripts/reply-threads.sh {owner}/{repo} {number} < /tmp/replies.jsonl
 ```
 
 When no thread is due a reply, post nothing.
