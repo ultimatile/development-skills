@@ -22,7 +22,9 @@
 #                                 # marker is the reply's last non-blank
 #                                 # line, trailing whitespace aside, and
 #                                 # reads `<!-- disposition: <slug> -->`
-#                                 # as reply-threads.sh writes it
+#                                 # as reply-threads.sh writes it; a reply
+#                                 # without it does not count, one posted
+#                                 # before reply-threads.sh existed included
 #     "head_author": <str>,
 #     "head_body_excerpt": <str>  # first 120 chars of head body
 #   }

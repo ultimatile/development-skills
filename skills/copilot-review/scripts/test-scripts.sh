@@ -268,6 +268,9 @@ LINES
 : | post
 check "reply: empty input exits 0" "0" "$?"
 
+printf '%s' '{"id": 401, "disposition": "defer", "body": "no newline at the end"}' | post
+check "reply: a last line without a newline is posted" "1" "$(sent)"
+
 printf '%s\n' '{"id": 401.0, "disposition": "defer", "body": "x"}' | post
 check "reply: a non-integer id spelling is left to gh-post, which rejects it" "3" "$?"
 check "reply: a non-integer id spelling sends nothing" "0" "$(sent)"
