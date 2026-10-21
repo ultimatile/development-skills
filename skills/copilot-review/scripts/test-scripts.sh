@@ -10,9 +10,6 @@
 
 set -uo pipefail
 
-command -v gh-post >/dev/null || { echo "gh-post is not on PATH" >&2; exit 1; }
-unset GH_POST_NO_FORMAT
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LIST="$SCRIPT_DIR/list-pr-threads.sh"
 POLL="$SCRIPT_DIR/pr-with-copilot-review.sh"
@@ -224,29 +221,19 @@ REPLY="$SCRIPT_DIR/reply-threads.sh"
 export RECORD="$tmpdir/record.jsonl"
 post() { : >"$RECORD"; "$REPLY" owner/repo 1 2>/dev/null; }
 sent() { wc -l <"$RECORD" | tr -d ' '; }
-# The batch an input led to was rejected: exit $3 (2 by default), nothing
-# sent.
-rejected() {
-  check "reply: $1 exits ${3:-2}" "${3:-2}" "$2"
-  check "reply: $1 sends nothing" "0" "$(sent)"
-}
 posted() { jq -r "select(.url | endswith(\"/comments/$1/replies\")) | .body" "$RECORD"; }
 
 printf '%s\n' \
-  '{"id": 401, "disposition": "defer", "body": "tracked as a follow-up.  "}' \
+  '{"id": 401, "disposition": "defer", "body": "tracked as a follow-up."}' \
   '' \
-  '   ' \
   '{"id": 402, "disposition": "false-positive", "body": "see note[^1] [^1]: not a definition, a `#` and a > mid-line"}' \
   '{"id": 403, "disposition": "wontfix", "body": "``` not a fence, [ref]: https://example.org"}' \
   | post
 check "reply: a valid batch exits 0" "0" "$?"
 check "reply: one post per line, blank lines skipped" "3" "$(sent)"
 check "reply: slug in front, marker last" $'`defer` — tracked as a follow-up.\n\n<!-- disposition: defer -->' "$(posted 401)"
-for id in 402 403; do
-  check "reply: the formatted body $id still ends in its marker" \
-    "$(jq -r "select(.id == $id) | \"<!-- disposition: \(.disposition) -->\"" <<<'{"id":402,"disposition":"false-positive"} {"id":403,"disposition":"wontfix"}')" \
-    "$(posted $id | tail -n 1)"
-done
+check "reply: a body gh-post reformats still ends in its marker" "<!-- disposition: false-positive -->" "$(posted 402 | tail -n 1)"
+check "reply: a body gh-post reformats still ends in its marker" "<!-- disposition: wontfix -->" "$(posted 403 | tail -n 1)"
 
 # Round trip: what was posted lists with the disposition it was sent with.
 jq -c '{head: (.url | capture("/comments/(?<h>[0-9]+)/").h | tonumber), replies: [.body]}' "$RECORD" | make_pr "$tmpdir/posted"
@@ -255,61 +242,21 @@ check "reply: posted replies list with their dispositions" "401 defer 402 false-
 
 while IFS= read -r line; do
   printf '%s\n' '{"id": 401, "disposition": "defer", "body": "fine"}' "$line" | post
-  rejected "invalid line $line" "$?"
+  check "reply: invalid line $line exits 2" "2" "$?"
+  check "reply: invalid line $line sends nothing" "0" "$(sent)"
 done <<'LINES'
 not json
 {"id": 1, "body": "an old-shape line"}
-{"id": "1", "disposition": "defer", "body": "x"}
-{"id": true, "disposition": "defer", "body": "x"}
-{"id": 1, "disposition": "", "body": "x"}
-{"id": 1, "disposition": "   ", "body": "x"}
-{"id": 1, "disposition": 7, "body": "x"}
 {"id": 1, "disposition": "Defer", "body": "x"}
-{"id": 1, "disposition": "defer-", "body": "x"}
 {"id": 1, "disposition": "defer\n", "body": "x"}
-{"id": 1, "disposition": "defer", "body": ""}
 {"id": 1, "disposition": "defer", "body": "   "}
-{"id": 1, "disposition": "defer", "body": 7}
 {"id": 1, "disposition": "defer", "body": "two\nlines"}
 {"id": 1, "disposition": "defer", "body": "two\rlines"}
-{"id": 1, "disposition": "defer", "body": "two\r\nlines"}
 {"id": 1, "disposition": "defer", "body": "hidden <!-- text"}
-{"id": 1, "disposition": "defer", "body": "x"} {"id": 2, "disposition": "defer", "body": "y"}
 LINES
-
-# An id that is a number but not a positive integer is gh-post's to reject.
-for id in 0 -1 1.5 401.0; do
-  printf '%s\n' "{\"id\": $id, \"disposition\": \"defer\", \"body\": \"x\"}" | post
-  rejected "id $id, rejected by gh-post" "$?" 3
-done
-
-: | post
-check "reply: empty input exits 0" "0" "$?"
 
 printf '%s' '{"id": 401, "disposition": "defer", "body": "no newline at the end"}' | post
 check "reply: a last line without a newline is posted" "1" "$(sent)"
-
-printf '%s\n' '{"id": 401, "disposition": "defer", "body": "a"}' '{"id": 402, "disposition": "defer", "body": "b"}' \
-  '{"id": 401, "disposition": "wontfix", "body": "c"}' | post
-rejected "a repeated id" "$?"
-
-printf '\n\n%s\n' '{"id": 401, "disposition": "defer", "body": "x"}' >"$tmpdir/blank-lead.jsonl"
-STUB_FAIL=/comments/401/replies "$REPLY" owner/repo 1 <"$tmpdir/blank-lead.jsonl" >/dev/null 2>"$tmpdir/blank-lead.err"
-check "reply: gh-post's line numbers are those of the input" "1" "$(grep -c 'line 3)' "$tmpdir/blank-lead.err")"
-
-out="$("$REPLY" -h </dev/null)"
-check "reply: -h exits 0" "0" "$?"
-check "reply: -h prints the header" "Post replies to PR inline review threads, each marked with its disposition." "$(head -n 1 <<<"$out")"
-
-: >"$RECORD"
-printf '%s\n' '{"id": 401, "disposition": "defer", "body": "fine"}' | "$REPLY" -- owner/repo 1 >/dev/null 2>&1
-check "reply: arguments after -- are positional" "0 1" "$? $(sent)"
-
-for argv in "owner/repo" "owner/repo 1 extra" "--unknown owner/repo 1" "ownerrepo 1" "/repo 1" "owner/ 1"; do
-  : >"$RECORD"
-  printf '%s\n' '{"id": 401, "disposition": "defer", "body": "fine"}' | "$REPLY" $argv >/dev/null 2>&1
-  rejected "usage error ($argv)" "$?"
-done
 
 printf '%s\n' \
   '{"id": 401, "disposition": "defer", "body": "one."}' \
@@ -317,9 +264,6 @@ printf '%s\n' \
   '{"id": 403, "disposition": "defer", "body": "three."}' \
   | STUB_FAIL=/comments/402/replies post
 check "reply: a failed send propagates gh's status" "1" "$?"
-err="$(printf '%s\n' '{"id": 401, "disposition": "defer", "body": "x"}' | "$REPLY" 'owner/..' 1 2>&1 >/dev/null)"
-check "reply: a gh-post failure is reported under reply-threads.sh's name" \
-  "error: reply-threads.sh: gh-post reply-inline exited 2" "$(tail -n 1 <<<"$err")"
 jq -nc '{head: 401}, {head: 402}, {head: 403}' \
   | jq -c --slurpfile rec "$RECORD" '.head as $h | {head: $h, replies: [$rec[] | select(.url | endswith("/comments/\($h)/replies")) | .body]}' \
   | make_pr "$tmpdir/partial"

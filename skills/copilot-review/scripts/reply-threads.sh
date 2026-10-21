@@ -5,12 +5,9 @@
 #   ./reply-threads.sh OWNER/REPO PR < replies.jsonl
 #
 # Input (one JSON object per line; blank lines are skipped):
-#   {"id": <number>, "disposition": <slug>, "body": <str>}
-#     id           head_id of the thread, as list-pr-threads.sh prints it; a
-#                  number, at most once per batch
+#   {"id": <head_id>, "disposition": <slug>, "body": <str>}
 #     disposition  lowercase words joined by single hyphens
-#     body         one non-blank line, without `<!--`; trailing whitespace
-#                  is dropped
+#     body         one non-blank line, without `<!--`
 #
 # Each reply is built as
 #
@@ -18,85 +15,34 @@
 #
 #   <!-- disposition: <slug> -->
 #
-# and passed to `gh-post reply-inline`, whose formatting may rewrite the first
-# line's markdown but keeps the marker as the last line, where
-# list-pr-threads.sh reads the slug back. Every line is validated before
-# anything is sent; a usage error or a line this script rejects exits 2 with
-# nothing sent. Once every line has passed, the exit status is gh-post's,
-# which rejects the whole batch, sending nothing, when an id is not a positive
-# integer.
+# and passed to `gh-post reply-inline`, which keeps the marker as the last
+# line, where list-pr-threads.sh reads the slug back. A line whose disposition
+# or body breaks these terms exits 2 before anything is sent.
 
 set -euo pipefail
 
-usage() {
-  sed -n '2,/^$/p' "$0" | sed 's/^# \{0,1\}//'
-  exit "${1:-0}"
-}
-
-positional=()
-
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    -h|--help) usage 0 ;;
-    --) shift; while [[ $# -gt 0 ]]; do positional+=("$1"); shift; done ;;
-    -*) echo "error: unknown flag: $1" >&2; usage 2 ;;
-    *)  positional+=("$1"); shift ;;
-  esac
-done
-
-if [[ ${#positional[@]} -ne 2 ]]; then
-  echo "error: expected OWNER/REPO and PR number" >&2
-  usage 2
-fi
-
-repo="${positional[0]}"
-pr="${positional[1]}"
-owner="${repo%%/*}"
-name="${repo##*/}"
-
-if [[ -z "$owner" || -z "$name" || "$owner" == "$repo" ]]; then
-  echo "error: invalid OWNER/REPO: $repo" >&2
+if [[ $# -ne 2 ]]; then
+  echo "usage: reply-threads.sh OWNER/REPO PR < replies.jsonl" >&2
   exit 2
 fi
 
 replies=$(mktemp)
 trap 'rm -f "$replies"' EXIT
 
-# A skipped line is written back blank, so gh-post's line numbers stay those
-# of the input.
 n=0
-seen=""
 while IFS= read -r line || [[ -n "$line" ]]; do
   n=$((n + 1))
-  if [[ -z "${line//[[:space:]]/}" ]]; then
-    echo >>"$replies"
-    continue
-  fi
-  if ! reply=$(jq -ces '
-      select(length == 1) | .[0]
-      | select(
-        type == "object"
-        and (.id | type == "number")
-        and (.disposition | type == "string" and test("\\A[a-z]+(-[a-z]+)*\\z"))
+  [[ -z "${line//[[:space:]]/}" ]] && continue
+  if ! jq -ce '
+      select(
+        (.disposition | type == "string" and test("\\A[a-z]+(-[a-z]+)*\\z"))
         and (.body | type == "string" and test("\\S") and (test("[\r\n]") | not) and (contains("<!--") | not))
       )
-      | {id, body: "`\(.disposition)` — \(.body | sub("\\s+$"; ""))\n\n<!-- disposition: \(.disposition) -->"}
-    ' <<<"$line" 2>/dev/null); then
-    echo "error: line $n: expected {\"id\": <number>, \"disposition\": <slug>, \"body\": <one non-blank line without <!-->}" >&2
+      | {id, body: "`\(.disposition)` — \(.body)\n\n<!-- disposition: \(.disposition) -->"}
+    ' <<<"$line" >>"$replies" 2>/dev/null; then
+    echo "error: line $n: expected a disposition slug and a one-line body without <!--" >&2
     exit 2
   fi
-  id=$(jq -r .id <<<"$reply")
-  if [[ $'\n'"$seen" == *$'\n'"$id"$'\n'* ]]; then
-    echo "error: line $n: id $id appears on an earlier line" >&2
-    exit 2
-  fi
-  seen+="$id"$'\n'
-  echo "$reply" >>"$replies"
 done
 
-status=0
-gh-post reply-inline "$repo" "$pr" <"$replies" || status=$?
-if ((status != 0)); then
-  echo "error: reply-threads.sh: gh-post reply-inline exited $status" >&2
-fi
-exit "$status"
+gh-post reply-inline "$1" "$2" <"$replies"
