@@ -41,7 +41,15 @@ fi
 page=""
 [[ " $* " == *" --paginate "* ]] || page=".[0:4] | "
 case "$*" in
-  "api graphql"*) fixture="$FIXTURES/threads.json"; page="" ;;
+  "api graphql"*)
+    # A threads.json holding an array is a list of GraphQL pages.
+    fixture="$FIXTURES/threads.json"
+    if [[ " $* " == *" --paginate "* ]]; then
+      page='if type == "array" then .[] else . end | '
+    else
+      page='if type == "array" then .[0] else . end | '
+    fi
+    ;;
   *"/reviews/"[0-9]*) fixture="$FIXTURES/reviews.json"; page=".[] | select(.id == ${url##*/}) | " ;;
   *"/reviews"*)   fixture="$FIXTURES/reviews.json" ;;
   *"/comments"*)  fixture="$FIXTURES/comments.json" ;;
@@ -196,6 +204,14 @@ while IFS= read -r case; do
   check "list: disposition, $(jq -r '.[3]' <<<"$case")" "$(jq -c '.[2]' <<<"$case")" "$(jq -c "select(.head_id == $head) | .disposition" <<<"$out")"
 done < <(jq -c . <<<"$marker_cases")
 
+# The same threads served as two GraphQL pages.
+mkdir "$tmpdir/paged"
+cp "$tmpdir/marked/reviews.json" "$tmpdir/marked/comments.json" "$tmpdir/paged/"
+jq '[.data.repository.pullRequest.reviewThreads.nodes | (.[0:5], .[5:]) | {data: {repository: {pullRequest: {reviewThreads: {nodes: .}}}}}]' \
+  "$tmpdir/marked/threads.json" >"$tmpdir/paged/threads.json"
+check "list: threads on every page are listed, with their dispositions" "$(jq -c . <<<"$out")" \
+  "$(FIXTURES="$tmpdir/paged" "$LIST" owner/repo 1 | jq -c .)"
+
 # --- reply-threads.sh -------------------------------------------------------
 REPLY="$SCRIPT_DIR/reply-threads.sh"
 export RECORD="$tmpdir/record.jsonl"
@@ -204,7 +220,7 @@ sent() { wc -l <"$RECORD" | tr -d ' '; }
 posted() { jq -r "select(.url | endswith(\"/comments/$1/replies\")) | .body" "$RECORD"; }
 
 printf '%s\n' \
-  '{"id": 401.0, "disposition": "defer", "body": "tracked as a follow-up.  "}' \
+  '{"id": 401, "disposition": "defer", "body": "tracked as a follow-up.  "}' \
   '' \
   '{"id": 402, "disposition": "false-positive", "body": "see note[^1] [^1]: not a definition, a `#` and a > mid-line"}' \
   '{"id": 403, "disposition": "wontfix", "body": "``` not a fence, [ref]: https://example.org"}' \

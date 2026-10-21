@@ -26,9 +26,6 @@
 #     "head_author": <str>,
 #     "head_body_excerpt": <str>  # first 120 chars of head body
 #   }
-#
-# Limit: fetches up to 100 threads (GraphQL `first:` cap). Larger PRs need
-# pagination — extend the query if you hit the cap.
 
 set -euo pipefail
 
@@ -69,10 +66,14 @@ if [[ -z "$owner" || -z "$name" || "$owner" == "$repo" ]]; then
 fi
 
 read -r -d '' query <<'GRAPHQL' || true
-query($owner: String!, $name: String!, $pr: Int!) {
+query($owner: String!, $name: String!, $pr: Int!, $endCursor: String) {
   repository(owner: $owner, name: $name) {
     pullRequest(number: $pr) {
-      reviewThreads(first: 100) {
+      reviewThreads(first: 100, after: $endCursor) {
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
         nodes {
           isResolved
           isOutdated
@@ -101,7 +102,7 @@ gh api "repos/$repo/pulls/$pr/comments?sort=created&direction=asc" --paginate \
   | jq -sc 'group_by(.head_id) | map({key: (.[0].head_id | tostring), value: map(.body)}) | from_entries' \
   >"$replies"
 
-gh api graphql \
+gh api graphql --paginate \
   -f query="$query" \
   -F owner="$owner" \
   -F name="$name" \

@@ -6,8 +6,8 @@
 #
 # Input (one JSON object per line; blank lines are skipped):
 #   {"id": <int>, "disposition": <slug>, "body": <str>}
-#     id           head_id of the thread, as list-pr-threads.sh prints it; any
-#                  positive integer value, sent in integer form
+#     id           head_id of the thread, as list-pr-threads.sh prints it; a
+#                  positive integer value, passed on as written
 #     disposition  lowercase words joined by single hyphens
 #     body         one non-blank line, without `<!--`; trailing whitespace
 #                  is dropped
@@ -67,7 +67,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         and (.disposition | type == "string" and test("\\A[a-z]+(-[a-z]+)*\\z"))
         and (.body | type == "string" and test("\\S") and (test("[\r\n]") | not) and (contains("<!--") | not))
       )
-      | {id: (.id | floor), body:"`\(.disposition)` — \(.body | sub("\\s+$"; ""))\n\n<!-- disposition: \(.disposition) -->"}
+      | {id, body: "`\(.disposition)` — \(.body | sub("\\s+$"; ""))\n\n<!-- disposition: \(.disposition) -->"}
     ' <<<"$line" >>"$replies" 2>/dev/null; then
     echo "error: line $n: expected {\"id\": <positive int>, \"disposition\": <slug>, \"body\": <one non-blank line without <!-->}" >&2
     exit 2
