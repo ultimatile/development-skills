@@ -17,12 +17,17 @@
 #     "reply_count": <int>,       # number of comments after the head
 #     "reply_bodies": [<str>],    # bodies of the comments after the head,
 #                                 # oldest first
+#     "disposition": <str|null>,  # slug in the marker of the latest reply
+#                                 # carrying one, null when none does; the
+#                                 # marker is the reply's last non-blank
+#                                 # line, trailing whitespace aside, and
+#                                 # reads `<!-- disposition: <slug> -->`
+#                                 # as reply-threads.sh writes it; a reply
+#                                 # without it does not count, whoever
+#                                 # posted it
 #     "head_author": <str>,
 #     "head_body_excerpt": <str>  # first 120 chars of head body
 #   }
-#
-# Limit: fetches up to 100 threads (GraphQL `first:` cap). Larger PRs need
-# pagination — extend the query if you hit the cap.
 
 set -euo pipefail
 
@@ -63,10 +68,14 @@ if [[ -z "$owner" || -z "$name" || "$owner" == "$repo" ]]; then
 fi
 
 read -r -d '' query <<'GRAPHQL' || true
-query($owner: String!, $name: String!, $pr: Int!) {
+query($owner: String!, $name: String!, $pr: Int!, $endCursor: String) {
   repository(owner: $owner, name: $name) {
     pullRequest(number: $pr) {
-      reviewThreads(first: 100) {
+      reviewThreads(first: 100, after: $endCursor) {
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
         nodes {
           isResolved
           isOutdated
@@ -95,7 +104,7 @@ gh api "repos/$repo/pulls/$pr/comments?sort=created&direction=asc" --paginate \
   | jq -sc 'group_by(.head_id) | map({key: (.[0].head_id | tostring), value: map(.body)}) | from_entries' \
   >"$replies"
 
-gh api graphql \
+gh api graphql --paginate \
   -f query="$query" \
   -F owner="$owner" \
   -F name="$name" \
@@ -116,4 +125,8 @@ gh api graphql \
       }
     | @json
   " \
-  | jq -c --slurpfile replies "$replies" '. + {reply_bodies: ($replies[0][.head_id | tostring] // [])}'
+  | jq -c --slurpfile replies "$replies" '
+      def marked: sub("\\s+$"; "") | split("\n") | last // ""
+        | (capture("\\A<!-- disposition: (?<slug>[a-z]+(-[a-z]+)*) -->\\z") | .slug) // empty;
+      ($replies[0][.head_id | tostring] // []) as $bodies
+      | . + {reply_bodies: $bodies, disposition: ([$bodies[] | marked] | last)}'
