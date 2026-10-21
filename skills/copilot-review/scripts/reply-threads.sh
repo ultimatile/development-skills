@@ -7,7 +7,7 @@
 # Input (one JSON object per line; blank lines are skipped):
 #   {"id": <int>, "disposition": <slug>, "body": <str>}
 #     id           head_id of the thread, as list-pr-threads.sh prints it; a
-#                  positive integer value, passed on as written
+#                  positive integer value
 #     disposition  lowercase words joined by single hyphens
 #     body         one non-blank line, without `<!--`; trailing whitespace
 #                  is dropped

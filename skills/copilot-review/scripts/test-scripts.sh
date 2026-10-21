@@ -222,6 +222,7 @@ posted() { jq -r "select(.url | endswith(\"/comments/$1/replies\")) | .body" "$R
 printf '%s\n' \
   '{"id": 401, "disposition": "defer", "body": "tracked as a follow-up.  "}' \
   '' \
+  '   ' \
   '{"id": 402, "disposition": "false-positive", "body": "see note[^1] [^1]: not a definition, a `#` and a > mid-line"}' \
   '{"id": 403, "disposition": "wontfix", "body": "``` not a fence, [ref]: https://example.org"}' \
   | post
@@ -266,6 +267,10 @@ LINES
 
 : | post
 check "reply: empty input exits 0" "0" "$?"
+
+printf '%s\n' '{"id": 401.0, "disposition": "defer", "body": "x"}' | post
+check "reply: a non-integer id spelling is left to gh-post, which rejects it" "3" "$?"
+check "reply: a non-integer id spelling sends nothing" "0" "$(sent)"
 
 for argv in "owner/repo" "owner/repo 1 extra" "--unknown owner/repo 1"; do
   : >"$RECORD"
