@@ -10,6 +10,9 @@
 
 set -uo pipefail
 
+command -v gh-post >/dev/null || { echo "gh-post is not on PATH" >&2; exit 1; }
+unset GH_POST_NO_FORMAT
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LIST="$SCRIPT_DIR/list-pr-threads.sh"
 POLL="$SCRIPT_DIR/pr-with-copilot-review.sh"
@@ -197,6 +200,9 @@ marker_cases='
 [312, ["x\n\n<!-- disposition: defer -->   "], "defer", "a marker followed by spaces"]
 [310, ["x\n\n<!-- disposition: Defer -->"], null, "a malformed slug"]
 [311, ["x\n\n<!-- disposition: de--fer -->"], null, "a slug with a doubled hyphen"]
+[313, ["x\n\n  <!-- disposition: defer -->"], null, "a marker with leading spaces"]
+[314, ["x\n\n<!-- disposition:  -->"], null, "an empty slug"]
+[315, ["x\n\n<!--disposition: defer-->"], null, "a marker spaced otherwise"]
 '
 jq -c '{head: .[0], replies: .[1]}' <<<"$marker_cases" | make_pr "$tmpdir/marked"
 out="$(FIXTURES="$tmpdir/marked" "$LIST" owner/repo 1)"
@@ -218,6 +224,12 @@ REPLY="$SCRIPT_DIR/reply-threads.sh"
 export RECORD="$tmpdir/record.jsonl"
 post() { : >"$RECORD"; "$REPLY" owner/repo 1 2>/dev/null; }
 sent() { wc -l <"$RECORD" | tr -d ' '; }
+# The batch an input led to was rejected: exit $3 (2 by default), nothing
+# sent.
+rejected() {
+  check "reply: $1 exits ${3:-2}" "${3:-2}" "$2"
+  check "reply: $1 sends nothing" "0" "$(sent)"
+}
 posted() { jq -r "select(.url | endswith(\"/comments/$1/replies\")) | .body" "$RECORD"; }
 
 printf '%s\n' \
@@ -243,16 +255,15 @@ check "reply: posted replies list with their dispositions" "401 defer 402 false-
 
 while IFS= read -r line; do
   printf '%s\n' '{"id": 401, "disposition": "defer", "body": "fine"}' "$line" | post
-  check "reply: invalid line $line exits 2" "2" "$?"
-  check "reply: invalid line $line sends nothing" "0" "$(sent)"
+  rejected "invalid line $line" "$?"
 done <<'LINES'
 not json
 {"id": 1, "body": "an old-shape line"}
-{"id": 0, "disposition": "defer", "body": "x"}
-{"id": -1, "disposition": "defer", "body": "x"}
-{"id": 1.5, "disposition": "defer", "body": "x"}
 {"id": "1", "disposition": "defer", "body": "x"}
 {"id": true, "disposition": "defer", "body": "x"}
+{"id": 1, "disposition": "", "body": "x"}
+{"id": 1, "disposition": "   ", "body": "x"}
+{"id": 1, "disposition": 7, "body": "x"}
 {"id": 1, "disposition": "Defer", "body": "x"}
 {"id": 1, "disposition": "defer-", "body": "x"}
 {"id": 1, "disposition": "defer\n", "body": "x"}
@@ -266,15 +277,25 @@ not json
 {"id": 1, "disposition": "defer", "body": "x"} {"id": 2, "disposition": "defer", "body": "y"}
 LINES
 
+# An id that is a number but not a positive integer is gh-post's to reject.
+for id in 0 -1 1.5 401.0; do
+  printf '%s\n' "{\"id\": $id, \"disposition\": \"defer\", \"body\": \"x\"}" | post
+  rejected "id $id, rejected by gh-post" "$?" 3
+done
+
 : | post
 check "reply: empty input exits 0" "0" "$?"
 
 printf '%s' '{"id": 401, "disposition": "defer", "body": "no newline at the end"}' | post
 check "reply: a last line without a newline is posted" "1" "$(sent)"
 
-printf '%s\n' '{"id": 401.0, "disposition": "defer", "body": "x"}' | post
-check "reply: a non-integer id spelling is left to gh-post, which rejects it" "3" "$?"
-check "reply: a non-integer id spelling sends nothing" "0" "$(sent)"
+printf '%s\n' '{"id": 401, "disposition": "defer", "body": "a"}' '{"id": 402, "disposition": "defer", "body": "b"}' \
+  '{"id": 401, "disposition": "wontfix", "body": "c"}' | post
+rejected "a repeated id" "$?"
+
+printf '\n\n%s\n' '{"id": 401, "disposition": "defer", "body": "x"}' >"$tmpdir/blank-lead.jsonl"
+STUB_FAIL=/comments/401/replies "$REPLY" owner/repo 1 <"$tmpdir/blank-lead.jsonl" >/dev/null 2>"$tmpdir/blank-lead.err"
+check "reply: gh-post's line numbers are those of the input" "1" "$(grep -c 'line 3)' "$tmpdir/blank-lead.err")"
 
 out="$("$REPLY" -h </dev/null)"
 check "reply: -h exits 0" "0" "$?"
@@ -284,11 +305,10 @@ check "reply: -h prints the header" "Post replies to PR inline review threads, e
 printf '%s\n' '{"id": 401, "disposition": "defer", "body": "fine"}' | "$REPLY" -- owner/repo 1 >/dev/null 2>&1
 check "reply: arguments after -- are positional" "0 1" "$? $(sent)"
 
-for argv in "owner/repo" "owner/repo 1 extra" "--unknown owner/repo 1"; do
+for argv in "owner/repo" "owner/repo 1 extra" "--unknown owner/repo 1" "ownerrepo 1" "/repo 1" "owner/ 1"; do
   : >"$RECORD"
   printf '%s\n' '{"id": 401, "disposition": "defer", "body": "fine"}' | "$REPLY" $argv >/dev/null 2>&1
-  check "reply: usage error ($argv) exits 2" "2" "$?"
-  check "reply: usage error ($argv) sends nothing" "0" "$(sent)"
+  rejected "usage error ($argv)" "$?"
 done
 
 printf '%s\n' \
