@@ -36,7 +36,7 @@ What binds this phase is that the audit closing it saw the diff that proceeds �
 1. Run `/stage-commit-push`.
 2. Run `/code-review-gate` against the current diff, passing the root stated at pipeline entry, the absolute path of the working tree step 1 ran in as the review tree, and an effort chosen on the gate's terms.
 3. Triage the output — classify each finding under the `finding-triage` SSOT dispositions.
-4. If any finding is not closed, as `finding-triage` defines closed, apply the **fix-loop substeps** (see Rules), re-running `/code-review-gate` with the inputs step 2 passed. Repeat until every finding of the latest triage is closed.
+4. Apply the **fix-loop substeps** (see Rules), re-running `/code-review-gate` with the inputs step 2 passed.
 
 Step 4 gives this gate the same property Phase 0 has: the review closing it saw the diff that proceeds.
 
@@ -47,14 +47,14 @@ When that diff received a valid gate review (i.e. the gate was not waived), attr
 1. Ensure the diff Phase 0.5 reviewed is committed. Run `/stage-commit-push`.
 2. Run `/codex-review` to review the branch diff, passing the root stated at pipeline entry
 3. Triage the output — classify each finding under the `finding-triage` SSOT dispositions
-4. If any finding is not closed, as `finding-triage` defines closed, apply the **fix-loop substeps** (see Rules) and repeat until every finding of the latest triage is closed.
+4. Apply the **fix-loop substeps** (see Rules).
 
 ## Phase 2: Copilot review
 
 1. Run `/file-pullreq` in **gate mode** — drafts the PR title + body following `gh-body-conventions` and the standard body skeleton, discharges its evidence claims, runs the laundering pass, and gets the user's approval. The skill stops at approval and emits the approved title + body for the next step. It does NOT create the PR itself.
 2. Run `/copilot-review` in its normal mode, passing the approved title + body and **the root as this pipeline's `--base`** — this creates the PR with `--reviewer @copilot` and polls until the review arrives. The root is a branch name, which is what that flag takes; `/codex-review`'s `--base` one phase earlier is a different value, a merge base derived from the same root.
 3. Triage the review — filter to the latest review's comments only (by `pull_request_review_id`)
-4. If any finding is not closed, as `finding-triage` defines closed, apply the **fix-loop substeps** (see Rules), replacing the re-review step with two actions in this order: reply per `copilot-review` § Respond to review, then run `${CLAUDE_SKILL_DIR}/../copilot-review/scripts/pr-with-copilot-review.sh --re-review <PR_URL>`. Triage only new comments. Repeat until every finding of the latest triage is closed.
+4. Apply the **fix-loop substeps** (see Rules), replacing the re-review step with two actions in this order: reply per `copilot-review` § Respond to review, then run `${CLAUDE_SKILL_DIR}/../copilot-review/scripts/pr-with-copilot-review.sh --re-review <PR_URL>`. Triage only new comments.
 5. Reply per `copilot-review` § Respond to review.
 
 ## Phase 3: Postmortem elevation (pre-merge)
@@ -67,9 +67,7 @@ After Phase 1 + 2 are clean, before the user merges, fold review findings into d
 
 3. **`/codex-contract-test-review`** — for each contract test added in step 1, run a narrow Codex pass: does the test express the claimed contract, and would it fail on the original buggy implementation?
 
-   - Take each finding that is not closed, as `finding-triage` defines closed, as its disposition directs.
-   - If that revised the test, re-run this step **once**. Repeated iteration → escalate to the user.
-   - Otherwise: continue.
+   When it hands back, continue. When it escalates to the user, the pipeline waits there.
 
 4. **`/finding-to-audit`** — for findings whose detection would have been **diff-inspectable** (import direction, `pub` widening, missing standard trait impl, debug artifacts, hardcoded values, FFI output dropped, etc.), promote to a pre-commit audit rule in the host `finding-to-audit` selects — a rule-set SSOT such as `quality-list` or `authoritative-text-rules`, or a domain-specific audit skill. By default this files an issue against the host skill's repository proposing the rule, reviewed there on its own timeline — so the elevation neither blocks this project's merge gate nor lands as an unreviewed edit to a shared audit surface.
 
@@ -133,10 +131,10 @@ Runs only after the user has merged.
 
 ## Rules
 
-- **Fix-loop substeps**:
+- **Fix-loop substeps**: while any finding of the latest triage is not closed, as `finding-triage` defines closed, run these in order:
 
   1. **Oscillation check (iteration N ≥ 2).** Compare current actionable topics against the previous iteration's preserved topics. If any conceptual topic recurs, halt and follow the escalation order below — do NOT fix or done-check.
-  2. Take each finding that is not closed as its disposition directs. If that made no edit, skip substeps 3–5.
+  2. Take each finding that is not closed as its disposition directs. If every finding of the latest triage is now closed and the working tree is unchanged, the loop ends here; this takes precedence over the rules below against skipping done-check and codex review.
   3. Run `/done-check` in delta mode, against the previous audit's rows and concerns, with the root stated at pipeline entry.
   4. Run `/stage-commit-push`.
   5. Re-run the review (fresh, full review — no bias from previous iteration).
@@ -183,5 +181,3 @@ Runs only after the user has merged.
   3. **If no upstream issue**: present what is known, what is uncertain, and ask the user to choose among the surviving fix options.
 
   The "no-clarifying-questions" mode does NOT override this rule. Convergence of three independent reviewers on the same API-contract concern is the signal regardless of mode.
-
-- **Contract-test review is bounded.** `/codex-contract-test-review` allows at most one revise-and-re-review cycle. If it doesn't converge, the contract itself is unclear — escalate, don't loop.

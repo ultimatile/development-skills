@@ -96,13 +96,13 @@ Each iteration runs a full, unbiased review of the entire diff against base. Do 
 
 2. **Triage the output** using the process above. Present classified findings to the user.
 
-3. **Take each finding that is not closed**, as `finding-triage` defines closed, as its disposition directs; where that is an edit, the user (or Claude) makes it and commits.
+3. **Take each finding that is not closed**, as `finding-triage` defines closed, as its disposition directs; where that is an edit, the user (or Claude) makes it and commits. If this step changed no file and the review is now clean, stop here.
 
 4. **Re-run the review** — same command, same flags. The new diff includes the fix commits, so the reviewer sees the full picture: original changes plus fixes.
 
 5. **Re-triage** — a finding dismissed as false positive in iteration N may become relevant in iteration N+1 if the fix changed the surrounding code. Don't carry over dismissals blindly.
 
-6. **Repeat** until the review is clean.
+6. **Repeat** steps 3–5 until the review is clean.
 
 ### What "clean" means
 
