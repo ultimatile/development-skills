@@ -96,17 +96,17 @@ Each iteration runs a full, unbiased review of the entire diff against base. Do 
 
 2. **Triage the output** using the process above. Present classified findings to the user.
 
-3. **If actionable issues are found**, the user (or Claude) fixes them and commits.
+3. **Take each finding that is not closed**, as `finding-triage` defines closed, as its disposition directs; where that is an edit, the user (or Claude) makes it and commits. If this step changed no file and the review is now clean, stop here.
 
 4. **Re-run the review** — same command, same flags. The new diff includes the fix commits, so the reviewer sees the full picture: original changes plus fixes.
 
 5. **Re-triage** — a finding dismissed as false positive in iteration N may become relevant in iteration N+1 if the fix changed the surrounding code. Don't carry over dismissals blindly.
 
-6. **Repeat** until no actionable findings remain, or the user explicitly waives the remainder with reasoning — a waived finding no longer stands as an open actionable finding, in this loop and in any loop wrapping it.
+6. **Repeat** steps 3–5 until the review is clean.
 
 ### What "clean" means
 
-No open actionable findings after triage. A review with only false positives counts as clean; a valid but minor finding keeps whichever SSOT disposition it earns — minor-ness alone never makes it clean.
+Every finding of the latest triage is closed, as `finding-triage` defines closed. A valid but minor finding keeps whichever SSOT disposition it earns — minor-ness alone never closes it.
 
 ## Important constraints
 
