@@ -42,6 +42,10 @@ Each finding receives exactly one disposition. A finding may be *re-triaged* to 
 
 A finding is **closed** when it holds `false-positive`, `defer`, `wontfix` or `abandoned` and the run has done what that entry directs.
 
+## Taking a finding as its disposition directs
+
+Taking a finding as its disposition directs follows it through every re-triage that work produces, and ends when the finding is closed or the edit that resolves it has been made.
+
 ## Response selection (actionable findings)
 
 An `actionable` disposition settles validity; it does not settle the edit. Select the edit with the rules below — per-finding and stateless, like every disposition above.

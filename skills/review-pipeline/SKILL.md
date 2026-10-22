@@ -59,7 +59,7 @@ When that diff received a valid gate review (i.e. the gate was not waived), attr
 
 ## Phase 3: Postmortem elevation (pre-merge)
 
-After Phase 1 + 2 are clean, before the user merges, fold review findings into durable artifacts:
+After Phase 1 and 2 complete, before the user merges, fold review findings into durable artifacts:
 
 1. **`/bug-to-contract`** — for each actionable finding from Phase 1 and 2 (not just fix commits), ask whether an implicit contract was violated and whether it is now tested.
 
@@ -139,7 +139,7 @@ Runs only after the user has merged.
   4. Run `/stage-commit-push`.
   5. Re-run the review (fresh, full review — no bias from previous iteration).
   6. Preserve actionable topic classifications for the next iteration's oscillation check.
-  7. Re-triage. A finding the user directed into `defer`, `wontfix` or `abandoned` keeps that disposition when a later review reports it again.
+  7. Re-triage.
 
 - **Never skip done-check, including in fix loops.** Every fix commit is itself a diff that can introduce new drift — especially `completion-hygiene` and `paired-artifact-drift`.
 

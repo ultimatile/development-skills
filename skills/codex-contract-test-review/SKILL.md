@@ -144,7 +144,7 @@ Present the triage to the user, not the raw output.
 ### 5. Apply or hand back
 
 - Take each finding that is not closed, as `finding-triage` defines closed, as its disposition directs.
-- If that revised the test, re-run this skill once. One re-review iteration is the cap — repeated iteration on a single contract test signals the contract itself is unclear; escalate to the user instead of looping.
+- If that revised the test on this skill's first run for that test, re-run this skill once. If it revised the test on that re-run, escalate to the user instead of re-running again.
 - Otherwise: hand back to the caller.
 
 ## What this skill is bad at

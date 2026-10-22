@@ -100,7 +100,7 @@ Each iteration runs a full, unbiased review of the entire diff against base. Do 
 
 4. **Re-run the review** — same command, same flags. The new diff includes the fix commits, so the reviewer sees the full picture: original changes plus fixes.
 
-5. **Re-triage** — a finding dismissed as false positive in iteration N may become relevant in iteration N+1 if the fix changed the surrounding code. Don't carry over dismissals blindly. A finding the user directed into `defer`, `wontfix` or `abandoned` keeps that disposition when a later review in this loop reports it again.
+5. **Re-triage** — a finding dismissed as false positive in iteration N may become relevant in iteration N+1 if the fix changed the surrounding code. Don't carry over dismissals blindly.
 
 6. **Repeat** steps 3–5 until the review is clean.
 
