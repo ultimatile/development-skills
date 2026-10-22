@@ -67,7 +67,7 @@ After Phase 1 + 2 are clean, before the user merges, fold review findings into d
 
 3. **`/codex-contract-test-review`** — for each contract test added in step 1, run a narrow Codex pass: does the test express the claimed contract, and would it fail on the original buggy implementation?
 
-   When it hands back, continue. When it escalates to the user, the pipeline waits there.
+   When it hands back, continue. When it escalates to the user, the pipeline waits there and continues as the user directs.
 
 4. **`/finding-to-audit`** — for findings whose detection would have been **diff-inspectable** (import direction, `pub` widening, missing standard trait impl, debug artifacts, hardcoded values, FFI output dropped, etc.), promote to a pre-commit audit rule in the host `finding-to-audit` selects — a rule-set SSOT such as `quality-list` or `authoritative-text-rules`, or a domain-specific audit skill. By default this files an issue against the host skill's repository proposing the rule, reviewed there on its own timeline — so the elevation neither blocks this project's merge gate nor lands as an unreviewed edit to a shared audit surface.
 
@@ -134,12 +134,12 @@ Runs only after the user has merged.
 - **Fix-loop substeps**: while any finding of the latest triage is not closed, as `finding-triage` defines closed, run these in order:
 
   1. **Oscillation check (iteration N ≥ 2).** Compare current actionable topics against the previous iteration's preserved topics. If any conceptual topic recurs, halt and follow the escalation order below — do NOT fix or done-check.
-  2. Take each finding that is not closed as its disposition directs. If every finding of the latest triage is now closed and the working tree is unchanged, the loop ends here; this takes precedence over the rules below against skipping done-check and codex review.
+  2. Take each finding that is not closed as its disposition directs. If every finding of the latest triage is now closed and this substep changed no file, the loop ends here; this takes precedence over the rules below against skipping done-check and codex review.
   3. Run `/done-check` in delta mode, against the previous audit's rows and concerns, with the root stated at pipeline entry.
   4. Run `/stage-commit-push`.
   5. Re-run the review (fresh, full review — no bias from previous iteration).
   6. Preserve actionable topic classifications for the next iteration's oscillation check.
-  7. Re-triage.
+  7. Re-triage. A finding the user directed into `defer`, `wontfix` or `abandoned` keeps that disposition when a later review reports it again.
 
 - **Never skip done-check, including in fix loops.** Every fix commit is itself a diff that can introduce new drift — especially `completion-hygiene` and `paired-artifact-drift`.
 
