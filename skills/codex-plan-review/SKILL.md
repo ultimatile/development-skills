@@ -17,6 +17,7 @@ Gather first:
 
 - The implementation plan (from the current conversation)
 - The list of repository files Codex should read before evaluating
+- The plan's actor model, when it carries one
 - 2–4 specific evaluation questions (not "what do you think?")
 
 Template:
@@ -36,6 +37,11 @@ Files to inspect first:
 Specific questions:
 <EVALUATION_QUESTIONS>
 </task>
+
+<actor_model>
+<ACTOR_MODEL_TEXT>
+This table bounds every check below: raise a validation or hardening concern only on a path of a row marked Covered yes. Under open questions, report a path that fits no row, naming its actor, and any evidence you read that a cell of the table, or the fact it rests on, is false, quoting that evidence.
+</actor_model>
 
 <grounding_rules>
 Ground every concern in code you have actually read from this repository.
@@ -76,6 +82,7 @@ Drop speculative or stylistic nits.
 
 Block selection rationale:
 
+- `actor_model`: bounds the validation checks to the paths the plan covers
 - `grounding_rules`: plan review drifts into invented code otherwise
 - `structured_output_contract`: forces a shape that maps directly to the triage step in §3
 - `dig_deeper_nudge`: without it Codex tends to stop at the first plausible concern
@@ -102,6 +109,8 @@ Codex evaluates the plan against the code it reads, but lacks project context (d
 - **`false-positive`**: a concern that doesn't apply given project constraints (e.g., suggesting generalization when only one case exists)
 
 A finding whose resolution opens a design question the plan did not settle is `opens-a-question` → fold it back into the research that produced the plan rather than spot-patching the plan text.
+
+An open question that names a path no row of the actor model fits, or quotes evidence against one of its cells, is triaged as a finding under `finding-triage`.
 
 Present the triage to the user, not the raw output.
 
