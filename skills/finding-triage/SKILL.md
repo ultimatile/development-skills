@@ -79,6 +79,16 @@ The selected edit is applied in the current run, subject to the question `action
 
 The regeneration signal — whether the target sentence was written to answer a prior finding — is iteration history, out of scope here per **Scope: stateless, per-finding**.
 
+## Findings that ask for a guard
+
+When the run holds the plan the change implements and that plan carries an actor model, a finding that asks the change to guard against, validate, or handle an input or an operation is judged against that model before the dispositions above are applied, and in place of a gate's own list of typical false positives.
+
+First assign the finding's path to the row whose Actor is the actor whose action the finding describes and whose Paths include that action. While the finding and the table do not settle the row, the finding is `uncertain-validity`. Then take the first branch that fits:
+
+1. No row fits, or the finding shows a fact that makes a cell of the model, or the fact a cell rests on, false → `opens-a-question`. A finding that only hypothesizes that an input could occur shows no such fact.
+2. The row is Covered `no` → `false-positive`, stating the row as the reasoning.
+3. The row is Covered `yes` → the dispositions above, as for any finding.
+
 ## Pre-existing instances do not license dismissal
 
 A finding is not downgraded to `false-positive`, `defer`, `wontfix` or `abandoned` merely because the surrounding code already exhibits the same flaw. Pre-existing instances of a problem are unextracted debt, not a convention that licenses adding another — "matches the surrounding code" describes the debt, it does not dismiss the finding. Dismissal still requires the disposition's own bar: for `false-positive`, context that makes *this* finding wrong; for `defer`, `wontfix` and `abandoned`, the user's direction the entry names.
