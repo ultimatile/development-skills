@@ -19,9 +19,9 @@ Each finding receives exactly one disposition. A finding may be *re-triaged* to 
 
 - **actionable** — a real issue the reviewer correctly identified, whose resolution is a **local edit**: one the run makes directly, needing none of the non-local work that defines `opens-a-question` below, however many sites it touches — `generalize`, `delete`, and `deduplicate` below are local in this sense. Which edit is selected per **Response selection (actionable findings)** below. A run that judges the edit out of scope for the current task asks the user whether to make it in this run, and makes it only if the user says to.
 
-- **false-positive** — plausible but wrong given context the reviewer lacked (test results, deliberate design choice, a system constraint that rules out the hypothesized input). Dismiss **with explicit reasoning** stated to the user. Never silently override a finding: false-positive classification is itself a triage step the user can challenge. This should be rare enough to be worth paper-trailing. When the dismissal rests on the behavior of an external system (a markdown renderer, parser, compiler, ABI, API), verify it before dismissing per **Verifying external-system claims** below.
+- **false-positive** — plausible but wrong given context the reviewer lacked (test results, deliberate design choice, a system constraint that rules out the hypothesized input, or a plan's failure-scenario table that leaves the finding's scenario uncovered, per **Findings that ask for a guard** below). Dismiss **with explicit reasoning** stated to the user. Never silently override a finding: false-positive classification is itself a triage step the user can challenge. This should be rare enough to be worth paper-trailing. When the dismissal rests on the behavior of an external system (a markdown renderer, parser, compiler, ABI, API), verify it before dismissing per **Verifying external-system claims** below.
 
-- **uncertain-validity** — you cannot yet tell whether the finding is real. The open question is **validity**. Investigate — read code, run a targeted probe — until it resolves to `actionable` or `false-positive`. When the targeted probe judges an external-system-behavior claim, verify it per **Verifying external-system claims** below. Do not carry an unresolved `uncertain-validity` past the point where a fix would be committed.
+- **uncertain-validity** — you cannot yet tell whether the finding is real. The open question is **validity**. Investigate — read code, run a targeted probe — until it resolves to `actionable` or `false-positive`, or, for a finding **Findings that ask for a guard** below holds here, until it returns to that section. When the targeted probe judges an external-system-behavior claim, verify it per **Verifying external-system claims** below. Do not carry an unresolved `uncertain-validity` past the point where a fix would be committed.
 
 - **opens-a-question** — the finding **is real**, but its resolution is **non-local**: it needs investigation or a design choice beyond a local edit. Both default responses are wrong here:
 
@@ -81,15 +81,15 @@ The regeneration signal — whether the target sentence was written to answer a 
 
 ## Findings that ask for a guard
 
-When the run holds a plan that carries a failure-scenario table (`research`'s Failure scenarios section), whether the plan under review or the plan the change implements, the following findings are judged against that table before the dispositions above are applied, and in place of a gate's own list of typical false positives:
+When the run holds a plan that carries a failure-scenario table (`research`'s Failure scenarios section), whether the plan under review or the plan the change implements, the following findings, other than the points raised by the subagent review that `research`'s Failure scenarios section dispatches, are judged against that table before the dispositions above are applied, and in place of a gate's own list of typical false positives:
 
 - a finding that asks the change to add a guard, a validation, or other defensive handling for an input or an operation;
 - a finding that reports a scenario the table does not list;
-- a finding that shows a fact making a cell of the table, or the fact a cell rests on, false.
+- a finding that states a fact making a cell of the table, or the fact a cell rests on, false.
 
-A finding about several scenarios is split into one finding per scenario, each triaged on its own. Take the finding's scenario: its row when the table lists it, and otherwise its Covered value worked out by that section's rules. While the finding and the evidence the run holds do not settle a fact the Covered rule needs for an unlisted scenario, the finding is `uncertain-validity`, and once investigation settles the values it returns to this section rather than taking that entry's exits. With the values settled, take the first branch that fits:
+A finding about several scenarios is split into one finding per scenario, each triaged on its own. Take the finding's scenario: its row when the table lists it, and otherwise its Covered value worked out by the Failure scenarios section's rules. While the finding and the evidence the run holds do not settle a fact this dispatch needs, such as a value the Covered rule needs for an unlisted scenario, or whether a fact the finding states holds, the finding is `uncertain-validity`, and once investigation settles the values it returns to this section rather than taking that entry's exits. With the values settled, take the first branch that fits:
 
-1. The finding shows a fact that makes a cell of the table, or the fact a cell rests on, false → `opens-a-question`. A finding that only hypothesizes that a scenario could occur shows no such fact.
+1. The finding states a fact, settled as holding, that makes a cell of the table, or the fact a cell rests on, false → `opens-a-question`. A finding that only hypothesizes that a scenario could occur states no such fact.
 2. The scenario is not covered → `false-positive`, stating the axis values as the reasoning.
 3. The scenario is covered but the table does not list it → `opens-a-question`.
 4. Otherwise → the dispositions above, as for any finding.
