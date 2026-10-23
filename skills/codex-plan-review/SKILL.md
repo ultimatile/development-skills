@@ -39,7 +39,7 @@ Specific questions:
 </task>
 
 <failure_scenarios>
-The plan above carries a failure-scenario table. The definitions of its three axes, Covered, and Handling follow, with the records the run holds about these scenarios. Judge every cell by those definitions. Report each scenario you find that the table does not list and whose Covered value, by those definitions, is `yes`, with the facts for each of the three axes. Separately, report any evidence you read that a cell of the table, or the fact a cell rests on, is false, quoting that evidence.
+The plan above carries a failure-scenario table. The definitions of its three axes, Covered, and Handling follow, with the records the run holds about these scenarios. Judge every cell by those definitions. Report each scenario you find that the table does not list and whose Covered value, by those definitions, is `yes`, with the facts for each of the three axes. Separately, report any evidence you read that a cell of the table, or the fact a cell rests on, is false, quoting that evidence. Report both kinds in full: the verification_loop and missing_context_gating blocks do not filter them.
 <FAILURE_SCENARIOS_DEFINITIONS_AND_RECORDS>
 </failure_scenarios>
 
