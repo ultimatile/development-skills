@@ -98,21 +98,23 @@ A `rejected` derivational hypothesis is a **plan bug**. Correct the plan and re-
 
 Merge subagent reports into a single plan with the following sections.
 
-### Actor model
+### Failure scenarios
 
-Write this section first, have it reviewed, and only then draft the Plan body below, which is designed against it.
+Write this section first, and draft the Plan body below only after the subagent review this section ends with, designing the Plan body against the reviewed table.
 
-The section is a table with columns **Actor**, **Paths**, **Covered**, and **Handling**. Each row pairs an actor class that can act on the change with a class of paths it acts through: inputs it produces for the change, or operations it performs on it. Covered is `yes` or `no`, with the fact the decision rests on. Handling says how a covered path is handled, and is `none` for a row marked Covered `no`.
+The section is a table with one row per failure scenario, meaning an input the change handles or an operation performed on it, together with one way it goes wrong. Its columns are **Scenario**, **Occurs**, **Severe**, **Detected**, **Covered**, and **Handling**. Each of the first three axes is `yes` or `no` with the fact it rests on, judged on the change without any Handling this table proposes:
 
-Every table decides these three actor classes:
+- **Occurs** — `yes` when the run holds evidence that the scenario happens in actual use: a record of it happening, cited in the row (an issue, a review finding, or a run transcript), or the fact that someone produces it without departing from the procedure they follow. A user passing a wrong argument departs from no procedure; an agent altering a command a skill directs does, so that scenario needs a record.
+- **Severe** — `yes` when the failure's effect cannot be undone by the means available after the failure, for example a post to an external service, or a deleted file that no commit holds.
+- **Detected** — `yes` when the failure surfaces at the step where it happens, as an error or a visible wrong output; a failure a pipe or a discarded stream hides is not detected.
 
-- **Malicious user** — Covered `no` when the user can perform the change's operations directly, as with a local tool. Otherwise the plan decides Covered and Handling.
-- **Careless user** — Covered `yes`. Handling is to support the variant, or to detect it and fail with a message that names it.
-- **Agent following a skill** — one row per deviation that a record shows an agent producing, the record being an issue, a review finding, or a run transcript cited in the row. These rows are Covered `yes`, and their Handling closes the path structurally rather than with prose in a skill: a script that prints its outcome as a status line, or a hook that blocks the command shape, for example. One more row takes every other agent deviation, Covered `no`.
+**Covered** is `no` when Occurs is `no`, Severe is `no`, and Detected is `yes`. It is also `no` when the scenario is produced only on purpose, by someone who can perform the guarded operation directly without passing through the guard, as a malicious user of a local tool can. Otherwise it is `yes`.
 
-Add rows for any further actor class that can act on the change. A change no actor class can act on says so in place of the table.
+**Handling** applies to a covered scenario, and is `none` otherwise. It either supports the variant, or detects it and fails with a message that names it. A scenario that arises from departing from instructions an agent executes is closed by a mechanism that does not depend on the agent reading prose: for example, a script that prints its outcome as a status line, or a hook that blocks the command shape.
 
-Then dispatch a fresh-context subagent with the table, the task, and the repository path, and ask it two questions: whether an actor class that can act on the change is missing, and whether a Covered or Handling cell contradicts how the system is actually used. Classify each point it raises under the `finding-triage` dispositions, and revise the table before drafting the Plan body.
+A change that handles no input or operation says so in place of the table; that statement is its scenario table, with no rows.
+
+Then dispatch a fresh-context subagent with the table, the task, and the repository path. Ask it two questions: whether a covered scenario is missing from the table, and whether an axis or Handling cell contradicts how the system is actually used. Classify each point it raises under the `finding-triage` dispositions, without its Findings that ask for a guard, and revise the table before drafting the Plan body.
 
 ### Plan body
 
@@ -129,7 +131,7 @@ Then dispatch a fresh-context subagent with the table, the task, and the reposit
   - Paired APIs that must stay consistent (sibling methods)
   - Constructor validations required
   - State that needs an explicit field rather than heuristic inference
-  - Each guard names the actor-model row it defends, which must be marked Covered `yes`, and implements that row's Handling. A guard on a path assigned to a row marked Covered `no` is not added.
+  - Each guard against an input or an operation names the covered scenario it defends and implements that scenario's Handling. A guard whose scenario is not covered, by the Covered rule of the Failure scenarios section, is not added. A guard whose scenario is covered but not in the table sends the table back for that row, and the subagent review that section ends with runs again before the guard is planned.
 - **Derivations** (from confirmed derivational hypotheses): for each specific example whose properties were claimed in the plan, reproduce the derivation in compressed form (defining equations → steps → conclusion). The plan reader should be able to retrace the deduction without re-running Step 2.B.
 - **Conflicts or dependencies between hypotheses** (if any)
 
@@ -236,7 +238,7 @@ After Step 3 produces a plan and before Step 6 collects user approval:
 2. **If review runs**: triage the findings.
 
    - **Implementation concerns** (algorithm details, error handling, test coverage gaps, naming): patch the plan in place and proceed to the loop gate below.
-   - **Premise concerns** (the assumed root cause may be wrong, the described mechanism doesn't match how the code actually fails, a fixture's claimed properties may not hold, an "obvious" derivation is unproven, an actor class the actor model lacks, a cell of the actor model the finding shows false): **return to Step 1**. Do not patch the plan in place — the hypothesis set itself is suspect, and incremental edits perpetuate the bad premise across iterations.
+   - **Premise concerns** (the assumed root cause may be wrong, the described mechanism doesn't match how the code actually fails, a fixture's claimed properties may not hold, an "obvious" derivation is unproven, a finding that `finding-triage`'s Findings that ask for a guard sends to `opens-a-question`): **return to Step 1**. Do not patch the plan in place — the hypothesis set itself is suspect, and incremental edits perpetuate the bad premise across iterations.
 
    Distinguishing the two: an implementation concern asks "given the plan's assumptions, is the proposed approach sound?"; a premise concern asks "are the plan's assumptions actually true?". If the reviewer would have given a different answer with empirical evidence in hand, it's a premise concern.
 

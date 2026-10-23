@@ -81,13 +81,18 @@ The regeneration signal — whether the target sentence was written to answer a 
 
 ## Findings that ask for a guard
 
-When the run holds the plan the change implements and that plan carries an actor model, a finding that asks the change to guard against, validate, or handle an input or an operation is judged against that model before the dispositions above are applied, and in place of a gate's own list of typical false positives.
+When the run holds a plan that carries a failure-scenario table (`research`'s Failure scenarios section), whether the plan under review or the plan the change implements, the following findings are judged against that table before the dispositions above are applied, and in place of a gate's own list of typical false positives:
 
-First assign the finding's path to the row whose Actor is the actor whose action the finding describes and whose Paths include that action. While the finding and the table do not settle the row, the finding is `uncertain-validity`. Then take the first branch that fits:
+- a finding that asks the change to add a guard, a validation, or other defensive handling for an input or an operation;
+- a finding that reports a scenario the table does not list;
+- a finding that shows a fact making a cell of the table, or the fact a cell rests on, false.
 
-1. No row fits, or the finding shows a fact that makes a cell of the model, or the fact a cell rests on, false → `opens-a-question`. A finding that only hypothesizes that an input could occur shows no such fact.
-2. The row is Covered `no` → `false-positive`, stating the row as the reasoning.
-3. The row is Covered `yes` → the dispositions above, as for any finding.
+A finding about several scenarios is split into one finding per scenario, each triaged on its own. Take the finding's scenario: its row when the table lists it, and otherwise its Covered value worked out by that section's rules. While the finding and the evidence the run holds do not settle a fact the Covered rule needs for an unlisted scenario, the finding is `uncertain-validity`, and once investigation settles the values it returns to this section rather than taking that entry's exits. With the values settled, take the first branch that fits:
+
+1. The finding shows a fact that makes a cell of the table, or the fact a cell rests on, false → `opens-a-question`. A finding that only hypothesizes that a scenario could occur shows no such fact.
+2. The scenario is not covered → `false-positive`, stating the axis values as the reasoning.
+3. The scenario is covered but the table does not list it → `opens-a-question`.
+4. Otherwise → the dispositions above, as for any finding.
 
 ## Pre-existing instances do not license dismissal
 
