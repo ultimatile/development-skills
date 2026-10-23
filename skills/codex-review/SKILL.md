@@ -71,7 +71,7 @@ Typical false positive patterns:
 
 - **Assumed standard behavior**: "this regex won't match standard X format" when the actual data uses a project-specific format (verified by tests)
 - **Missing context on intentional decisions**: flagging a design choice as a bug when it was deliberate and tested
-- **Hypothetical edge cases**: warning about inputs that can't occur given the system's constraints
+- **Hypothetical edge cases**: warning about inputs that can't occur given the system's constraints; for a finding that `finding-triage`'s Findings that ask for a guard covers, that section decides instead
 
 When presenting review output, triage each finding:
 
