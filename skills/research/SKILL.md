@@ -102,19 +102,19 @@ Merge subagent reports into a single plan with the following sections.
 
 Write this section first, and draft the Plan body below only after the subagent review this section ends with, designing the Plan body against the reviewed table.
 
-The section is a table with one row per failure scenario, meaning an input the change handles or an operation performed on it, together with one way it goes wrong. Its columns are **Scenario**, **Occurs**, **Severe**, **Detected**, **Covered**, and **Handling**. Each of the first three axes is `yes` or `no` with the fact it rests on, judged on the change without any Handling this table proposes:
+The section is a table with one row per failure scenario, meaning an input the change handles or an operation performed on it, together with one way it goes wrong. Its columns are **Scenario**, **Occurs**, **Severe**, **Detected**, **Covered**, and **Handling**. Each of the three axes, Occurs, Severe, and Detected, is `yes` or `no` with the fact it rests on, judged on the change without any Handling this table proposes:
 
-- **Occurs** — `yes` when the run holds evidence that the scenario happens in actual use: a record of it happening, cited in the row (an issue, a review finding, or a run transcript), or the fact that someone produces it without departing from the procedure they follow. A user passing a wrong argument departs from no procedure; an agent altering a command a skill directs does, so that scenario needs a record.
+- **Occurs** — `yes` when the run holds evidence that the scenario happens in actual use: a record of it happening, cited in the row (for example an issue, a review finding, or a run transcript), or the fact that someone can produce it without departing from the procedure they follow. A user passing a wrong argument departs from no procedure; an agent altering a command a skill directs does, so that scenario needs a record.
 - **Severe** — `yes` when the failure's effect cannot be undone by the means available after the failure, for example a post to an external service, or a deleted file that no commit holds.
 - **Detected** — `yes` when the failure surfaces at the step where it happens, as an error or a visible wrong output; a failure a pipe or a discarded stream hides is not detected.
 
 **Covered** is `no` when Occurs is `no`, Severe is `no`, and Detected is `yes`. It is also `no` when the scenario is produced only on purpose, by someone who can perform the guarded operation directly without passing through the guard, as a malicious user of a local tool can. Otherwise it is `yes`.
 
-**Handling** applies to a covered scenario, and is `none` otherwise. It either supports the variant, or detects it and fails with a message that names it. A scenario that arises from departing from instructions an agent executes is closed by a mechanism that does not depend on the agent reading prose: for example, a script that prints its outcome as a status line, or a hook that blocks the command shape.
+**Handling** applies to a covered scenario, and is `none` otherwise. It either supports the scenario's input as it arrives, or detects the scenario and fails with a message that names it. A scenario that arises from departing from instructions an agent executes is closed by a mechanism that does not depend on the agent reading prose: for example, a script that prints its outcome as a status line, or a hook that blocks the command shape.
 
 A change that handles no input or operation says so in place of the table; that statement is its scenario table, with no rows.
 
-Then dispatch a fresh-context subagent with the table, the task, and the repository path. Ask it two questions: whether a covered scenario is missing from the table, and whether an axis or Handling cell contradicts how the system is actually used. Classify each point it raises under the `finding-triage` dispositions, without its Findings that ask for a guard, and revise the table before drafting the Plan body.
+Then dispatch a fresh-context subagent with the table, this section's definitions of the three axes, Covered, and Handling, the task, the records the run holds that the table cites or that report a scenario happening, and the repository path. Ask it two questions: whether a covered scenario is missing from the table, and whether an axis or Handling cell contradicts how the system is actually used. Classify each point it raises under the `finding-triage` dispositions, and revise the table before drafting the Plan body.
 
 ### Plan body
 
@@ -131,7 +131,7 @@ Then dispatch a fresh-context subagent with the table, the task, and the reposit
   - Paired APIs that must stay consistent (sibling methods)
   - Constructor validations required
   - State that needs an explicit field rather than heuristic inference
-  - Each guard against an input or an operation names the covered scenario it defends and implements that scenario's Handling. A guard whose scenario is not covered, by the Covered rule of the Failure scenarios section, is not added. A guard whose scenario is covered but not in the table sends the table back for that row, and the subagent review that section ends with runs again before the guard is planned.
+  - Each guard against an input or an operation names the covered scenario it defends and implements that scenario's Handling. Judge each planned guard as `finding-triage`'s Findings that ask for a guard judges a finding asking for it: a guard that judgment dismisses as `false-positive` is not added, and one it sends to `opens-a-question` sends the table back for the row or cell that judgment names, and the Failure scenarios section's subagent review runs again before the guard is planned.
 - **Derivations** (from confirmed derivational hypotheses): for each specific example whose properties were claimed in the plan, reproduce the derivation in compressed form (defining equations → steps → conclusion). The plan reader should be able to retrace the deduction without re-running Step 2.B.
 - **Conflicts or dependencies between hypotheses** (if any)
 
