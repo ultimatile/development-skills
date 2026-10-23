@@ -100,7 +100,7 @@ Merge subagent reports into a single plan with the following sections.
 
 ### Failure scenarios
 
-Write this section first, and draft the Plan body below only after the subagent review this section ends with, designing the Plan body against the reviewed table.
+Write this section first, and draft the Plan body below only after the subagent review this section ends with, designing the Plan body against the reviewed table. When the Plan body adds an input or operation the table does not list, or drops one the table lists, add or remove its rows and run that review again before going on.
 
 The section is a table with one row per failure scenario, meaning an input the change handles or an operation performed on it, together with one way it goes wrong. Its columns are **Scenario**, **Occurs**, **Severe**, **Detected**, **Covered**, and **Handling**. Each of the three axes, Occurs, Severe, and Detected, is `yes` or `no` with the fact it rests on, judged on the change without any Handling this table proposes:
 
@@ -108,13 +108,15 @@ The section is a table with one row per failure scenario, meaning an input the c
 - **Severe** — `yes` when the failure's effect cannot be undone by the means available after the failure, for example a post to an external service, or a deleted file that no commit holds.
 - **Detected** — `yes` when the failure surfaces at the step where it happens, as an error or a visible wrong output; a failure a pipe or a discarded stream hides is not detected.
 
-**Covered** is `no` when Occurs is `no`, Severe is `no`, and Detected is `yes`. It is also `no` when the scenario is produced only on purpose, by someone who can perform the guarded operation directly without passing through the guard, as a malicious user of a local tool can. Otherwise it is `yes`.
+**Covered** is `no` when Occurs is `no`, Severe is `no`, and Detected is `yes`. It is also `no` when the scenario is produced only on purpose, by someone who can perform the operation directly without passing through a guard against the scenario, as a malicious user of a local tool can. Otherwise it is `yes`.
 
 **Handling** applies to a covered scenario, and is `none` otherwise. It either supports the scenario's input as it arrives, or detects the scenario and fails with a message that names it. A scenario that arises from departing from instructions an agent executes is closed by a mechanism that does not depend on the agent reading prose: for example, a script that prints its outcome as a status line, or a hook that blocks the command shape.
 
 A change that handles no input or operation says so in place of the table; that statement is its scenario table, with no rows.
 
-Then dispatch a fresh-context subagent with the table, this section's definitions of the three axes, Covered, and Handling, the task, the records the run holds that the table cites or that report a scenario happening, and the repository path. Ask it two questions: whether a covered scenario is missing from the table, and whether an axis or Handling cell contradicts how the system is actually used. Classify each point it raises under the `finding-triage` dispositions, and revise the table before drafting the Plan body.
+The **scenario records** are the records the run holds that the table cites or that report a scenario happening.
+
+Then dispatch a fresh-context subagent with the table, this section's definitions of the three axes, Covered, and Handling, the task, the scenario records, the Plan body drafted so far when the review runs again, and the repository path. Ask it two questions: whether a covered scenario is missing from the table, and whether an axis or Handling cell contradicts how the system is actually used. Classify each point it raises under the `finding-triage` dispositions, and revise the table before drafting the Plan body.
 
 ### Plan body
 
@@ -131,7 +133,7 @@ Then dispatch a fresh-context subagent with the table, this section's definition
   - Paired APIs that must stay consistent (sibling methods)
   - Constructor validations required
   - State that needs an explicit field rather than heuristic inference
-  - Each guard against an input or an operation names the covered scenario it defends and implements that scenario's Handling. Judge each planned guard as `finding-triage`'s Findings that ask for a guard judges a finding asking for it: a guard that judgment dismisses as `false-positive` is not added, and one it sends to `opens-a-question` sends the table back for the row or cell that judgment names, and the Failure scenarios section's subagent review runs again before the guard is planned.
+  - Each guard against an input or an operation names the covered scenario it defends and implements that scenario's Handling. Judge each planned guard as `finding-triage`'s Findings that ask for a guard judges a finding asking for it: a guard that judgment dismisses as `false-positive` is not added. A guard whose scenario the table does not list sends the table back for that row, and the Failure scenarios section's subagent review runs again before the guard is judged.
 - **Derivations** (from confirmed derivational hypotheses): for each specific example whose properties were claimed in the plan, reproduce the derivation in compressed form (defining equations → steps → conclusion). The plan reader should be able to retrace the deduction without re-running Step 2.B.
 - **Conflicts or dependencies between hypotheses** (if any)
 
@@ -238,9 +240,10 @@ After Step 3 produces a plan and before Step 6 collects user approval:
 2. **If review runs**: triage the findings.
 
    - **Implementation concerns** (algorithm details, error handling, test coverage gaps, naming): patch the plan in place and proceed to the loop gate below.
-   - **Premise concerns** (the assumed root cause may be wrong, the described mechanism doesn't match how the code actually fails, a fixture's claimed properties may not hold, an "obvious" derivation is unproven, a finding that `finding-triage`'s Findings that ask for a guard sends to `opens-a-question`): **return to Step 1**. Do not patch the plan in place — the hypothesis set itself is suspect, and incremental edits perpetuate the bad premise across iterations.
+   - **A covered scenario the failure-scenario table does not list**, taking precedence over the implementation-concern and premise-concern bullets: re-enter this skill at Step 3's Failure scenarios section, add the scenario's row, run that section's subagent review again, revise the Plan body against the revised table, and then continue at the loop gate below.
+   - **Premise concerns** (the assumed root cause may be wrong, the described mechanism doesn't match how the code actually fails, a fixture's claimed properties may not hold, an "obvious" derivation is unproven, a cell of the failure-scenario table, or the fact a cell rests on, that a finding shows false): **return to Step 1**. Do not patch the plan in place — the hypothesis set itself is suspect, and incremental edits perpetuate the bad premise across iterations.
 
-   Distinguishing the two: an implementation concern asks "given the plan's assumptions, is the proposed approach sound?"; a premise concern asks "are the plan's assumptions actually true?". If the reviewer would have given a different answer with empirical evidence in hand, it's a premise concern.
+   Distinguishing implementation concerns from premise concerns: an implementation concern asks "given the plan's assumptions, is the proposed approach sound?"; a premise concern asks "are the plan's assumptions actually true?". If the reviewer would have given a different answer with empirical evidence in hand, it's a premise concern.
 
 3. **Loop gate**: after patching, re-run `codex-plan-review` per its Step 4 re-run rule. Exit the loop when the last valid verdict is `approve` or `approve with conditions`. Cap: 3 iterations within the same premise. If the cap is reached, or if the loop sits at `reject` with no further re-run warranted, surface the verdict and outstanding findings to the user and ask whether to proceed as-is, patch further manually, or escalate. Premise concerns return to Step 1 and reset the counter — iteration count is per-premise, not lifetime.
 
