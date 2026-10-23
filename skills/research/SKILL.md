@@ -104,7 +104,7 @@ Write this section first, and draft the Plan body below only after the subagent 
 
 The section is a table with one row per failure scenario, meaning an input the change handles or an operation performed on it, together with one way it goes wrong. Its columns are **Scenario**, **Occurs**, **Severe**, **Detected**, **Covered**, and **Handling**. Each of the three axes, Occurs, Severe, and Detected, is `yes` or `no` with the fact it rests on, judged on the change without any Handling this table proposes:
 
-- **Occurs** — `yes` when the run holds evidence that the scenario happens in actual use: a record of it happening, cited in the row (for example an issue, a review finding, or a run transcript), or the fact that someone can produce it without departing from the procedure they follow. A user passing a wrong argument departs from no procedure; an agent altering a command a skill directs does, so that scenario needs a record.
+- **Occurs** — `yes` when the run holds evidence that the scenario happens in actual use: a record of it happening that a reader of the plan can open, cited in the row (for example an issue, a review finding, or a linked run), or, for a record the reader cannot open such as a local run transcript, the fact it shows stated in the row, or the fact that someone can produce it without departing from the procedure they follow. A user passing a wrong argument departs from no procedure; an agent altering a command a skill directs does, so that scenario needs a record.
 - **Severe** — `yes` when the failure's effect cannot be undone by the means available after the failure, for example a post to an external service, or a deleted file that no commit holds.
 - **Detected** — `yes` when the failure surfaces at the step where it happens, as an error or a visible wrong output; a failure a pipe or a discarded stream hides is not detected.
 
@@ -133,7 +133,7 @@ Then dispatch a fresh-context subagent with the table, this section's definition
   - Paired APIs that must stay consistent (sibling methods)
   - Constructor validations required
   - State that needs an explicit field rather than heuristic inference
-  - Each guard against an input or an operation names the covered scenario it defends and implements that scenario's Handling. Judge each planned guard as `finding-triage`'s Findings that ask for a guard judges a finding asking for it: a guard that judgment dismisses as `false-positive` is not added. A guard whose scenario the table does not list sends the table back for that row, and the Failure scenarios section's subagent review runs again before the guard is judged.
+  - Each guard against an input or an operation names the covered scenario it defends and implements that scenario's Handling. A guard is added only for a scenario whose row's Covered value is `yes`. A guard whose scenario the table does not list sends the table back for that row, and the Failure scenarios section's subagent review runs again before the guard is reconsidered.
 - **Derivations** (from confirmed derivational hypotheses): for each specific example whose properties were claimed in the plan, reproduce the derivation in compressed form (defining equations → steps → conclusion). The plan reader should be able to retrace the deduction without re-running Step 2.B.
 - **Conflicts or dependencies between hypotheses** (if any)
 
@@ -240,7 +240,7 @@ After Step 3 produces a plan and before Step 6 collects user approval:
 2. **If review runs**: triage the findings.
 
    - **Implementation concerns** (algorithm details, error handling, test coverage gaps, naming): patch the plan in place and proceed to the loop gate below.
-   - **A covered scenario the failure-scenario table does not list**, taking precedence over the implementation-concern and premise-concern bullets: re-enter this skill at Step 3's Failure scenarios section, add the scenario's row, run that section's subagent review again, revise the Plan body against the revised table, and then continue at the loop gate below.
+   - **A covered scenario the failure-scenario table does not list**, whose Covered value by the Failure scenarios section's rules is `yes`, taking precedence over the implementation-concern and premise-concern bullets: re-enter this skill at Step 3's Failure scenarios section, add the scenario's row, run that section's subagent review again, revise the Plan body against the revised table, and then continue at the loop gate below.
    - **Premise concerns** (the assumed root cause may be wrong, the described mechanism doesn't match how the code actually fails, a fixture's claimed properties may not hold, an "obvious" derivation is unproven, a cell of the failure-scenario table, or the fact a cell rests on, that a finding shows false): **return to Step 1**. Do not patch the plan in place — the hypothesis set itself is suspect, and incremental edits perpetuate the bad premise across iterations.
 
    Distinguishing implementation concerns from premise concerns: an implementation concern asks "given the plan's assumptions, is the proposed approach sound?"; a premise concern asks "are the plan's assumptions actually true?". If the reviewer would have given a different answer with empirical evidence in hand, it's a premise concern.

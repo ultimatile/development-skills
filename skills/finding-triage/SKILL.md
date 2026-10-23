@@ -81,7 +81,7 @@ The regeneration signal — whether the target sentence was written to answer a 
 
 ## Findings that ask for a guard
 
-When the work under review follows a plan that carries a failure-scenario table (`research`'s Failure scenarios section), a finding that asks the change to add a guard, a validation, or other defensive handling for an input or an operation is judged by that table before the dispositions above are applied. The work follows the plan itself in a review of that plan, and the plan it implements in a review of a change.
+In a review of a plan that carries a failure-scenario table (`research`'s Failure scenarios section), a finding that asks the plan to add a guard, a validation, or other defensive handling for an input or an operation is judged by that table before the dispositions above are applied.
 
 A finding about several scenarios is split into one finding per scenario, each triaged on its own. Take the scenario's row, or, for a scenario the table does not list, its Covered value worked out by the Failure scenarios section's rules. While the finding and the evidence the run holds do not settle a fact the next step needs, whether one the Covered value taken above rests on or one the finding states against a cell of the row, the finding is `uncertain-validity`, and once investigation settles it the finding returns here rather than taking that entry's exits. Then take the first that fits:
 
