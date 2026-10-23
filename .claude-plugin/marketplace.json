@@ -13,6 +13,7 @@
       "name": "development-skills",
       "description": "Full GitHub-issue-to-merged-PR workflow: hypothesis-driven research, plan review, implementation, codex review, Copilot review, bug-to-contract promotion, and docstring drift audit",
       "source": "./",
+      "license": "MIT",
       "strict": false,
       "skills": [
         "./skills/research-and-implement",
