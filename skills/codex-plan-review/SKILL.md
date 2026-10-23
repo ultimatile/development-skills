@@ -17,7 +17,7 @@ Gather first:
 
 - The implementation plan (from the current conversation)
 - The list of repository files Codex should read before evaluating
-- The plan's failure-scenario table, when it carries one, together with the definitions of its three axes, Covered, and Handling from `research`'s Failure scenarios section
+- When the plan carries a failure-scenario table, the definitions of its three axes, Covered, and Handling from `research`'s Failure scenarios section, and the scenario records that section names
 - 2–4 specific evaluation questions (not "what do you think?")
 
 Template:
@@ -39,8 +39,8 @@ Specific questions:
 </task>
 
 <failure_scenarios>
-The plan's failure-scenario table follows, with the definitions of its three axes, Covered, and Handling. Judge every cell by those definitions. Report a scenario you find that the table does not list, with the facts for each of the three axes, and any evidence you read that a cell of the table, or the fact a cell rests on, is false, quoting that evidence.
-<FAILURE_SCENARIOS_TEXT>
+The plan above carries a failure-scenario table. The definitions of its three axes, Covered, and Handling follow, with the records the run holds about these scenarios. Judge every cell by those definitions. Report each scenario you find that the table does not list and whose Covered value, by those definitions, is `yes`, with the facts for each of the three axes. Separately, report any evidence you read that a cell of the table, or the fact a cell rests on, is false, quoting that evidence.
+<FAILURE_SCENARIOS_DEFINITIONS_AND_RECORDS>
 </failure_scenarios>
 
 <grounding_rules>
@@ -82,7 +82,7 @@ Drop speculative or stylistic nits.
 
 Block selection rationale:
 
-- `failure_scenarios`: surfaces evidence against the failure-scenario table that triage judges guard findings by
+- `failure_scenarios`: surfaces covered scenarios missing from the failure-scenario table, and evidence against its cells
 - `grounding_rules`: plan review drifts into invented code otherwise
 - `structured_output_contract`: forces a shape that maps directly to the triage step in §3
 - `dig_deeper_nudge`: without it Codex tends to stop at the first plausible concern
