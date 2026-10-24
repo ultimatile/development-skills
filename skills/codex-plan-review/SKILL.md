@@ -17,7 +17,7 @@ Gather first:
 
 - The implementation plan (from the current conversation)
 - The list of repository files Codex should read before evaluating
-- When the plan carries a failure-scenario table, the definitions of its three axes, Covered, and Handling from `research`'s Failure scenarios section, and the scenario records that section names
+- When the plan carries `research`'s Failure scenarios section, with or without rows, the scenario definitions and the scenario records, as that section defines those terms; keep the `<failure_scenarios>` block for such a plan
 - 2–4 specific evaluation questions (not "what do you think?")
 
 Template:
@@ -39,7 +39,7 @@ Specific questions:
 </task>
 
 <failure_scenarios>
-The plan above carries a failure-scenario table. The definitions of its three axes, Covered, and Handling follow, with the records the run holds about these scenarios. Judge every cell by those definitions. Report each scenario you find that the table does not list and whose Covered value, by those definitions, is `yes`, with the facts for each of the three axes. Separately, report any evidence you read that a cell of the table, or the fact a cell rests on, is false, quoting that evidence. Report both kinds in full: the verification_loop and missing_context_gating blocks do not filter them.
+The plan above carries a Failure scenarios section. The definitions the table uses follow, with the records the run holds about its scenarios. Judge every cell by those definitions. Report each scenario you find that the table does not list and whose Covered value, by those definitions, is `yes`, with the facts for each of the three axes. Separately, report any evidence you read that a cell of the table, or the fact a cell rests on, is false, quoting that evidence. Report both kinds in full, grounded in code you read or in the records given here: the grounding_rules, verification_loop and missing_context_gating blocks do not filter them otherwise.
 <FAILURE_SCENARIOS_DEFINITIONS_AND_RECORDS>
 </failure_scenarios>
 
