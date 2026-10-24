@@ -17,7 +17,7 @@ Gather first:
 
 - The implementation plan (from the current conversation)
 - The list of repository files Codex should read before evaluating
-- When the plan carries `research`'s Failure scenarios section, with or without rows, the scenario definitions and the scenario records, as that section defines those terms; keep the `<failure_scenarios>` block for such a plan
+- When the plan carries `research`'s Failure scenarios section, `research`'s scenario definitions and scenario records
 - 2–4 specific evaluation questions (not "what do you think?")
 
 Template:
@@ -39,7 +39,7 @@ Specific questions:
 </task>
 
 <failure_scenarios>
-The plan above carries a Failure scenarios section. The definitions the table uses follow, with the records the run holds about its scenarios. Judge every cell by those definitions. Report each scenario you find that the table does not list and whose Covered value, by those definitions, is `yes`, with the facts for each of the three axes. Separately, report any evidence you read that a cell of the table, or the fact a cell rests on, is false, quoting that evidence. Report both kinds in full, grounded in code you read or in the records given here: the grounding_rules, verification_loop and missing_context_gating blocks do not filter them otherwise.
+The plan above carries a Failure scenarios section; the definitions it uses and its records follow. A scenario the table lists as Covered `no` is one the plan deliberately leaves unguarded: do not report a missing guard for it. Report any evidence you read that the section is not accurate for the change, as its definitions define accurate, quoting that evidence, grounded in code you read or in the records given here; the grounding_rules, verification_loop and missing_context_gating blocks do not filter these reports otherwise.
 <FAILURE_SCENARIOS_DEFINITIONS_AND_RECORDS>
 </failure_scenarios>
 
@@ -82,7 +82,7 @@ Drop speculative or stylistic nits.
 
 Block selection rationale:
 
-- `failure_scenarios`: surfaces covered scenarios missing from the failure-scenario table, and evidence against its cells
+- `failure_scenarios`: keeps Codex from asking for guards the plan deliberately omits, and surfaces evidence that the Failure scenarios section is not accurate for the change
 - `grounding_rules`: plan review drifts into invented code otherwise
 - `structured_output_contract`: forces a shape that maps directly to the triage step in §3
 - `dig_deeper_nudge`: without it Codex tends to stop at the first plausible concern
