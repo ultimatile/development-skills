@@ -5,7 +5,7 @@ description: Investigate a GitHub issue or free-text task with empirical (subage
 
 # research
 
-GitHub-integrated wrapper around `quaere-evidence`. Drives the Finding → Hypothesis → Defense → Probe → Decision workflow with parallel subagents and posts the resulting plan to GitHub. Do NOT write any production code in this skill.
+Investigates a GitHub issue by forming falsifiable hypotheses, probing them with parallel subagents, labelling each with a decision, and posting the resulting plan to GitHub. Do NOT write any production code in this skill.
 
 **Issue / task:** $ARGUMENTS
 
@@ -36,7 +36,7 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
    - **What invariants must hold**: contracts / preconditions / correctness properties
    - **What could break**: existing code paths affected by the change, especially where new inputs flow through existing APIs
 
-5. Each hypothesis is phrased as a **falsifiable Review Claim or Hypothesis** in the `quaere-evidence` sense — concrete enough that a subagent can attempt to disprove it.
+5. Each hypothesis names its **falsifier** — the observation that would show it false — concretely enough that a subagent can go and look for it.
 
 6. **Tag each hypothesis with a `kind`:**
 
@@ -56,21 +56,20 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
 
 Hypotheses split by `kind`. Empirical hypotheses go through subagent probes (Step 2.A). Derivational hypotheses are resolved in the main context (Step 2.B). Both must complete before Step 3 consolidates.
 
-### Step 2.A — Empirical hypotheses (subagents under quaere-evidence)
+### Step 2.A — Empirical hypotheses (subagent probes)
 
-Spawn one subagent per `empirical` hypothesis (or per small related group). Each subagent operates under the `quaere-evidence` skill and follows its workflow exactly.
+Spawn one subagent per `empirical` hypothesis (or per small related group), and give each its hypothesis together with the subagent contract below.
 
 Subagent contract:
 
-1. **Run `quaere-evidence`** with the assigned hypothesis as the initial Review Claim or Hypothesis.
-2. **Probes (per `quaere-evidence` §5) are three-way: Supporting / Disconfirming / Scope.** The Disconfirming probe **must be actually executed**, not just listed.
-3. **For non-trivial existing code, read at `quaere-semantic` depth** (its `What / Why / Invariants / Failure / Connections` schema with the UNKNOWN-probe discipline). Shallow grep-only verification is permitted only for trivially mechanical hypotheses (existence checks, file locations).
-4. **Runtime probe (preferred for behavioral claims).** Behavioral claims (output ordering, return shape, error-path return, ABI / FFI layout, signal handling, performance) need a minimal reproducer — docs reading is corroboration, not verification. Boundary cases (minimal/maximal sizes, type variations, single-element containers) belong here.
-5. **Caller-contract verification for change-impact hypotheses.** Classify the change as compile-breaking (new required trait method, type change) or silently semantic (same signature, different behavior). Semantic changes need caller-by-caller verification. Flag any public API with unchecked internal assumptions (pointer arithmetic trusting an offset, a serializer trusting field order, an index trusting contiguity).
-6. Return a **Decision** in the four-state shape from `quaere-evidence` §6 (`confirmed` / `rejected` / `inconclusive` / `deferred`). For `inconclusive`, attach the remaining `probe:`. For `deferred`, attach reason and resolution-point.
-7. Report back with concise file paths, line numbers, function signatures, and probe results.
+1. **Probes are three-way.** A *supporting* probe is a check whose result the hypothesis predicts. A *disconfirming* probe is a check whose result would show the hypothesis false; it **must be actually executed**, not just listed. A *scope* probe checks whether the hypothesis is local to the case that raised it or holds across the code paths that share its mechanism.
+2. **For non-trivial existing code, record a reading of each unit read** — a function, type, branch, or module boundary — under five fields: *What* it does, *Why* it has that shape, the *Invariants* it relies on, its *Failure* behavior when they break, and its *Connections*, what feeds it and what it feeds. Write a field the reading cannot settle as `UNKNOWN` together with the probe that would settle it. Shallow grep-only verification is permitted only for trivially mechanical hypotheses (existence checks, file locations).
+3. **Runtime probe (preferred for behavioral claims).** Behavioral claims (output ordering, return shape, error-path return, ABI / FFI layout, signal handling, performance) need a minimal reproducer — docs reading is corroboration, not verification. Boundary cases (minimal/maximal sizes, type variations, single-element containers) belong here.
+4. **Caller-contract verification for change-impact hypotheses.** Classify the change as compile-breaking (new required trait method, type change) or silently semantic (same signature, different behavior). Semantic changes need caller-by-caller verification. Flag any public API with unchecked internal assumptions (pointer arithmetic trusting an offset, a serializer trusting field order, an index trusting contiguity).
+5. Return a **Decision** in one of four states: `confirmed` — the supporting evidence holds and the disconfirming probe ran without showing the hypothesis false; `rejected` — the evidence shows it false; `inconclusive` — the evidence gathered does not settle it; `deferred` — it bears on the work but falls outside the current scope. For `inconclusive`, attach the remaining `probe:`. For `deferred`, attach reason and resolution-point.
+6. Report back with concise file paths, line numbers, function signatures, probe results, and every `UNKNOWN` field with its probe.
 
-**Subagent granularity**: hypotheses requiring only existence checks or single-file grep can be resolved directly from the main context. Reserve subagents for hypotheses that touch multiple files or need deep reading. Spawn all empirical-hypothesis subagents in a single message; each owns its own `quaere-evidence` ledger.
+**Subagent granularity**: hypotheses requiring only existence checks or single-file grep can be resolved directly from the main context. Reserve subagents for hypotheses that touch multiple files or need deep reading. Spawn all empirical-hypothesis subagents in a single message.
 
 ### Step 2.B — Derivational hypotheses (deductive verification in main context)
 

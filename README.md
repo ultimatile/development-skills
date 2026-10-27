@@ -8,10 +8,10 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 
 | Skill | Description |
 | -- | -- |
-| `research` | Hypothesis-driven investigation under the four-state decision discipline (confirmed / rejected / inconclusive / deferred). Classifies hypotheses as empirical (subagent-verified) vs derivational (deduced in main context); posts the resulting plan to the issue body (umbrella-spawned sub-issue) or comment (single-scope issue). Depends on [haru0416-dev/quaere](https://github.com/haru0416-dev/quaere) (`quaere-evidence`, `quaere-semantic`) |
+| `research` | Hypothesis-driven investigation under the four-state decision discipline (confirmed / rejected / inconclusive / deferred). Classifies hypotheses as empirical (subagent-verified) vs derivational (deduced in main context); posts the resulting plan to the issue body (umbrella-spawned sub-issue) or comment (single-scope issue). |
 | `codex-plan-review` | Review the implementation plan with Codex against the actual codebase before coding |
-| `implement` | Execute a plan via the quaere-execution discipline (Plan → Do → Study → Act) with drift surfacing and done-check before completion. Reads the plan from the sub-issue body (umbrella-spawned) or comments (single-scope). Depends on [haru0416-dev/quaere](https://github.com/haru0416-dev/quaere) (`quaere-execution`) |
-| `research-and-implement` | End-to-end wrapper that runs `research` (Phase 1) then `implement` (Phase 2), with a branch and root baseline gate up front. Depends on [haru0416-dev/quaere](https://github.com/haru0416-dev/quaere) (`quaere-evidence` + `quaere-execution`) |
+| `implement` | Execute a plan one unit at a time, checking each unit against its predicted result, with drift surfacing and done-check before completion. Reads the plan from the sub-issue body (umbrella-spawned) or comments (single-scope). |
+| `research-and-implement` | End-to-end wrapper that runs `research` (Phase 1) then `implement` (Phase 2), with a branch and root baseline gate up front. |
 
 ### Issue & PR drafting
 
@@ -92,14 +92,8 @@ claude plugin install development-skills
 
 The skills that draft or post GitHub issue / PR bodies (`file-issue`, `file-pullreq`, `copilot-review`, `review-pipeline`, `research`, and their wrappers) route every body through the [`gh-post`](https://github.com/ultimatile/gh-post) wrapper. Install it and make sure `gh-post` is on `PATH`.
 
-### Quaere skills
-
-`research`, `implement`, `research-and-implement`, and `reimre` require the upstream [Quaere](https://github.com/haru0416-dev/quaere) skills (`quaere-evidence`, `quaere-execution`, `quaere-semantic`) installed under `~/.claude/skills/`:
-
-```bash
-npx quaere-cli install --target claude
-```
-
 ## Credits
 
 The XML-block prompt structure used in `codex-plan-review` is inspired by the `gpt-5-4-prompting` skill from [openai/codex-plugin-cc](https://github.com/openai/codex-plugin-cc).
+
+The falsifiable-hypothesis, probe, and code-reading discipline in `research` and the unit-by-unit execution loop in `implement` draw on the [Quaere](https://github.com/haru0416-dev/quaere) skills.

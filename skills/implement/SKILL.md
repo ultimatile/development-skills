@@ -1,11 +1,11 @@
 ---
 name: implement
-description: Execute a prior research plan via quaere-execution with GitHub issue integration, plan-vs-actual drift, done-check, and conventional commits. Optional issue number argument.
+description: Execute a prior research plan one unit at a time with GitHub issue integration, plan-vs-actual drift, done-check, and conventional commits. Optional issue number argument.
 ---
 
 # implement
 
-GitHub-integrated wrapper around `quaere-execution`. Drives the Plan → Do → Study → Act workflow with plan-vs-actual drift surfacing and a final `done-check` audit.
+GitHub-integrated executor for a research plan: works through the plan one unit at a time, surfaces plan-vs-actual drift, and ends with a `done-check` audit.
 
 **Issue / task:** $ARGUMENTS
 
@@ -35,15 +35,15 @@ If the plan has no `Inconclusive / Deferred items` section at all, treat that as
 
 If the plan has no `Derivations` section but the work involves specific-example fixtures (concrete Hamiltonians, concrete protocol messages, named worked cases, etc.), treat that as a research gap on the derivational axis and stop the same way. The absence of a `Derivations` section means no specific example has been derivationally cleared.
 
-## Step 3 — Run quaere-execution
+## Step 3 — Execute the plan
 
-Invoke the `quaere-execution` skill with the plan as the source of truth. Honor its workflow exactly: Plan → Do → Study → Act with scoped units, fresh verification evidence, diff review, fix loops, and commit/push discipline. The wrapper layers the following additional rules on top.
+Work through the Step 2 checklist with the plan as the source of truth, under the subsections below.
 
 The **root** — the ref this change is measured from — is an input, supplied by the caller on `diff-root`'s terms. This wrapper resolves none: with none supplied, ask. State it, and pass it to Step 3.0's `todo-check` and Step 4's `done-check`.
 
 ### 3.0 Preflight via todo-check
 
-Before any implementation change, invoke `todo-check` against the plan, passing the root stated above, to extract the active preflight items and their setup actions for this work. Hand the resulting △ rows to `quaere-execution`'s Plan step so the unit checks already include them. A preflight that halts emits no table at all, so there are no △ rows to hand on; it has surfaced something to the user, and the unit does not start. Re-invoke `todo-check` between units when the next unit changes the active item set (e.g., it introduces a new public API → `impact-verification` and `paired-artifact-drift` become active). A file the diff will carry but the plan does not name has no preflight setup row here; the Step 4 `done-check` catches it against the diff.
+Before any implementation change, invoke `todo-check` against the plan, passing the root stated above, to extract the active preflight items and their setup actions for this work. Fold the resulting △ rows into the checks of the units they apply to (3.1.1). A preflight that halts emits no table at all, so there are no △ rows to hand on; it has surfaced something to the user, and the unit does not start. Re-invoke `todo-check` between units when the next unit changes the active item set (e.g., it introduces a new public API → `impact-verification` and `paired-artifact-drift` become active). A file the diff will carry but the plan does not name has no preflight setup row here; the Step 4 `done-check` catches it against the diff.
 
 ### 3.0.1 Pre-commit hook recall
 
@@ -77,9 +77,29 @@ Once per session, read any contributor / agent guidance docs present at the repo
 
 Before any code change, build and run existing tests to record pre-existing failures, and run the project's linter (e.g., `cargo clippy`, `clang-tidy`, `ruff check`, `eslint`) to record pre-existing warnings. Compare against both baselines at every verification step. Pre-commit-gated linters (Step 3.0.1) are especially important — the gate rejects on any new violation. Formatters are excluded.
 
-### 3.2 Discovery handling during Do
+### 3.1.1 Unit loop
 
-If, while executing a unit, an unexpected fact is observed (a behavior, type, caller, or invariant the plan did not anticipate):
+A unit is one entry of the Step 2 checklist. Keep one unit open at a time: start the next only after the current one has closed or has been handed to 3.2 below.
+
+Before editing for a unit, write down three things: its prediction — what will be observably true once the unit is done; the targeted check that observes it, with the unit's △ rows from 3.0 folded in; and what that check should show before the edit — a failure for the reason the unit addresses, or a pass where the unit preserves or only verifies existing behavior.
+
+Run the check before the edit:
+
+- **Result as written down** → make the edit. A unit with nothing to edit closes here.
+- **Any other result** → an unexpected fact; handle it under 3.2.
+- **Not runnable before the edit** → record why, then make the edit.
+
+After the edit, run the check again and compare the result with the prediction:
+
+- **Matches** → the unit closes.
+- **Differs, and the check results the unit already holds name the cause** → fix that cause and run the check again.
+- **Differs otherwise** → an unexpected fact; handle it under 3.2, running no further probe and making no further edit for the unit until 3.2 resolves it.
+
+When a second fix attempt still leaves the result differing from the prediction, or a failure of a class already fixed in the unit recurs, the unit's failure is an unexpected fact; handle it under 3.2, reporting each result and each attempted fix with it.
+
+### 3.2 Discovery handling during a unit
+
+If, while executing a unit, an unexpected fact is observed (a behavior, type, caller, or invariant the plan did not anticipate, or a check result 3.1.1 hands here):
 
 1. **Check the plan's `Inconclusive` items.** Is this discovery an expected branch?
    - **Yes** → follow the listed branch. If the branch says "re-plan trigger", **stop implementation** and return to research for this hypothesis.
@@ -117,9 +137,9 @@ Procedure when substituting:
 1. **Enumerate the original strategy's properties explicitly.** Not just the named motivation — every property the original mechanism happens to achieve. E.g. `MaybeUninit` + transmute provides {no zero-init, no per-element heap alloc, caller-controlled placement, deterministic layout}; `Vec::with_capacity` + push provides {no zero-init} only.
 2. **Verify the substitute preserves each property.** Any dropped property must be named in the plan-vs-actual diff and surfaced to the user — "substituting M with M' to avoid unsafe; M' loses Q. OK to ship?" — not silently discarded.
 
-### 3.3 Quality items during Do / Study
+### 3.3 Quality items during a unit
 
-Substantive rules for guards, fixtures, docstring consistency, textual drift, naming-as-claim, and plan-vs-actual reconciliation live in the rule sets `todo-check` applies. Honor whichever items Step 3.0's `todo-check` marked active for the current unit. The wrapper-specific gates (3.2 / 3.2.1 / 3.2.2 above) layer on top.
+Substantive rules for guards, fixtures, docstring consistency, textual drift, naming-as-claim, and plan-vs-actual reconciliation live in the rule sets `todo-check` applies. Honor whichever items Step 3.0's `todo-check` marked active for the current unit. The gates in 3.1.1, 3.2, 3.2.1, and 3.2.2 above layer on top.
 
 ## Step 4 — Run done-check
 
@@ -129,4 +149,4 @@ Invoke the `done-check` skill against the diff, passing the root stated at Step 
 
 1. **Plan-vs-actual diff** — enumerate every divergence between the plan and the implementation diff together with what each divergence traces to, state whether every artifact the plan enumerated is present, and state the outcome of comparing the plan's impact list against the callers the implementation diff modified. `quality-list` `discovery-surfacing` governs the trace vocabulary and that enumeration check; `impact-verification` governs the comparison.
 2. **Conventional commit message(s)**, generated under the rules of `generate-conventional-commit-messages` if the skill is available. No HPC paths, no cluster context, no local environment details, no line numbers in body.
-3. Hand off — do **not** commit unless the user explicitly authorized commits.
+3. Hand off — do **not** commit unless the user explicitly authorized commits. When a pre-commit hook rejects an authorized commit, no commit was created: fix what the hook reports, stage the fix, and create a new commit — never `git commit --amend`.
