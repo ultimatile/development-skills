@@ -17,6 +17,7 @@ Gather first:
 
 - The implementation plan (from the current conversation)
 - The list of repository files Codex should read before evaluating
+- When the plan carries `research`'s Failure scenarios section, `research`'s scenario definitions; also, as far as the run holds them, the plan's scenario records and the hypotheses `research`'s Step 2 confirmed for it
 - 2–4 specific evaluation questions (not "what do you think?")
 
 Template:
@@ -36,6 +37,11 @@ Files to inspect first:
 Specific questions:
 <EVALUATION_QUESTIONS>
 </task>
+
+<failure_scenarios>
+The plan above carries a Failure scenarios section; the definitions it uses, the records the run holds about its scenarios, and the hypotheses the plan rests on follow. A scenario the table lists as Covered `no` is one the plan deliberately leaves unguarded: do not report a missing guard for it, whatever the dig_deeper_nudge block asks. Report any evidence you read that the section is not accurate for the change, as its definitions define accurate, quoting that evidence, grounded in code you read or in the records given here. Apart from that grounding, the grounding_rules, verification_loop and missing_context_gating blocks do not apply to these reports.
+<FAILURE_SCENARIOS_DEFINITIONS_RECORDS_AND_HYPOTHESES>
+</failure_scenarios>
 
 <grounding_rules>
 Ground every concern in code you have actually read from this repository.
@@ -76,6 +82,7 @@ Drop speculative or stylistic nits.
 
 Block selection rationale:
 
+- `failure_scenarios`: keeps Codex from asking for guards against scenarios the table lists as Covered `no`, and surfaces evidence that the Failure scenarios section is not accurate for the change
 - `grounding_rules`: plan review drifts into invented code otherwise
 - `structured_output_contract`: forces a shape that maps directly to the triage step in §3
 - `dig_deeper_nudge`: without it Codex tends to stop at the first plausible concern
@@ -102,6 +109,8 @@ Codex evaluates the plan against the code it reads, but lacks project context (d
 - **`false-positive`**: a concern that doesn't apply given project constraints (e.g., suggesting generalization when only one case exists)
 
 A finding whose resolution opens a design question the plan did not settle is `opens-a-question` → fold it back into the research that produced the plan rather than spot-patching the plan text.
+
+Whatever the `<failure_scenarios>` block asks Codex to report is triaged as a finding under `finding-triage`, wherever in the output it appears.
 
 Present the triage to the user, not the raw output.
 

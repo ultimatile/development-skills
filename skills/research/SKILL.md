@@ -98,6 +98,28 @@ A `rejected` derivational hypothesis is a **plan bug**. Correct the plan and re-
 
 Merge subagent reports into a single plan with the following sections.
 
+### Failure scenarios
+
+Write this section first, then run the review this section ends with, and design the Plan body against the section as that review leaves it.
+
+The section is a table with one row for each failure scenario the plan's author identifies, a failure scenario being an input the change handles, or an operation someone performs on the change, together with one way it goes wrong. Its columns are **Scenario**, **Occurs**, **Severe**, **Detected**, **Covered**, and **Handling**. Each of the three axes, Occurs, Severe, and Detected, takes a value with the fact it rests on, judged on the change without any Handling this table proposes:
+
+- **Occurs** — `ruled out` when a constraint makes the scenario impossible, the constraint cited in the row, for example a type, a caller contract, or a check that runs before the change sees the input. Otherwise `yes` when the run holds one of three kinds of evidence that the scenario happens in actual use: (1) a record of it happening that a reader of the plan can open, for example an issue, a review finding, or a linked run; (2) a record of it happening that the reader cannot open, such as a local run transcript; (3) the fact that someone can produce it without departing from the procedure they follow. A user passing a wrong argument departs from no procedure; an agent altering a command a skill directs does, so that scenario needs a record. Otherwise `no`. A row whose Occurs rests on a record cites a record of the first kind, or states the fact a record of the second kind shows.
+- **Severe** — `yes` when the failure's effect cannot be undone by the means available after the failure, for example a post to an external service, or a deleted file that no commit holds. Otherwise `no`.
+- **Detected** — `yes` when the failure surfaces at the step where it happens, as an error or a visible wrong output; a failure a pipe or a discarded stream hides is not detected. Otherwise `no`.
+
+**Covered** is `no` when Occurs is `ruled out`, or when Occurs is `no`, Severe is `no`, and Detected is `yes`. It is also `no` when the scenario is produced only on purpose, by someone who can produce it directly without passing through a guard against it, as a malicious user of a local tool can. Otherwise it is `yes`.
+
+**Handling** applies to a covered scenario, and is `none` otherwise. It either supports the scenario's input or operation as it arrives, or detects the scenario and fails with a message that names it. For a scenario that arises from departing from instructions an agent executes, that support or detection is a mechanism that does not depend on the agent reading prose: for example, a script that detects its own failure and prints it as a status line, or a hook that detects the command shape and blocks it. When the change, without any Handling this table proposes, already detects the scenario and fails with a message that names it, in the form this paragraph requires of a Handling, that existing behavior is the row's Handling, and the plan adds no guard for it.
+
+A change that handles no input or operation says so in place of the table.
+
+The section is **accurate** for the change when every Occurs, Severe, and Detected cell, and the fact each such cell rests on, is true; every Covered cell holds the value the Covered rule gives; its statement that the change handles no input or operation, where it makes one, is true; and every scenario that a scenario record of the first or second kind of Occurs evidence shows happening, and that the Covered rule makes covered, has a row.
+
+The **scenario definitions** are this section's definitions of a failure scenario, of the three axes, of Covered, of Handling, and of accurate, and its statement for a change that handles no input or operation. The **scenario records** are the records the run holds, other than review findings raised in the run, that the table cites, whose facts the table states, or that report a scenario happening; a record that a review finding cites is one the run holds from then on.
+
+Then dispatch a fresh-context subagent once, with the section as written, the scenario definitions, the scenario records, the hypotheses Step 2 confirmed, the task, and the repository path. Ask it whether the section is accurate for the change, and whether any Handling contradicts how the system is actually used. Revise the section by each point it raises that is correct.
+
 ### Plan body
 
 - **Checklist of changes** with exact file paths, function signatures, type definitions
@@ -108,7 +130,7 @@ Merge subagent reports into a single plan with the following sections.
   - For new constructors / input paths: tests passing those inputs through every existing public API that could receive them. A new input path without cross-API tests is incomplete.
   - **Surrogate-probe re-instantiation**: every hypothesis confirmed in Step 2 by a *surrogate* probe (proof-of-concept build, reference implementation, toy fixture standing in for the committed artifact) must emit either an artifact-level Test plan entry that re-runs the check against the committed artifact, or an explicit `surrogate evidence suffices because <reason>` line.
   - **Perf acceptance criterion** (perf-motivated tasks only): an end-to-end benchmark that provably exercises the changed path, with a before/after (or feature-off/on) comparison, carried forward as a first-class acceptance criterion with the same status as a correctness test. A component-level microbenchmark proves the component win, not the operation win, and does not discharge this. When the win is conditional (neutral on the default build, paying off only under a feature flag / accelerated backend / specific input class), state where it lands rather than implying an unconditional speedup.
-- **Implementation guards** (from confirmed hypotheses):
+- **Implementation guards** (from confirmed hypotheses; a guard of any kind below that acts against an input or an operation is listed only for a covered row of the Failure scenarios table, its entry naming that row, and the guard implements the row's Handling):
   - New invariants enforced with assertions, not comments
   - Paired APIs that must stay consistent (sibling methods)
   - Constructor validations required
@@ -216,7 +238,7 @@ After Step 3 produces a plan and before Step 6 collects user approval:
    > "Plan ready. Recommend running `/codex-plan-review` before
    > approval; type `skip` to bypass, or anything else to run it."
 
-2. **If review runs**: triage the findings.
+2. **If review runs**: triage the findings; a finding the triage closes is a concern of neither kind below, and one it holds as `opens-a-question` is a premise concern, whichever kind the distinction below would give its content.
 
    - **Implementation concerns** (algorithm details, error handling, test coverage gaps, naming): patch the plan in place and proceed to the loop gate below.
    - **Premise concerns** (the assumed root cause may be wrong, the described mechanism doesn't match how the code actually fails, a fixture's claimed properties may not hold, an "obvious" derivation is unproven): **return to Step 1**. Do not patch the plan in place — the hypothesis set itself is suspect, and incremental edits perpetuate the bad premise across iterations.
