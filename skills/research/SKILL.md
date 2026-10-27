@@ -110,13 +110,13 @@ The section is a table with one row per failure scenario: an input the change ha
 
 **Covered** is `no` when Occurs is `ruled out`, or when Occurs is `no`, Severe is `no`, and Detected is `yes`. It is also `no` when the scenario is produced only on purpose, by someone who can produce it directly without passing through a guard against it, as a malicious user of a local tool can. Otherwise it is `yes`.
 
-**Handling** applies to a covered scenario, and is `none` otherwise. It either supports the scenario's input as it arrives, or detects the scenario and fails with a message that names it. A scenario that arises from departing from instructions an agent executes is closed by a mechanism that does not depend on the agent reading prose: for example, a script that prints its outcome as a status line, or a hook that blocks the command shape.
+**Handling** applies to a covered scenario, and is `none` otherwise. It either supports the scenario's input as it arrives, or detects the scenario and fails with a message that names it. For a scenario that arises from departing from instructions an agent executes, that support or detection is a mechanism that does not depend on the agent reading prose: for example, a script that detects its own failure and prints it as a status line, or a hook that detects the command shape and blocks it.
 
 A change that handles no input or operation says so in place of the table.
 
 The section is **accurate** for the change when every Occurs, Severe, Detected, and Covered cell, and the fact each such cell rests on, is true; its statement that the change handles no input or operation, where it makes one, is true; and every scenario the Covered rule makes covered has a row.
 
-The **scenario definitions** are this section's definitions of a failure scenario, of the three axes, of Covered, of Handling, and of accurate, and its statement for a change that handles no input or operation. The **scenario records** are the records the table cites and the records whose facts it states.
+The **scenario definitions** are this section's definitions of a failure scenario, of the three axes, of Covered, of Handling, and of accurate, and its statement for a change that handles no input or operation. The **scenario records** are the records the table cites, the records whose facts it states, and every other record the run holds that reports a scenario happening.
 
 Then dispatch a fresh-context subagent once, with the section as written, the scenario definitions, the scenario records, the hypotheses Step 2 confirmed, the task, and the repository path. Ask it whether the section is accurate for the change, and whether any Handling contradicts how the system is actually used. Revise the section by each point it raises that is correct.
 
@@ -130,12 +130,11 @@ Then dispatch a fresh-context subagent once, with the section as written, the sc
   - For new constructors / input paths: tests passing those inputs through every existing public API that could receive them. A new input path without cross-API tests is incomplete.
   - **Surrogate-probe re-instantiation**: every hypothesis confirmed in Step 2 by a *surrogate* probe (proof-of-concept build, reference implementation, toy fixture standing in for the committed artifact) must emit either an artifact-level Test plan entry that re-runs the check against the committed artifact, or an explicit `surrogate evidence suffices because <reason>` line.
   - **Perf acceptance criterion** (perf-motivated tasks only): an end-to-end benchmark that provably exercises the changed path, with a before/after (or feature-off/on) comparison, carried forward as a first-class acceptance criterion with the same status as a correctness test. A component-level microbenchmark proves the component win, not the operation win, and does not discharge this. When the win is conditional (neutral on the default build, paying off only under a feature flag / accelerated backend / specific input class), state where it lands rather than implying an unconditional speedup.
-- **Implementation guards** (from confirmed hypotheses):
+- **Implementation guards** (from confirmed hypotheses; a guard of any kind below that acts against an input or an operation is listed only for a covered row of the Failure scenarios table, its entry naming that row, and the guard implements the row's Handling):
   - New invariants enforced with assertions, not comments
   - Paired APIs that must stay consistent (sibling methods)
   - Constructor validations required
   - State that needs an explicit field rather than heuristic inference
-  - A guard against an input or an operation is added only for a covered row of the Failure scenarios table; it names that row and implements the row's Handling.
 - **Derivations** (from confirmed derivational hypotheses): for each specific example whose properties were claimed in the plan, reproduce the derivation in compressed form (defining equations → steps → conclusion). The plan reader should be able to retrace the deduction without re-running Step 2.B.
 - **Conflicts or dependencies between hypotheses** (if any)
 
@@ -239,7 +238,7 @@ After Step 3 produces a plan and before Step 6 collects user approval:
    > "Plan ready. Recommend running `/codex-plan-review` before
    > approval; type `skip` to bypass, or anything else to run it."
 
-2. **If review runs**: triage the findings; a finding the triage closes is a concern of neither kind below.
+2. **If review runs**: triage the findings; a finding the triage closes is a concern of neither kind below, and one it holds as `opens-a-question` is a premise concern.
 
    - **Implementation concerns** (algorithm details, error handling, test coverage gaps, naming): patch the plan in place and proceed to the loop gate below.
    - **Premise concerns** (the assumed root cause may be wrong, the described mechanism doesn't match how the code actually fails, a fixture's claimed properties may not hold, an "obvious" derivation is unproven): **return to Step 1**. Do not patch the plan in place — the hypothesis set itself is suspect, and incremental edits perpetuate the bad premise across iterations.

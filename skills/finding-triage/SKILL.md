@@ -79,9 +79,9 @@ The selected edit is applied in the current run, subject to the question `action
 
 The regeneration signal — whether the target sentence was written to answer a prior finding — is iteration history, out of scope here per **Scope: stateless, per-finding**.
 
-## Findings on a plan's failure-scenario table
+## Findings on a plan's Failure scenarios section
 
-When the run holds a plan that carries `research`'s Failure scenarios section, a finding that asks for a guard, a validation, or other defensive handling against a scenario its table lists as Covered `no` is `false-positive`: the row records the deliberate design choice the reviewer lacked, and the reasoning cites it. A finding that shows the section is not accurate for the change, as that section defines accurate, is not dismissed by a row: the section is the plan's premise, so the finding is `opens-a-question`. Every other finding takes the dispositions above.
+When the run holds a plan that carries `research`'s Failure scenarios section, a finding that asks for a guard, a validation, or other defensive handling against a scenario its table lists as Covered `no` is `false-positive`: the row records the deliberate design choice the reviewer lacked, and the reasoning cites it. A finding that asks for such handling against a scenario the table does not list is `opens-a-question`: whether that scenario gets a row, and with which Covered value, is the plan's decision. A finding that shows the section is not accurate for the change, as that section defines accurate, is not dismissed by a row: the section is the plan's premise, so the finding is `opens-a-question`. Every other finding takes the dispositions above.
 
 ## Pre-existing instances do not license dismissal
 
