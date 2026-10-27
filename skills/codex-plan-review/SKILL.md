@@ -17,7 +17,7 @@ Gather first:
 
 - The implementation plan (from the current conversation)
 - The list of repository files Codex should read before evaluating
-- When the plan carries `research`'s Failure scenarios section, `research`'s scenario definitions and scenario records, and the hypotheses `research`'s Step 2 confirmed for the plan
+- When the plan carries `research`'s Failure scenarios section, `research`'s scenario definitions; also, as far as the run holds them, the plan's scenario records and the hypotheses `research`'s Step 2 confirmed for it
 - 2–4 specific evaluation questions (not "what do you think?")
 
 Template:
@@ -39,7 +39,7 @@ Specific questions:
 </task>
 
 <failure_scenarios>
-The plan above carries a Failure scenarios section; the definitions it uses, its records, and the hypotheses the plan rests on follow. A scenario the table lists as Covered `no` is one the plan deliberately leaves unguarded: do not report a missing guard for it, whatever the dig_deeper_nudge block asks. Report any evidence you read that the section is not accurate for the change, as its definitions define accurate, quoting that evidence, grounded in code you read or in the records given here; the grounding_rules, verification_loop and missing_context_gating blocks do not filter these reports otherwise.
+The plan above carries a Failure scenarios section; the definitions it uses, the records the run holds about its scenarios, and the hypotheses the plan rests on follow. A scenario the table lists as Covered `no` is one the plan deliberately leaves unguarded: do not report a missing guard for it, whatever the dig_deeper_nudge block asks. Report any evidence you read that the section is not accurate for the change, as its definitions define accurate, quoting that evidence, grounded in code you read or in the records given here. Apart from that grounding, the grounding_rules, verification_loop and missing_context_gating blocks do not apply to these reports.
 <FAILURE_SCENARIOS_DEFINITIONS_RECORDS_AND_HYPOTHESES>
 </failure_scenarios>
 
