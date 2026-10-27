@@ -110,7 +110,7 @@ The section is a table with one row for each failure scenario the plan's author 
 
 **Covered** is `no` when Occurs is `ruled out`, or when Occurs is `no`, Severe is `no`, and Detected is `yes`. It is also `no` when the scenario is produced only on purpose, by someone who can produce it directly without passing through a guard against it, as a malicious user of a local tool can. Otherwise it is `yes`.
 
-**Handling** applies to a covered scenario, and is `none` otherwise. It either supports the scenario's input or operation as it arrives, or detects the scenario and fails with a message that names it. For a scenario that arises from departing from instructions an agent executes, that support or detection is a mechanism that does not depend on the agent reading prose: for example, a script that detects its own failure and prints it as a status line, or a hook that detects the command shape and blocks it.
+**Handling** applies to a covered scenario, and is `none` otherwise. It either supports the scenario's input or operation as it arrives, or detects the scenario and fails with a message that names it. When the change, without any Handling this table proposes, already detects the scenario and fails with a message that names it, that existing behavior is the row's Handling, and the plan adds no guard for it. For a scenario that arises from departing from instructions an agent executes, that support or detection is a mechanism that does not depend on the agent reading prose: for example, a script that detects its own failure and prints it as a status line, or a hook that detects the command shape and blocks it.
 
 A change that handles no input or operation says so in place of the table.
 
