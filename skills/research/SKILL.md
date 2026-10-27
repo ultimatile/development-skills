@@ -102,7 +102,7 @@ Merge subagent reports into a single plan with the following sections.
 
 Write this section first, then run the review this section ends with, and design the Plan body against the section as that review leaves it.
 
-The section is a table with one row per failure scenario: an input the change handles, or an operation someone performs on the change, together with one way it goes wrong. Its columns are **Scenario**, **Occurs**, **Severe**, **Detected**, **Covered**, and **Handling**. Each of the three axes, Occurs, Severe, and Detected, takes a value with the fact it rests on, judged on the change without any Handling this table proposes:
+The section is a table with one row for each failure scenario the plan's author identifies, a failure scenario being an input the change handles, or an operation someone performs on the change, together with one way it goes wrong. Its columns are **Scenario**, **Occurs**, **Severe**, **Detected**, **Covered**, and **Handling**. Each of the three axes, Occurs, Severe, and Detected, takes a value with the fact it rests on, judged on the change without any Handling this table proposes:
 
 - **Occurs** — `ruled out` when a constraint makes the scenario impossible, the constraint cited in the row, for example a type, a caller contract, or a check that runs before the change sees the input. Otherwise `yes` when the run holds one of three kinds of evidence that the scenario happens in actual use: (1) a record of it happening that a reader of the plan can open, cited in the row, for example an issue, a review finding, or a linked run; (2) the fact shown by a record the reader cannot open, such as a local run transcript, stated in the row; (3) the fact that someone can produce it without departing from the procedure they follow. A user passing a wrong argument departs from no procedure; an agent altering a command a skill directs does, so that scenario needs a record. Otherwise `no`.
 - **Severe** — `yes` when the failure's effect cannot be undone by the means available after the failure, for example a post to an external service, or a deleted file that no commit holds. Otherwise `no`.
@@ -114,7 +114,7 @@ The section is a table with one row per failure scenario: an input the change ha
 
 A change that handles no input or operation says so in place of the table.
 
-The section is **accurate** for the change when every Occurs, Severe, Detected, and Covered cell, and the fact each such cell rests on, is true; its statement that the change handles no input or operation, where it makes one, is true; and every scenario the Covered rule makes covered has a row.
+The section is **accurate** for the change when every Occurs, Severe, Detected, and Covered cell, and the fact each such cell rests on, is true; its statement that the change handles no input or operation, where it makes one, is true; and every scenario that a record the run holds, of the first or second kind of Occurs evidence, shows happening, and that the Covered rule makes covered, has a row.
 
 The **scenario definitions** are this section's definitions of a failure scenario, of the three axes, of Covered, of Handling, and of accurate, and its statement for a change that handles no input or operation. The **scenario records** are the records the table cites, the records whose facts it states, and every other record the run holds that reports a scenario happening.
 

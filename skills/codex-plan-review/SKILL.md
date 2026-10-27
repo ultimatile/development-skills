@@ -17,7 +17,7 @@ Gather first:
 
 - The implementation plan (from the current conversation)
 - The list of repository files Codex should read before evaluating
-- When the plan carries `research`'s Failure scenarios section, `research`'s scenario definitions and scenario records
+- When the plan carries `research`'s Failure scenarios section, `research`'s scenario definitions and scenario records, and the hypotheses `research`'s Step 2 confirmed for the plan
 - 2–4 specific evaluation questions (not "what do you think?")
 
 Template:
@@ -39,8 +39,8 @@ Specific questions:
 </task>
 
 <failure_scenarios>
-The plan above carries a Failure scenarios section; the definitions it uses and its records follow. A scenario the table lists as Covered `no` is one the plan deliberately leaves unguarded: do not report a missing guard for it. Report any evidence you read that the section is not accurate for the change, as its definitions define accurate, quoting that evidence, grounded in code you read or in the records given here; the grounding_rules, verification_loop and missing_context_gating blocks do not filter these reports otherwise.
-<FAILURE_SCENARIOS_DEFINITIONS_AND_RECORDS>
+The plan above carries a Failure scenarios section; the definitions it uses, its records, and the hypotheses the plan rests on follow. A scenario the table lists as Covered `no` is one the plan deliberately leaves unguarded: do not report a missing guard for it, whatever the dig_deeper_nudge block asks. Report any evidence you read that the section is not accurate for the change, as its definitions define accurate, quoting that evidence, grounded in code you read or in the records given here; the grounding_rules, verification_loop and missing_context_gating blocks do not filter these reports otherwise.
+<FAILURE_SCENARIOS_DEFINITIONS_RECORDS_AND_HYPOTHESES>
 </failure_scenarios>
 
 <grounding_rules>
@@ -82,7 +82,7 @@ Drop speculative or stylistic nits.
 
 Block selection rationale:
 
-- `failure_scenarios`: keeps Codex from asking for guards the plan deliberately omits, and surfaces evidence that the Failure scenarios section is not accurate for the change
+- `failure_scenarios`: keeps Codex from asking for guards against scenarios the table lists as Covered `no`, and surfaces evidence that the Failure scenarios section is not accurate for the change
 - `grounding_rules`: plan review drifts into invented code otherwise
 - `structured_output_contract`: forces a shape that maps directly to the triage step in §3
 - `dig_deeper_nudge`: without it Codex tends to stop at the first plausible concern
