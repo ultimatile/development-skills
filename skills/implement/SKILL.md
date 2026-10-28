@@ -5,7 +5,7 @@ description: Execute a prior research plan one unit at a time with GitHub issue 
 
 # implement
 
-GitHub-integrated executor for a research plan: works through the plan one unit at a time, surfaces plan-vs-actual drift, and ends with a `done-check` audit.
+GitHub-integrated executor for a research plan: works through the plan one unit at a time, surfaces plan-vs-actual drift, and runs a `done-check` audit before its final output.
 
 **Issue / task:** $ARGUMENTS
 
@@ -39,11 +39,11 @@ If the plan has no `Derivations` section but the work involves specific-example 
 
 Work through the Step 2 checklist with the plan as the source of truth, under the subsections below.
 
-The **root** — the ref this change is measured from — is an input, supplied by the caller on `diff-root`'s terms. This wrapper resolves none: with none supplied, ask. State it, and pass it to Step 3.0's `todo-check` and Step 4's `done-check`.
+The **root** — the ref this change is measured from — is an input, supplied by the caller on `diff-root`'s terms. This skill resolves none: with none supplied, ask. State it, and pass it to Step 3.0's `todo-check` and Step 4's `done-check`.
 
 ### 3.0 Preflight via todo-check
 
-Before any implementation change, invoke `todo-check` against the plan, passing the root stated above, to extract the active preflight items and their setup actions for this work. Fold the resulting △ rows into the checks of the units they apply to (3.1.1). A preflight that halts emits no table at all, so there are no △ rows to hand on; it has surfaced something to the user, and the unit does not start. Re-invoke `todo-check` between units when the next unit changes the active item set (e.g., it introduces a new public API → `impact-verification` and `paired-artifact-drift` become active). A file the diff will carry but the plan does not name has no preflight setup row here; the Step 4 `done-check` catches it against the diff.
+Before any implementation change, invoke `todo-check` against the plan, passing the root stated above, to extract the active preflight items and their setup actions for this work. Take the resulting △ rows as setup actions for this work, and carry out each one before the next unit's edit. A preflight that halts emits no table at all, so there are no △ rows to carry out; it has surfaced something to the user, and the unit does not start. Re-invoke `todo-check` between units when the next unit changes the active item set (e.g., it introduces a new public API → `impact-verification` and `paired-artifact-drift` become active). A file the diff will carry but the plan does not name has no preflight setup row here; the Step 4 `done-check` catches it against the diff.
 
 ### 3.0.1 Pre-commit hook recall
 
@@ -67,39 +67,33 @@ Make recall deliberate once per session.
 2. For each entry whose one-line description plausibly intersects a unit in the Step 2 checklist, open and read it.
 3. Scope filter: entries the unit's description does not plausibly invoke are not active.
 
-Output: a short list of active memory rules, threaded into per-unit checks alongside `todo-check`'s active items. A unit violating an active memory rule is a discovery-contract violation.
+Output: a short list of active memory rules, honored in each unit alongside `todo-check`'s active items (3.3). A unit violating an active memory rule is a discovery-contract violation.
 
 ### 3.0.3 Project documentation recall
 
-Once per session, read any contributor / agent guidance docs present at the repo root or in `docs/` (top-level only): `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `STYLE.md` / `STYLEGUIDE.md`, `HACKING.md`, `docs/CODING_GUIDELINES.md`, `docs/conventions/`. `README.md` only if it carries contribution guidance. Treat clearly-labeled non-standard names as in-scope. Thread the constraints into per-unit checks the same way as 3.0.2 — violations are discovery-contract violations.
+Once per session, read any contributor / agent guidance docs present at the repo root or in `docs/` (top-level only): `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `STYLE.md` / `STYLEGUIDE.md`, `HACKING.md`, `docs/CODING_GUIDELINES.md`, `docs/conventions/`. `README.md` only if it carries contribution guidance. Treat clearly-labeled non-standard names as in-scope. Honor the constraints in each unit the same way as 3.0.2 — violations are discovery-contract violations.
 
 ### 3.1 Baseline
 
 Before any code change, build and run existing tests to record pre-existing failures, and run the project's linter (e.g., `cargo clippy`, `clang-tidy`, `ruff check`, `eslint`) to record pre-existing warnings. Compare against both baselines at every verification step. Pre-commit-gated linters (Step 3.0.1) are especially important — the gate rejects on any new violation. Formatters are excluded.
 
-### 3.1.1 Unit loop
+### 3.1.1 Unit discipline
 
-A unit is one entry of the Step 2 checklist. Keep one unit open at a time: start the next only after the current one has closed or has been handed to 3.2 below.
+A unit is one entry of the Step 2 checklist. Edit for one unit at a time: do not edit for the next unit until the current unit's check, run after its edit, shows its prediction, unless 3.2 directs otherwise. A unit with nothing to edit is judged on its before-edit run instead.
 
-Before editing for a unit, write down three things: its prediction — what will be observably true once the unit is done; the targeted check that observes it, with the unit's △ rows from 3.0 folded in; and what that check should show before the edit — a failure for the reason the unit addresses, or a pass where the unit preserves or only verifies existing behavior.
+Before editing for a unit, write down its prediction — what will be observably true once the unit is done — the targeted check that observes it, and what that check should show before the edit. Run the check before the edit, unless it cannot run yet, and again after it.
 
-Run the check before the edit:
+The following are unexpected facts for 3.2. Once one is observed, make no further edit for the unit until 3.2 directs one:
 
-- **Result as written down** → make the edit. A unit with nothing to edit closes here.
-- **Any other result** → an unexpected fact; handle it under 3.2.
-- **Not runnable before the edit** → record why, then make the edit.
+- a before-edit result other than the one written down;
+- an after-edit result other than the prediction, unless the check results in hand show that its cause lies in the unit's own edit, fewer than two fixes have been attempted in the unit, and the unit has not already fixed that cause;
+- a check that cannot run after the edit.
 
-After the edit, run the check again and compare the result with the prediction:
-
-- **Matches** → the unit closes.
-- **Differs, and the check results the unit already holds name the cause** → fix that cause and run the check again.
-- **Differs otherwise** → an unexpected fact; handle it under 3.2, running no further probe and making no further edit for the unit until 3.2 resolves it.
-
-When a second fix attempt still leaves the result differing from the prediction, or a failure of a class already fixed in the unit recurs, the unit's failure is an unexpected fact; handle it under 3.2, reporting each result and each attempted fix with it.
+An after-edit result other than the prediction that the second item exempts is fixed, and the check runs again.
 
 ### 3.2 Discovery handling during a unit
 
-If, while executing a unit, an unexpected fact is observed (a behavior, type, caller, or invariant the plan did not anticipate, or a check result 3.1.1 hands here):
+If, while executing a unit, an unexpected fact is observed (a behavior, type, caller, or invariant the plan did not anticipate, or one 3.1.1 names):
 
 1. **Check the plan's `Inconclusive` items.** Is this discovery an expected branch?
    - **Yes** → follow the listed branch. If the branch says "re-plan trigger", **stop implementation** and return to research for this hypothesis.

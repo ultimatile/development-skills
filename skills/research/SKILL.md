@@ -5,7 +5,7 @@ description: Investigate a GitHub issue or free-text task with empirical (subage
 
 # research
 
-Investigates a GitHub issue by forming falsifiable hypotheses, probing them with parallel subagents, labelling each with a decision, and posting the resulting plan to GitHub. Do NOT write any production code in this skill.
+Investigates a GitHub issue or task by forming falsifiable hypotheses, verifying them through subagent probes and in-context derivation, labelling each with a decision, and posting the resulting plan to GitHub. Do NOT write any production code in this skill.
 
 **Issue / task:** $ARGUMENTS
 
@@ -58,15 +58,15 @@ Hypotheses split by `kind`. Empirical hypotheses go through subagent probes (Ste
 
 ### Step 2.A — Empirical hypotheses (subagent probes)
 
-Spawn one subagent per `empirical` hypothesis (or per small related group), and give each its hypothesis together with the subagent contract below.
+Spawn one subagent per `empirical` hypothesis (or per small related group), and give each its hypothesis, the task with the scope the user approved in Step 1, the repository path, and the subagent contract below.
 
 Subagent contract:
 
 1. **Probes are three-way.** A *supporting* probe is a check whose result the hypothesis predicts. A *disconfirming* probe is a check whose result would show the hypothesis false; it **must be actually executed**, not just listed. A *scope* probe checks whether the hypothesis is local to the case that raised it or holds across the code paths that share its mechanism.
-2. **For non-trivial existing code, record a reading of each unit read** — a function, type, branch, or module boundary — under five fields: *What* it does, *Why* it has that shape, the *Invariants* it relies on, its *Failure* behavior when they break, and its *Connections*, what feeds it and what it feeds. Write a field the reading cannot settle as `UNKNOWN` together with the probe that would settle it. Shallow grep-only verification is permitted only for trivially mechanical hypotheses (existence checks, file locations).
+2. **For non-trivial existing code, settle five fields for each function, method, or type read**: *What* it does, *Why* it has that shape, the *Invariants* it relies on, its *Failure* behavior when they break, and its *Connections*, what feeds it and what it feeds. Write a field the reading cannot settle as `UNKNOWN` together with the probe that would settle it. Shallow grep-only verification is permitted only for trivially mechanical hypotheses (existence checks, file locations).
 3. **Runtime probe (preferred for behavioral claims).** Behavioral claims (output ordering, return shape, error-path return, ABI / FFI layout, signal handling, performance) need a minimal reproducer — docs reading is corroboration, not verification. Boundary cases (minimal/maximal sizes, type variations, single-element containers) belong here.
 4. **Caller-contract verification for change-impact hypotheses.** Classify the change as compile-breaking (new required trait method, type change) or silently semantic (same signature, different behavior). Semantic changes need caller-by-caller verification. Flag any public API with unchecked internal assumptions (pointer arithmetic trusting an offset, a serializer trusting field order, an index trusting contiguity).
-5. Return a **Decision** in one of four states: `confirmed` — the supporting evidence holds and the disconfirming probe ran without showing the hypothesis false; `rejected` — the evidence shows it false; `inconclusive` — the evidence gathered does not settle it; `deferred` — it bears on the work but falls outside the current scope. For `inconclusive`, attach the remaining `probe:`. For `deferred`, attach reason and resolution-point.
+5. Return a **Decision** in one of four states, taking the first that applies: `deferred` when the hypothesis is outside the task's scope; `rejected` when any evidence gathered shows it false; `confirmed` when the supporting evidence holds and the disconfirming probe ran; `inconclusive` otherwise. For `inconclusive`, attach the remaining `probe:`. For `deferred`, attach reason and resolution-point.
 6. Report back with concise file paths, line numbers, function signatures, probe results, and every `UNKNOWN` field with its probe.
 
 **Subagent granularity**: hypotheses requiring only existence checks or single-file grep can be resolved directly from the main context. Reserve subagents for hypotheses that touch multiple files or need deep reading. Spawn all empirical-hypothesis subagents in a single message.
