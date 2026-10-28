@@ -79,14 +79,14 @@ Before any code change, build and run existing tests to record pre-existing fail
 
 ### 3.1.1 Unit discipline
 
-A unit is one entry of the Step 2 checklist. Edit for one unit at a time: do not edit for the next unit until the current unit's check, run after its edit, shows its prediction, unless 3.2 directs otherwise. A unit with nothing to edit is judged on its before-edit run instead.
+A unit is one entry of the Step 2 checklist. Edit for one unit at a time: do not edit for the next unit until the current unit's check, run after its edit, shows its prediction, unless 3.2 directs otherwise. A unit with nothing to edit runs its check once, and that run is judged as its after-edit run.
 
 Before editing for a unit, write down its prediction — what will be observably true once the unit is done — the targeted check that observes it, and what that check should show before the edit. Run the check before the edit, unless it cannot run yet, and again after it.
 
 The following are unexpected facts for 3.2. Once one is observed, make no further edit for the unit until 3.2 directs one:
 
 - a before-edit result other than the one written down;
-- an after-edit result other than the prediction, unless the check results in hand show that its cause lies in the unit's own edit, fewer than two fixes have been attempted in the unit, and the unit has not already fixed that cause;
+- an after-edit result other than the prediction, unless all three of these hold: the check results in hand show that its cause lies in the unit's edit or in a fix made in the unit; fewer than two fixes have been attempted in the unit; the unit has not already fixed that cause;
 - a check that cannot run after the edit.
 
 An after-edit result other than the prediction that the second item exempts is fixed, and the check runs again.

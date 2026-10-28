@@ -36,7 +36,7 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
    - **What invariants must hold**: contracts / preconditions / correctness properties
    - **What could break**: existing code paths affected by the change, especially where new inputs flow through existing APIs
 
-5. Each hypothesis names its **falsifier** — the observation that would show it false — concretely enough that a subagent can go and look for it.
+5. Each hypothesis names its **falsifier** — the observation that would show it false — concretely enough that whoever verifies it can go and look for it.
 
 6. **Tag each hypothesis with a `kind`:**
 
@@ -66,8 +66,9 @@ Subagent contract:
 2. **For non-trivial existing code, settle five fields for each function, method, or type read**: *What* it does, *Why* it has that shape, the *Invariants* it relies on, its *Failure* behavior when they break, and its *Connections*, what feeds it and what it feeds. Write a field the reading cannot settle as `UNKNOWN` together with the probe that would settle it. Shallow grep-only verification is permitted only for trivially mechanical hypotheses (existence checks, file locations).
 3. **Runtime probe (preferred for behavioral claims).** Behavioral claims (output ordering, return shape, error-path return, ABI / FFI layout, signal handling, performance) need a minimal reproducer — docs reading is corroboration, not verification. Boundary cases (minimal/maximal sizes, type variations, single-element containers) belong here.
 4. **Caller-contract verification for change-impact hypotheses.** Classify the change as compile-breaking (new required trait method, type change) or silently semantic (same signature, different behavior). Semantic changes need caller-by-caller verification. Flag any public API with unchecked internal assumptions (pointer arithmetic trusting an offset, a serializer trusting field order, an index trusting contiguity).
-5. Return a **Decision** in one of four states, taking the first that applies: `deferred` when the hypothesis is outside the task's scope; `rejected` when any evidence gathered shows it false; `confirmed` when the supporting evidence holds and the disconfirming probe ran; `inconclusive` otherwise. For `inconclusive`, attach the remaining `probe:`. For `deferred`, attach reason and resolution-point.
-6. Report back with concise file paths, line numbers, function signatures, probe results, and every `UNKNOWN` field with its probe.
+5. Return a **Decision** in one of four states, taking the first that applies: `deferred` when the hypothesis is outside the task's scope; `rejected` when any evidence gathered shows it false; `confirmed` when the supporting evidence holds, the disconfirming probe ran, and no field the hypothesis depends on is `UNKNOWN`; `inconclusive` otherwise. For `inconclusive`, attach the remaining `probe:`, including the probe of each such `UNKNOWN` field. For `deferred`, attach reason and resolution-point.
+6. Report back with concise file paths, line numbers, function signatures, and probe results.
+7. Leave the repository's `git status` as you found it.
 
 **Subagent granularity**: hypotheses requiring only existence checks or single-file grep can be resolved directly from the main context. Reserve subagents for hypotheses that touch multiple files or need deep reading. Spawn all empirical-hypothesis subagents in a single message.
 
