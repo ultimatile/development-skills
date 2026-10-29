@@ -64,7 +64,7 @@ Subagent contract:
 
 1. **Run `quaere-evidence`** with the assigned hypothesis as the initial Review Claim or Hypothesis.
 2. **Probes (per `quaere-evidence` §5) are three-way: Supporting / Disconfirming / Scope.** The Disconfirming probe **must be actually executed**, not just listed.
-3. **For non-trivial existing code, read at `quaere-semantic` depth** (its `What / Why / Invariants / Failure / Connections` schema with the UNKNOWN-probe discipline). Shallow grep-only verification is permitted only for trivially mechanical hypotheses (existence checks, file locations).
+3. **For non-trivial existing code, read the code itself.** Shallow grep-only verification is permitted only for trivially mechanical hypotheses (existence checks, file locations).
 4. **Runtime probe (preferred for behavioral claims).** Behavioral claims (output ordering, return shape, error-path return, ABI / FFI layout, signal handling, performance) need a minimal reproducer — docs reading is corroboration, not verification. Boundary cases (minimal/maximal sizes, type variations, single-element containers) belong here.
 5. **Caller-contract verification for change-impact hypotheses.** Classify the change as compile-breaking (new required trait method, type change) or silently semantic (same signature, different behavior). Semantic changes need caller-by-caller verification. Flag any public API with unchecked internal assumptions (pointer arithmetic trusting an offset, a serializer trusting field order, an index trusting contiguity).
 6. Return a **Decision** in the four-state shape from `quaere-evidence` §6 (`confirmed` / `rejected` / `inconclusive` / `deferred`). For `inconclusive`, attach the remaining `probe:`. For `deferred`, attach reason and resolution-point.
@@ -140,7 +140,7 @@ Then dispatch a fresh-context subagent once, with the section as written, the sc
 
 ### Inconclusive / Deferred items (REQUIRED section)
 
-This section is **mandatory**. It explicitly carries forward UNKNOWNs into the implementation phase so that mid-implementation discoveries are either listed (handled per plan) or surface as research gaps (halt and escalate).
+This section is **mandatory**. It explicitly carries forward into the implementation phase the hypotheses Step 2 left inconclusive or deferred, so that mid-implementation discoveries are either listed (handled per plan) or surface as research gaps (halt and escalate).
 
 ```markdown
 ## Inconclusive / Deferred items
