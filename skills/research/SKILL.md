@@ -140,6 +140,8 @@ Then dispatch a fresh-context subagent once, with the section as written, the sc
 
 ### Inconclusive / Deferred items (REQUIRED section)
 
+This section is **mandatory**. It explicitly carries forward UNKNOWNs into the implementation phase so that mid-implementation discoveries are either listed (handled per plan) or surface as research gaps (halt and escalate).
+
 ```markdown
 ## Inconclusive / Deferred items
 
