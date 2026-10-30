@@ -5,7 +5,7 @@ description: Execute a prior research plan with GitHub issue integration, plan-v
 
 # implement
 
-GitHub-integrated executor for a research plan: surfaces plan-vs-actual drift and ends with a `done-check` audit.
+GitHub-integrated executor for a research plan: surfaces plan-vs-actual drift and runs a `done-check` audit before its final output.
 
 **Issue / task:** $ARGUMENTS
 
@@ -43,7 +43,7 @@ The **root** — the ref this change is measured from — is an input, supplied 
 
 ### 3.0 Preflight via todo-check
 
-Before any implementation change, invoke `todo-check` against the plan, passing the root stated above, to extract the active preflight items and their setup actions for this work. Carry out each △ row's setup action. A preflight that halts emits no table at all, so there are no △ rows to carry out; it has surfaced something to the user, and the unit does not start. Re-invoke `todo-check` between units when the next unit changes the active item set (e.g., it introduces a new public API → `impact-verification` and `paired-artifact-drift` become active). A file the diff will carry but the plan does not name has no preflight setup row here; the Step 4 `done-check` catches it against the diff.
+Before any implementation change, invoke `todo-check` against the plan, passing the root stated above, to extract the active preflight items and their setup actions for this work. Carry out each △ row's setup action: run a command it names before any change, with the 3.1 baseline, and make any other setup action with the changes it concerns. A preflight that halts emits no table at all, so there are no △ rows to carry out; it has surfaced something to the user, and implementation does not start. A file the diff will carry but the plan does not name has no preflight setup row here; the Step 4 `done-check` catches it against the diff.
 
 ### 3.0.1 Pre-commit hook recall
 
@@ -67,11 +67,11 @@ Make recall deliberate once per session.
 2. For each entry whose one-line description plausibly intersects a unit in the Step 2 checklist, open and read it.
 3. Scope filter: entries the unit's description does not plausibly invoke are not active.
 
-Output: a short list of active memory rules, applied to the units they intersect, alongside `todo-check`'s active items. A unit violating an active memory rule is a discovery-contract violation.
+Output: a short list of active memory rules, followed in the changes they bear on, alongside `todo-check`'s active items. Before Step 4, fix a change that violates one of these memory rules.
 
 ### 3.0.3 Project documentation recall
 
-Once per session, read any contributor / agent guidance docs present at the repo root or in `docs/` (top-level only): `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `STYLE.md` / `STYLEGUIDE.md`, `HACKING.md`, `docs/CODING_GUIDELINES.md`, `docs/conventions/`. `README.md` only if it carries contribution guidance. Treat clearly-labeled non-standard names as in-scope. Apply the constraints to the units the same way as 3.0.2 — violations are discovery-contract violations.
+Once per session, read any contributor / agent guidance docs present at the repo root or in `docs/` (top-level only): `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `STYLE.md` / `STYLEGUIDE.md`, `HACKING.md`, `docs/CODING_GUIDELINES.md`, `docs/conventions/`. `README.md` only if it carries contribution guidance. Treat clearly-labeled non-standard names as in-scope. Follow the constraints the same way as 3.0.2.
 
 ### 3.1 Baseline
 
@@ -117,13 +117,13 @@ Procedure when substituting:
 1. **Enumerate the original strategy's properties explicitly.** Not just the named motivation — every property the original mechanism happens to achieve. E.g. `MaybeUninit` + transmute provides {no zero-init, no per-element heap alloc, caller-controlled placement, deterministic layout}; `Vec::with_capacity` + push provides {no zero-init} only.
 2. **Verify the substitute preserves each property.** Any dropped property must be named in the plan-vs-actual diff and surfaced to the user — "substituting M with M' to avoid unsafe; M' loses Q. OK to ship?" — not silently discarded.
 
-### 3.3 Quality items during a unit
+### 3.3 Quality items
 
-Substantive rules for guards, fixtures, docstring consistency, textual drift, naming-as-claim, and plan-vs-actual reconciliation live in the rule sets `todo-check` applies. Honor whichever items Step 3.0's `todo-check` marked active for the current unit. The gates in 3.2, 3.2.1, and 3.2.2 above layer on top.
+Substantive rules for guards, fixtures, docstring consistency, textual drift, naming-as-claim, and plan-vs-actual reconciliation live in the rule sets `todo-check` applies. Honor whichever items Step 3.0's `todo-check` marked active. The gates in 3.2, 3.2.1, and 3.2.2 above layer on top.
 
 ### 3.4 Rejected commits
 
-A commit a pre-commit hook rejects was not created. Fix what the hook reports, or skip only that hook where the skill that invoked this one directs skipping it. Then stage the result together with any files the hook rewrote, and create a new commit, without `--amend` and without `--no-verify`.
+A commit a pre-commit hook rejects was not created. Skip a hook — by `--no-verify` or any other means — only where the user or the skill that invoked this one directs it, and only that hook. Otherwise fix what the hook reports, unless the fix would depart from the plan: then stop and surface the rejection to the user. After a skip or a fix, stage what the commit carries, including the hook's rewrites of those files, and create a new commit, never `git commit --amend`.
 
 ## Step 4 — Run done-check
 

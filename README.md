@@ -94,7 +94,7 @@ The skills that draft or post GitHub issue / PR bodies (`file-issue`, `file-pull
 
 ### Quaere skills
 
-`research`, `research-and-implement`, and `reimre` require the upstream [Quaere](https://github.com/haru0416-dev/quaere) skill `quaere-evidence` installed as a user-level Claude Code skill:
+`research`, `research-and-implement`, and `reimre` require `quaere-evidence`, one of the upstream [Quaere](https://github.com/haru0416-dev/quaere) skills. Install Quaere as user-level Claude Code skills:
 
 ```bash
 npx quaere-cli install --target claude
