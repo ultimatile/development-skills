@@ -1,6 +1,6 @@
 ---
 name: research-and-implement
-description: Work a GitHub issue end to end in two phases — research, then implement — under quaere-evidence and quaere-execution discipline.
+description: Work a GitHub issue end to end in two phases — research, then implement.
 ---
 
 # research-and-implement

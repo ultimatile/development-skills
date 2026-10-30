@@ -1,11 +1,11 @@
 ---
 name: implement
-description: Execute a prior research plan via quaere-execution with GitHub issue integration, plan-vs-actual drift, done-check, and conventional commits. Optional issue number argument.
+description: Execute a prior research plan with GitHub issue integration, plan-vs-actual drift, done-check, and conventional commits. Optional issue number argument.
 ---
 
 # implement
 
-GitHub-integrated wrapper around `quaere-execution`. Drives the Plan → Do → Study → Act workflow with plan-vs-actual drift surfacing and a final `done-check` audit.
+GitHub-integrated executor for a research plan: surfaces plan-vs-actual drift and ends with a `done-check` audit.
 
 **Issue / task:** $ARGUMENTS
 
@@ -35,15 +35,15 @@ If the plan has no `Inconclusive / Deferred items` section at all, treat that as
 
 If the plan has no `Derivations` section but the work involves specific-example fixtures (concrete Hamiltonians, concrete protocol messages, named worked cases, etc.), treat that as a research gap on the derivational axis and stop the same way. The absence of a `Derivations` section means no specific example has been derivationally cleared.
 
-## Step 3 — Run quaere-execution
+## Step 3 — Execute the plan
 
-Invoke the `quaere-execution` skill with the plan as the source of truth. Honor its workflow exactly: Plan → Do → Study → Act with scoped units, fresh verification evidence, diff review, fix loops, and commit/push discipline. The wrapper layers the following additional rules on top.
+Work through the Step 2 plan checklist with the plan as the source of truth.
 
-The **root** — the ref this change is measured from — is an input, supplied by the caller on `diff-root`'s terms. This wrapper resolves none: with none supplied, ask. State it, and pass it to Step 3.0's `todo-check` and Step 4's `done-check`.
+The **root** — the ref this change is measured from — is an input, supplied by the caller on `diff-root`'s terms. This skill resolves none: with none supplied, ask. State it, and pass it to Step 3.0's `todo-check` and Step 4's `done-check`.
 
 ### 3.0 Preflight via todo-check
 
-Before any implementation change, invoke `todo-check` against the plan, passing the root stated above, to extract the active preflight items and their setup actions for this work. Hand the resulting △ rows to `quaere-execution`'s Plan step so the unit checks already include them. A preflight that halts emits no table at all, so there are no △ rows to hand on; it has surfaced something to the user, and the unit does not start. Re-invoke `todo-check` between units when the next unit changes the active item set (e.g., it introduces a new public API → `impact-verification` and `paired-artifact-drift` become active). A file the diff will carry but the plan does not name has no preflight setup row here; the Step 4 `done-check` catches it against the diff.
+Before any implementation change, invoke `todo-check` against the plan, passing the root stated above, to extract the active preflight items and their setup actions for this work. Carry out each △ row's setup action. A preflight that halts emits no table at all, so there are no △ rows to carry out; it has surfaced something to the user, and the unit does not start. Re-invoke `todo-check` between units when the next unit changes the active item set (e.g., it introduces a new public API → `impact-verification` and `paired-artifact-drift` become active). A file the diff will carry but the plan does not name has no preflight setup row here; the Step 4 `done-check` catches it against the diff.
 
 ### 3.0.1 Pre-commit hook recall
 
@@ -67,17 +67,17 @@ Make recall deliberate once per session.
 2. For each entry whose one-line description plausibly intersects a unit in the Step 2 checklist, open and read it.
 3. Scope filter: entries the unit's description does not plausibly invoke are not active.
 
-Output: a short list of active memory rules, threaded into per-unit checks alongside `todo-check`'s active items. A unit violating an active memory rule is a discovery-contract violation.
+Output: a short list of active memory rules, applied to the units they intersect, alongside `todo-check`'s active items. A unit violating an active memory rule is a discovery-contract violation.
 
 ### 3.0.3 Project documentation recall
 
-Once per session, read any contributor / agent guidance docs present at the repo root or in `docs/` (top-level only): `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `STYLE.md` / `STYLEGUIDE.md`, `HACKING.md`, `docs/CODING_GUIDELINES.md`, `docs/conventions/`. `README.md` only if it carries contribution guidance. Treat clearly-labeled non-standard names as in-scope. Thread the constraints into per-unit checks the same way as 3.0.2 — violations are discovery-contract violations.
+Once per session, read any contributor / agent guidance docs present at the repo root or in `docs/` (top-level only): `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `STYLE.md` / `STYLEGUIDE.md`, `HACKING.md`, `docs/CODING_GUIDELINES.md`, `docs/conventions/`. `README.md` only if it carries contribution guidance. Treat clearly-labeled non-standard names as in-scope. Apply the constraints to the units the same way as 3.0.2 — violations are discovery-contract violations.
 
 ### 3.1 Baseline
 
-Before any code change, build and run existing tests to record pre-existing failures, and run the project's linter (e.g., `cargo clippy`, `clang-tidy`, `ruff check`, `eslint`) to record pre-existing warnings. Compare against both baselines at every verification step. Pre-commit-gated linters (Step 3.0.1) are especially important — the gate rejects on any new violation. Formatters are excluded.
+Before any code change, build and run existing tests to record pre-existing failures, and run the project's linter (e.g., `cargo clippy`, `clang-tidy`, `ruff check`, `eslint`) to record pre-existing warnings. Compare against both baselines whenever the tests or the linter run. Pre-commit-gated linters (Step 3.0.1) are especially important — the gate rejects on any new violation. Formatters are excluded.
 
-### 3.2 Discovery handling during Do
+### 3.2 Discovery handling during a unit
 
 If, while executing a unit, an unexpected fact is observed (a behavior, type, caller, or invariant the plan did not anticipate):
 
@@ -117,9 +117,13 @@ Procedure when substituting:
 1. **Enumerate the original strategy's properties explicitly.** Not just the named motivation — every property the original mechanism happens to achieve. E.g. `MaybeUninit` + transmute provides {no zero-init, no per-element heap alloc, caller-controlled placement, deterministic layout}; `Vec::with_capacity` + push provides {no zero-init} only.
 2. **Verify the substitute preserves each property.** Any dropped property must be named in the plan-vs-actual diff and surfaced to the user — "substituting M with M' to avoid unsafe; M' loses Q. OK to ship?" — not silently discarded.
 
-### 3.3 Quality items during Do / Study
+### 3.3 Quality items during a unit
 
-Substantive rules for guards, fixtures, docstring consistency, textual drift, naming-as-claim, and plan-vs-actual reconciliation live in the rule sets `todo-check` applies. Honor whichever items Step 3.0's `todo-check` marked active for the current unit. The wrapper-specific gates (3.2 / 3.2.1 / 3.2.2 above) layer on top.
+Substantive rules for guards, fixtures, docstring consistency, textual drift, naming-as-claim, and plan-vs-actual reconciliation live in the rule sets `todo-check` applies. Honor whichever items Step 3.0's `todo-check` marked active for the current unit. The gates in 3.2, 3.2.1, and 3.2.2 above layer on top.
+
+### 3.4 Rejected commits
+
+A commit a pre-commit hook rejects was not created. Fix what the hook reports, or skip only that hook where the skill that invoked this one directs skipping it. Then stage the result together with any files the hook rewrote, and create a new commit, without `--amend` and without `--no-verify`.
 
 ## Step 4 — Run done-check
 
