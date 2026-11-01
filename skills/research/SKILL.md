@@ -58,7 +58,7 @@ Hypotheses split by `kind`. Empirical hypotheses go through probes (Step 2.A). D
 
 ### Decisions and disconfirming probes
 
-A **disconfirming probe** is a check that looks for a hypothesis's falsifier. Whoever verifies an empirical hypothesis, a subagent or the main context, runs one unless it cannot run or the main context defers the hypothesis; listing it is not enough. Where the hypothesis claims more than that probe covered, run one over the rest too. A part no probe that ran could tell about is split off as its own `inconclusive` hypothesis. A probe leaves the working tree as it found it.
+A **disconfirming probe** is a check that looks for a hypothesis's falsifier. Whoever verifies an empirical hypothesis, a subagent or the main context, runs one unless it cannot run; listing it is not enough. Where the hypothesis claims more than that probe covered, run one over the rest too. A part no probe that ran could tell about is split off as its own `inconclusive` hypothesis. A probe leaves the working tree as it found it.
 
 Every verifier of an empirical hypothesis also follows these:
 
@@ -77,7 +77,7 @@ A disconfirming probe **cannot run** when it would change anything outside the l
 
 ### Step 2.A — Empirical hypotheses (subagents)
 
-Spawn one subagent per `empirical` hypothesis the main context does not defer (or per small related group). Put in its prompt the hypothesis and its falsifier, the task, the repository path, the text of **Decisions and disconfirming probes**, and this contract.
+Spawn one subagent per `empirical` hypothesis (or per small related group). Put in its prompt the hypothesis and its falsifier, the task, the repository path, the text of **Decisions and disconfirming probes**, and this contract.
 
 Subagent contract:
 
@@ -95,7 +95,7 @@ Each `derivational` hypothesis is resolved by working out the deduction explicit
 
 Subagents cannot resolve derivational hypotheses.
 
-For each derivational hypothesis the main context does not defer:
+For each derivational hypothesis:
 
 1. **State the defining equations / axioms / specification clauses** the example or claim rests on. Quote the source if it is an external spec (RFC, protocol doc, mathematical definition); reproduce it if it is a project-internal definition.
 2. **Derive forward from the defining equations to the claimed property.** Show the deductive steps. A derivation that ends in "therefore P holds" without reproducible steps is unacceptable.
@@ -103,7 +103,7 @@ For each derivational hypothesis the main context does not defer:
 4. **Report a Decision** in the four-state shape from Step 2, with these derivational-specific resolutions:
    - `confirmed` — derivation completed AND counterexample construction failed
    - `rejected` — counterexample constructed (the claim is false; plan needs revision before continuing)
-   - `inconclusive` — derivation incomplete due to missing axiom / ambiguous spec / convention conflict; attach the missing piece as an empirical `probe:` routing back through Step 2.A. ("Code it up and check at implementation time" is not valid — use the numerical-derivation lane.)
+   - `inconclusive` — derivation incomplete due to missing axiom / ambiguous spec / convention conflict; state the missing piece as an empirical hypothesis with its falsifier, routing back through Step 2.A. ("Code it up and check at implementation time" is not valid — use the numerical-derivation lane.)
    - `deferred` — outside current scope; attach reason and resolution-point
 
 A `rejected` derivational hypothesis is a **plan bug**. Correct the plan and re-derive before Step 3. A plan that attaches deductive properties to examples without reproducing the derivation fails this step.
