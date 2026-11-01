@@ -95,7 +95,7 @@ Each `derivational` hypothesis is resolved by working out the deduction explicit
 
 Subagents cannot resolve derivational hypotheses.
 
-For each derivational hypothesis:
+For each derivational hypothesis the main context does not defer:
 
 1. **State the defining equations / axioms / specification clauses** the example or claim rests on. Quote the source if it is an external spec (RFC, protocol doc, mathematical definition); reproduce it if it is a project-internal definition.
 2. **Derive forward from the defining equations to the claimed property.** Show the deductive steps. A derivation that ends in "therefore P holds" without reproducible steps is unacceptable.
@@ -136,7 +136,7 @@ Then dispatch a fresh-context subagent once, with the section as written, the sc
 
 ### Hypotheses
 
-One row for each hypothesis Step 2 decided, with columns **Hypothesis**, **Kind**, **Decision**, **Falsifier**, and **Disconfirming probe**. The Hypothesis cell states the claim the Decision applies to, and the Decision cell holds one of the four labels. The last cell holds what ran and its result, or why none ran; for a derivational hypothesis it holds the counterexample attempt.
+One row for each hypothesis Step 2 decided, with columns **Hypothesis**, **Kind**, **Decision**, **Falsifier**, and **Disconfirming probe**. The Hypothesis cell states the claim the Decision applies to, and the Decision cell holds one of the four labels. The last cell holds what ran and its result, a derivational hypothesis's counterexample attempt among them, or why none ran.
 
 ### Plan body
 
