@@ -103,7 +103,7 @@ For each derivational hypothesis:
 4. **Report a Decision** in the four-state shape from Step 2, with these derivational-specific resolutions:
    - `confirmed` — derivation completed AND counterexample construction failed
    - `rejected` — counterexample constructed (the claim is false; plan needs revision before continuing)
-   - `inconclusive` — derivation incomplete due to missing axiom / ambiguous spec / convention conflict; state the missing piece as an empirical hypothesis with its falsifier, routing back through Step 2.A. ("Code it up and check at implementation time" is not valid — use the numerical-derivation lane.)
+   - `inconclusive` — derivation incomplete due to missing axiom / ambiguous spec / convention conflict; attach the missing piece as an empirical `probe:` routing back through Step 2.A. ("Code it up and check at implementation time" is not valid — use the numerical-derivation lane.)
    - `deferred` — outside current scope; attach reason and resolution-point
 
 A `rejected` derivational hypothesis is a **plan bug**. Correct the plan and re-derive before Step 3. A plan that attaches deductive properties to examples without reproducing the derivation fails this step.
