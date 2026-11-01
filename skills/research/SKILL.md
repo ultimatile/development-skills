@@ -60,7 +60,7 @@ Hypotheses split by `kind`. Empirical hypotheses go through probes (Step 2.A). D
 
 A **disconfirming probe** is a check that looks for a hypothesis's falsifier. Whoever verifies an empirical hypothesis, a subagent or the main context, runs one unless it cannot run or the main context defers the hypothesis; listing it is not enough. Where the hypothesis claims more than that probe covered, run one over the rest too. A part no probe that ran could tell about is split off as its own `inconclusive` hypothesis. A probe leaves the working tree as it found it.
 
-Every verifier also follows these:
+Every verifier of an empirical hypothesis also follows these:
 
 - **For non-trivial existing code, read the code itself.** Shallow grep-only verification is permitted only for trivially mechanical hypotheses (existence checks, file locations).
 - **Runtime probe for behavioral claims.** Behavioral claims (output ordering, return shape, error-path return, ABI / FFI layout, signal handling, performance) need a minimal reproducer — docs reading is corroboration, not verification. Boundary cases (minimal/maximal sizes, type variations, single-element containers) belong here.
@@ -77,7 +77,7 @@ A disconfirming probe **cannot run** when it would change anything outside the l
 
 ### Step 2.A — Empirical hypotheses (subagents)
 
-Spawn one subagent per `empirical` hypothesis (or per small related group). Put in its prompt the hypothesis and its falsifier, the task, the repository path, the text of **Decisions and disconfirming probes**, and this contract.
+Spawn one subagent per `empirical` hypothesis the main context does not defer (or per small related group). Put in its prompt the hypothesis and its falsifier, the task, the repository path, the text of **Decisions and disconfirming probes**, and this contract.
 
 Subagent contract:
 
