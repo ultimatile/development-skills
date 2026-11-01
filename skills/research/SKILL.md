@@ -50,7 +50,7 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
 
 7. **Specific-example claim sweep (REQUIRED when applicable).** If the plan attaches deductive properties to a concrete example ("this example is symmetric / non-degenerate / exercises the multi-X path"), each property MUST be a separate `derivational` hypothesis — "obvious" is not an exemption. Form: "Example E has property P, derivable from E's defining equations / specification."
 
-8. **Present hypotheses to the user for approval before spawning subagents.** Show the `kind` tag for each. The user can narrow or widen scope, split into sub-issues, or correct mis-classifications.
+8. **Present hypotheses to the user for approval before spawning subagents.** Show the `kind` tag and the falsifier for each. The user can narrow or widen scope, split into sub-issues, or correct mis-classifications.
 
 ## Step 2 — Verify hypotheses
 
@@ -58,7 +58,13 @@ Hypotheses split by `kind`. Empirical hypotheses go through probes (Step 2.A). D
 
 ### Decisions and disconfirming probes
 
-A **disconfirming probe** is a check that looks for a hypothesis's falsifier. Whoever verifies an empirical hypothesis, a subagent or the main context, runs one unless it cannot run; listing it is not enough. Where the hypothesis claims more than that probe covered, run one over the rest too. A part no probe could tell about is split off as its own `inconclusive` hypothesis. A probe leaves the working tree as it found it.
+A **disconfirming probe** is a check that looks for a hypothesis's falsifier. Whoever verifies an empirical hypothesis, a subagent or the main context, runs one unless it cannot run; listing it is not enough. Where the hypothesis claims more than that probe covered, run one over the rest too. A part no probe that ran could tell about is split off as its own `inconclusive` hypothesis. A probe leaves the working tree as it found it.
+
+Every verifier also follows these:
+
+- **For non-trivial existing code, read the code itself.** Shallow grep-only verification is permitted only for trivially mechanical hypotheses (existence checks, file locations).
+- **Runtime probe for behavioral claims.** Behavioral claims (output ordering, return shape, error-path return, ABI / FFI layout, signal handling, performance) need a minimal reproducer — docs reading is corroboration, not verification. Boundary cases (minimal/maximal sizes, type variations, single-element containers) belong here.
+- **Caller-contract verification for change-impact hypotheses.** Classify the change as compile-breaking (new required trait method, type change) or silently semantic (same signature, different behavior). Semantic changes need caller-by-caller verification. Flag any public API with unchecked internal assumptions (pointer arithmetic trusting an offset, a serializer trusting field order, an index trusting contiguity).
 
 An empirical hypothesis completes when it holds one of four **Decisions**:
 
@@ -67,7 +73,7 @@ An empirical hypothesis completes when it holds one of four **Decisions**:
 - `inconclusive` — no probe that ran could tell.
 - `deferred` — the main context puts it outside the current scope, whatever the probes found.
 
-A disconfirming probe **cannot run** when it would change anything outside the local machine, when its effect could not be undone afterwards, or when the verifier has no way to run it. Do not run it. Run instead another probe the contract below allows that can look for the falsifier over all or part of what the hypothesis claims. With no such probe, the hypothesis is `inconclusive`. The `probe:` of an `inconclusive` hypothesis this leaves says why the disconfirming probe cannot run and what it needs.
+A disconfirming probe **cannot run** when it would change anything outside the local machine, when its effect could not be undone afterwards, or when the verifier has no way to run it. Do not run it. Run instead another probe these rules allow that can look for the falsifier over all or part of what the hypothesis claims. With no such probe, the hypothesis is `inconclusive`. When a probe that cannot run leaves a hypothesis or a part of it `inconclusive`, the `probe:` says why it cannot run and what it needs.
 
 ### Step 2.A — Empirical hypotheses (subagents)
 
@@ -75,11 +81,8 @@ Spawn one subagent per `empirical` hypothesis (or per small related group). Put 
 
 Subagent contract:
 
-1. **For non-trivial existing code, read the code itself.** Shallow grep-only verification is permitted only for trivially mechanical hypotheses (existence checks, file locations).
-2. **Runtime probe for behavioral claims.** Behavioral claims (output ordering, return shape, error-path return, ABI / FFI layout, signal handling, performance) need a minimal reproducer — docs reading is corroboration, not verification. Boundary cases (minimal/maximal sizes, type variations, single-element containers) belong here.
-3. **Caller-contract verification for change-impact hypotheses.** Classify the change as compile-breaking (new required trait method, type change) or silently semantic (same signature, different behavior). Semantic changes need caller-by-caller verification. Flag any public API with unchecked internal assumptions (pointer arithmetic trusting an offset, a serializer trusting field order, an index trusting contiguity).
-4. Return a **Decision** for each assigned hypothesis, and for each part of a split one, once each has one. For `inconclusive`, attach the `probe:` that would decide it.
-5. Report back with concise file paths, line numbers, function signatures, and, for each hypothesis, what each probe looked for, what ran, and its result.
+1. Return a **Decision** for each assigned hypothesis, and for each part of a split one, once each has one. For `inconclusive`, attach the `probe:` that would decide it.
+2. Report back with concise file paths, line numbers, function signatures, and, for each hypothesis, what each probe looked for, what ran, and its result.
 
 **Subagent granularity**: hypotheses requiring only existence checks or single-file grep can be resolved directly from the main context. Reserve subagents for hypotheses that touch multiple files or need deep reading. Spawn all empirical-hypothesis subagents in a single message.
 
@@ -107,7 +110,7 @@ A `rejected` derivational hypothesis is a **plan bug**. Correct the plan and re-
 
 ## Step 3 — Consolidate into implementation plan
 
-Merge subagent reports into a single plan with the following sections.
+Merge Step 2's results into a single plan with the following sections.
 
 ### Failure scenarios
 
@@ -179,7 +182,7 @@ Before escalating a sub-decision to the user as "unresolved":
 
 1. **Workspace patterns** — search the workspace (`rg`, `fd`) for analogous constructs. If the workspace consistently does X, that is the answer.
 2. **Memory and prior conversation** — check available memory entries and recent turns for decisions on the same axis.
-3. **Subagent reports** — re-read Step 2 output. A recommendation a `confirmed` hypothesis backs is resolved unless contradicted elsewhere.
+3. **Step 2 results** — re-read Step 2 output. A recommendation a `confirmed` hypothesis backs is resolved unless contradicted elsewhere.
 
 A sub-decision is genuinely unresolved only when the above are silent or contradictory. "More than one technically-viable option exists" is not unresolved — it is analysis you owe the user. When you do escalate, state what you checked.
 
