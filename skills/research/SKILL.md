@@ -50,7 +50,7 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
 
 7. **Specific-example claim sweep (REQUIRED when applicable).** If the plan attaches deductive properties to a concrete example ("this example is symmetric / non-degenerate / exercises the multi-X path"), each property MUST be a separate `derivational` hypothesis — "obvious" is not an exemption. Form: "Example E has property P, derivable from E's defining equations / specification."
 
-8. **Present hypotheses to the user for approval before spawning subagents.** Show the `kind` tag and the falsifier for each. The user can narrow or widen scope, split into sub-issues, or correct mis-classifications.
+8. **Present hypotheses to the user for approval before Step 2.** Show the `kind` tag and the falsifier for each. The user can narrow or widen scope, split into sub-issues, or correct mis-classifications.
 
 ## Step 2 — Verify hypotheses
 
@@ -58,7 +58,7 @@ Hypotheses split by `kind`. Empirical hypotheses go through probes (Step 2.A). D
 
 ### Decisions and disconfirming probes
 
-A **disconfirming probe** is a check that looks for a hypothesis's falsifier. Whoever verifies an empirical hypothesis, a subagent or the main context, runs one unless it cannot run; listing it is not enough. Where the hypothesis claims more than that probe covered, run one over the rest too. A part no probe that ran could tell about is split off as its own `inconclusive` hypothesis. A probe leaves the working tree as it found it.
+A **disconfirming probe** is a check that looks for a hypothesis's falsifier. Whoever verifies an empirical hypothesis, a subagent or the main context, runs one unless it cannot run or the main context defers the hypothesis; listing it is not enough. Where the hypothesis claims more than that probe covered, run one over the rest too. A part no probe that ran could tell about is split off as its own `inconclusive` hypothesis. A probe leaves the working tree as it found it.
 
 Every verifier also follows these:
 
@@ -77,7 +77,7 @@ A disconfirming probe **cannot run** when it would change anything outside the l
 
 ### Step 2.A — Empirical hypotheses (subagents)
 
-Spawn one subagent per `empirical` hypothesis (or per small related group). Put in its prompt the hypothesis, the task, the repository path, the text of **Decisions and disconfirming probes**, and this contract.
+Spawn one subagent per `empirical` hypothesis (or per small related group). Put in its prompt the hypothesis and its falsifier, the task, the repository path, the text of **Decisions and disconfirming probes**, and this contract.
 
 Subagent contract:
 
