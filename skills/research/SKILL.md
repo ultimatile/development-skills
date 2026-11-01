@@ -73,7 +73,7 @@ An empirical hypothesis completes when it holds one of four **Decisions**:
 - `inconclusive` — no probe that ran could tell.
 - `deferred` — the main context puts it outside the current scope, whatever the probes found.
 
-A disconfirming probe **cannot run** when it would change anything outside the local machine, when its effect could not be undone afterwards, or when the verifier has no way to run it. Do not run it. Run instead another probe these rules allow that can look for the falsifier over all or part of what the hypothesis claims. With no such probe, the hypothesis is `inconclusive`. When a probe that cannot run leaves a hypothesis or a part of it `inconclusive`, the `probe:` says why it cannot run and what it needs.
+A probe **cannot run** when it would change anything outside the local machine, when its effect could not be undone afterwards, or when the verifier has no way to run it. Do not run it. In place of a disconfirming probe that cannot run, run another probe these rules allow that can look for the falsifier over all or part of what the hypothesis claims. With no such probe, the hypothesis is `inconclusive`. When a probe that cannot run leaves a hypothesis or a part of it `inconclusive`, the `probe:` says why it cannot run and what it needs.
 
 ### Step 2.A — Empirical hypotheses (subagents)
 
