@@ -1,6 +1,6 @@
 ---
 name: research
-description: Investigate a GitHub issue or free-text task with empirical (subagent probes) and derivational (in-context deduction) hypotheses, producing a vetted implementation plan with Inconclusive / Deferred items. Accepts an issue number or task text.
+description: Investigate a GitHub issue or free-text task with empirical (probes) and derivational (in-context deduction) hypotheses, producing a vetted implementation plan with Inconclusive / Deferred items. Accepts an issue number or task text.
 ---
 
 # research
@@ -40,7 +40,7 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
 
 6. **Tag each hypothesis with a `kind`:**
 
-   - `empirical` — resolved by reading code, running tests, observing runtime, inspecting git history, querying spec / external API / caller behavior. Subagent probes in Step 2 handle these.
+   - `empirical` — resolved by reading code, running tests, observing runtime, inspecting git history, querying spec / external API / caller behavior. Probes in Step 2 handle these.
    - `derivational` — resolved by deductive reasoning from defining equations / type laws / protocol axioms / mathematical or physical first principles. The truth value of a derivational hypothesis does not depend on the state of the codebase; reading more code will not resolve it. Step 2 handles these in the main context, not via subagents.
 
    Disambiguation test: "if the codebase did not exist, would the claim still have a definite truth value?" Yes → derivational. No → empirical. Two follow-on rules:
@@ -54,32 +54,34 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
 
 ## Step 2 — Verify hypotheses
 
-Hypotheses split by `kind`. Empirical hypotheses go through subagent probes (Step 2.A). Derivational hypotheses are resolved in the main context (Step 2.B). Both must complete before Step 3 consolidates.
+Hypotheses split by `kind`. Empirical hypotheses go through probes (Step 2.A). Derivational hypotheses are resolved in the main context (Step 2.B). Both must complete before Step 3 consolidates.
 
-A **disconfirming probe** is a check that is actually run and whose result could defeat the hypothesis, by looking for its falsifier.
+### Decisions and disconfirming probes
+
+A **disconfirming probe** is a check that looks for a hypothesis's falsifier.
 
 An empirical hypothesis, whether a subagent or the main context verifies it, completes when it holds one of four **Decisions**:
 
-- `confirmed` — it survived a disconfirming probe.
-- `rejected` — a disconfirming probe found its falsifier.
-- `inconclusive` — the probes that ran leave it undecided.
-- `deferred` — the main context puts it outside the current scope, and it is not probed.
+- `confirmed` — a disconfirming probe could have found the falsifier, and no probe did.
+- `rejected` — a probe found the falsifier.
+- `inconclusive` — no probe that ran could tell.
+- `deferred` — the main context puts it outside the current scope, whatever the probes found.
 
-A disconfirming probe **cannot run** when its effect could not be undone afterwards, or when the verifier has no way to run it. Do not run it. Run instead a substitute, another probe that can run and could defeat the hypothesis: it counts as the disconfirming probe, and the verifier states what it leaves uncovered. A behavioral claim's substitute is still a runtime probe. With no substitute, the Decision is `inconclusive`, and its `probe:` says what the run needs.
+A disconfirming probe **cannot run** when it would change anything outside the local machine, when its effect could not be undone afterwards, or when the verifier has no way to run it. Do not run it. Run instead a substitute, another probe that can run and looks for the falsifier: it counts as the disconfirming probe, and the verifier states what it leaves uncovered. A behavioral claim's substitute is still a runtime probe. With no substitute, the Decision is `inconclusive`, and its `probe:` says what the run needs.
 
 ### Step 2.A — Empirical hypotheses (subagents)
 
-Spawn one subagent per `empirical` hypothesis (or per small related group). Put in its prompt the hypothesis, the text above from "A **disconfirming probe**" on, and this contract.
+Spawn one subagent per `empirical` hypothesis (or per small related group). Put in its prompt the hypothesis, the text of **Decisions and disconfirming probes**, and this contract.
 
 Subagent contract:
 
-1. **Probes are Supporting (a result expected if the hypothesis holds), Disconfirming, and, where the hypothesis reaches beyond the sites those two cover, Scope.** Execute the Disconfirming probe unless it cannot run; listing it is not enough.
+1. **Execute a disconfirming probe for each hypothesis unless it cannot run.** Listing one is not enough.
 2. **For non-trivial existing code, read the code itself.** Shallow grep-only verification is permitted only for trivially mechanical hypotheses (existence checks, file locations).
 3. **Runtime probe (preferred for behavioral claims).** Behavioral claims (output ordering, return shape, error-path return, ABI / FFI layout, signal handling, performance) need a minimal reproducer — docs reading is corroboration, not verification. Boundary cases (minimal/maximal sizes, type variations, single-element containers) belong here.
 4. **Caller-contract verification for change-impact hypotheses.** Classify the change as compile-breaking (new required trait method, type change) or silently semantic (same signature, different behavior). Semantic changes need caller-by-caller verification. Flag any public API with unchecked internal assumptions (pointer arithmetic trusting an offset, a serializer trusting field order, an index trusting contiguity).
 5. A probe leaves the working tree as it found it.
 6. Return a **Decision** for each assigned hypothesis, once each has one. For `inconclusive`, attach the `probe:` that would decide it.
-7. Report back with concise file paths, line numbers, function signatures, and, for each hypothesis, each probe's type, what ran, and its result.
+7. Report back with concise file paths, line numbers, function signatures, and, for each hypothesis, what each probe looked for, what ran, and its result.
 
 **Subagent granularity**: hypotheses requiring only existence checks or single-file grep can be resolved directly from the main context. Reserve subagents for hypotheses that touch multiple files or need deep reading. Spawn all empirical-hypothesis subagents in a single message.
 
@@ -133,7 +135,7 @@ Then dispatch a fresh-context subagent once, with the section as written, the sc
 
 ### Hypotheses
 
-One row for each hypothesis Step 2 decided, with columns **Hypothesis**, **Kind**, **Decision**, **Falsifier**, and **Disconfirming probe**. The Decision cell holds one of the four labels. The last cell holds what ran and its result, what ran instead and what that leaves uncovered, for a derivational hypothesis the counterexample attempt, or why none ran.
+One row for each hypothesis Step 2 decided, with columns **Hypothesis**, **Kind**, **Decision**, **Falsifier**, and **Disconfirming probe**. The Hypothesis cell states the claim the Decision applies to, and the Decision cell holds one of the four labels. The last cell holds what ran and its result, what ran instead and what that leaves uncovered, for a derivational hypothesis the counterexample attempt, or why none ran.
 
 ### Plan body
 
