@@ -5,7 +5,7 @@ description: Investigate a GitHub issue or free-text task with empirical (subage
 
 # research
 
-GitHub-integrated wrapper around `quaere-evidence`. Drives the Finding → Hypothesis → Defense → Probe → Decision workflow with parallel subagents and posts the resulting plan to GitHub. Do NOT write any production code in this skill.
+Investigates an issue or task through falsifiable hypotheses and posts the resulting plan to GitHub. Do NOT write any production code in this skill.
 
 **Issue / task:** $ARGUMENTS
 
@@ -36,7 +36,7 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
    - **What invariants must hold**: contracts / preconditions / correctness properties
    - **What could break**: existing code paths affected by the change, especially where new inputs flow through existing APIs
 
-5. Each hypothesis is phrased as a **falsifiable Review Claim or Hypothesis** in the `quaere-evidence` sense — concrete enough that a subagent can attempt to disprove it.
+5. Each hypothesis names its **falsifier**: a concrete observation or counterexample that would defeat it.
 
 6. **Tag each hypothesis with a `kind`:**
 
@@ -56,21 +56,32 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
 
 Hypotheses split by `kind`. Empirical hypotheses go through subagent probes (Step 2.A). Derivational hypotheses are resolved in the main context (Step 2.B). Both must complete before Step 3 consolidates.
 
-### Step 2.A — Empirical hypotheses (subagents under quaere-evidence)
+A **disconfirming probe** is a check that is actually run and whose result could defeat the hypothesis, by looking for its falsifier.
 
-Spawn one subagent per `empirical` hypothesis (or per small related group). Each subagent operates under the `quaere-evidence` skill and follows its workflow exactly.
+An empirical hypothesis, whether a subagent or the main context verifies it, completes when it holds one of four **Decisions**:
+
+- `confirmed` — it survived a disconfirming probe.
+- `rejected` — a disconfirming probe found its falsifier.
+- `inconclusive` — the probes that ran leave it undecided.
+- `deferred` — the main context puts it outside the current scope, and it is not probed.
+
+A disconfirming probe **cannot run** when its effect could not be undone afterwards, or when the verifier has no way to run it. Do not run it. Run instead a substitute, another probe that can run and could defeat the hypothesis: it counts as the disconfirming probe, and the verifier states what it leaves uncovered. A behavioral claim's substitute is still a runtime probe. With no substitute, the Decision is `inconclusive`, and its `probe:` says what the run needs.
+
+### Step 2.A — Empirical hypotheses (subagents)
+
+Spawn one subagent per `empirical` hypothesis (or per small related group). Put in its prompt the hypothesis, the text above from "A **disconfirming probe**" on, and this contract.
 
 Subagent contract:
 
-1. **Run `quaere-evidence`** with the assigned hypothesis as the initial Review Claim or Hypothesis.
-2. **Probes (per `quaere-evidence` §5) are three-way: Supporting / Disconfirming / Scope.** The Disconfirming probe **must be actually executed**, not just listed.
-3. **For non-trivial existing code, read the code itself.** Shallow grep-only verification is permitted only for trivially mechanical hypotheses (existence checks, file locations).
-4. **Runtime probe (preferred for behavioral claims).** Behavioral claims (output ordering, return shape, error-path return, ABI / FFI layout, signal handling, performance) need a minimal reproducer — docs reading is corroboration, not verification. Boundary cases (minimal/maximal sizes, type variations, single-element containers) belong here.
-5. **Caller-contract verification for change-impact hypotheses.** Classify the change as compile-breaking (new required trait method, type change) or silently semantic (same signature, different behavior). Semantic changes need caller-by-caller verification. Flag any public API with unchecked internal assumptions (pointer arithmetic trusting an offset, a serializer trusting field order, an index trusting contiguity).
-6. Return a **Decision** in the four-state shape from `quaere-evidence` §6 (`confirmed` / `rejected` / `inconclusive` / `deferred`). For `inconclusive`, attach the remaining `probe:`. For `deferred`, attach reason and resolution-point.
-7. Report back with concise file paths, line numbers, function signatures, and probe results.
+1. **Probes are Supporting (a result expected if the hypothesis holds), Disconfirming, and, where the hypothesis reaches beyond the sites those two cover, Scope.** Execute the Disconfirming probe unless it cannot run; listing it is not enough.
+2. **For non-trivial existing code, read the code itself.** Shallow grep-only verification is permitted only for trivially mechanical hypotheses (existence checks, file locations).
+3. **Runtime probe (preferred for behavioral claims).** Behavioral claims (output ordering, return shape, error-path return, ABI / FFI layout, signal handling, performance) need a minimal reproducer — docs reading is corroboration, not verification. Boundary cases (minimal/maximal sizes, type variations, single-element containers) belong here.
+4. **Caller-contract verification for change-impact hypotheses.** Classify the change as compile-breaking (new required trait method, type change) or silently semantic (same signature, different behavior). Semantic changes need caller-by-caller verification. Flag any public API with unchecked internal assumptions (pointer arithmetic trusting an offset, a serializer trusting field order, an index trusting contiguity).
+5. A probe leaves the working tree as it found it.
+6. Return a **Decision** for each assigned hypothesis, once each has one. For `inconclusive`, attach the `probe:` that would decide it.
+7. Report back with concise file paths, line numbers, function signatures, and, for each hypothesis, each probe's type, what ran, and its result.
 
-**Subagent granularity**: hypotheses requiring only existence checks or single-file grep can be resolved directly from the main context. Reserve subagents for hypotheses that touch multiple files or need deep reading. Spawn all empirical-hypothesis subagents in a single message; each owns its own `quaere-evidence` ledger.
+**Subagent granularity**: hypotheses requiring only existence checks or single-file grep can be resolved directly from the main context. Reserve subagents for hypotheses that touch multiple files or need deep reading. Spawn all empirical-hypothesis subagents in a single message.
 
 ### Step 2.B — Derivational hypotheses (deductive verification in main context)
 
@@ -86,7 +97,7 @@ For each derivational hypothesis:
 1. **State the defining equations / axioms / specification clauses** the example or claim rests on. Quote the source if it is an external spec (RFC, protocol doc, mathematical definition); reproduce it if it is a project-internal definition.
 2. **Derive forward from the defining equations to the claimed property.** Show the deductive steps. A derivation that ends in "therefore P holds" without reproducible steps is unacceptable.
 3. **Attempt a counterexample (the disconfirming step).** Try to construct an instance of the example where the claimed property fails, working from the defining equations. A property that resists counterexample construction is corroborated; one that admits a counterexample falsifies the hypothesis.
-4. **Report a Decision** in the four-state shape from Step 2.A, with these derivational-specific resolutions:
+4. **Report a Decision** in the four-state shape from Step 2, with these derivational-specific resolutions:
    - `confirmed` — derivation completed AND counterexample construction failed
    - `rejected` — counterexample constructed (the claim is false; plan needs revision before continuing)
    - `inconclusive` — derivation incomplete due to missing axiom / ambiguous spec / convention conflict; attach the missing piece as an empirical `probe:` routing back through Step 2.A. ("Code it up and check at implementation time" is not valid — use the numerical-derivation lane.)
@@ -120,6 +131,10 @@ The **scenario definitions** are this section's definitions of a failure scenari
 
 Then dispatch a fresh-context subagent once, with the section as written, the scenario definitions, the scenario records, the hypotheses Step 2 confirmed, the task, and the repository path. Ask it whether the section is accurate for the change, and whether any Handling contradicts how the system is actually used. Revise the section by each point it raises that is correct.
 
+### Hypotheses
+
+One row for each hypothesis Step 2 decided, with columns **Hypothesis**, **Kind**, **Decision**, **Falsifier**, and **Disconfirming probe**. The Decision cell holds one of the four labels. The last cell holds what ran and its result, what ran instead and what that leaves uncovered, for a derivational hypothesis the counterexample attempt, or why none ran.
+
 ### Plan body
 
 - **Checklist of changes** with exact file paths, function signatures, type definitions
@@ -140,7 +155,7 @@ Then dispatch a fresh-context subagent once, with the section as written, the sc
 
 ### Inconclusive / Deferred items (REQUIRED section)
 
-This section is **mandatory**. It explicitly carries forward UNKNOWNs into the implementation phase so that mid-implementation discoveries are either listed (handled per plan) or surface as research gaps (halt and escalate).
+This section is **mandatory**. Every hypothesis Step 2 decides `inconclusive` or `deferred` has an entry in it.
 
 ```markdown
 ## Inconclusive / Deferred items
@@ -164,7 +179,7 @@ Before escalating a sub-decision to the user as "unresolved":
 
 1. **Workspace patterns** — search the workspace (`rg`, `fd`) for analogous constructs. If the workspace consistently does X, that is the answer.
 2. **Memory and prior conversation** — check available memory entries and recent turns for decisions on the same axis.
-3. **Subagent reports** — re-read Step 2 output. A subagent's confirmed recommendation is resolved unless contradicted elsewhere.
+3. **Subagent reports** — re-read Step 2 output. A recommendation a `confirmed` hypothesis backs is resolved unless contradicted elsewhere.
 
 A sub-decision is genuinely unresolved only when the above are silent or contradictory. "More than one technically-viable option exists" is not unresolved — it is analysis you owe the user. When you do escalate, state what you checked.
 
