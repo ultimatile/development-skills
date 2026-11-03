@@ -133,7 +133,7 @@ Runs only after the user has merged.
 
 - **Fix-loop substeps**: while any finding of the latest triage is not closed, as `finding-triage` defines closed, run these in order:
 
-  1. **Oscillation check (iteration N ≥ 2).** Compare current actionable topics against the previous iteration's preserved topics. If any conceptual topic recurs, halt and follow the escalation order below — do NOT fix or done-check.
+  1. **Oscillation check (iteration N ≥ 2).** Compare current actionable topics against the previous iteration's preserved topics. Take any conceptual topic that recurs through **Oscillation detection** before fixing it.
   2. Take each finding that is not closed as its disposition directs. If every finding of the latest triage is now closed and this substep changed no file, the loop ends here; this takes precedence over the rules below against skipping done-check and codex review.
   3. Run `/done-check` in delta mode, against the previous audit's rows and concerns, with the root stated at pipeline entry.
   4. Run `/stage-commit-push`.
@@ -172,12 +172,8 @@ Runs only after the user has merged.
 
 - **Select the response before fixing.** Select the edit per `finding-triage`'s **Response selection (actionable findings)**; a finding fitting `invariant-premise-check` or `opens-a-question` re-triages per those dispositions. For a premise check, if unsure, ask codex a single targeted question via `codex exec "<fix proposal + one specific question about the premise>" -o /tmp/fix-check.md`. The commit is owned by whichever `/stage-commit-push` step the current phase runs.
 
-- **Oscillation detection.** If the same conceptual topic (not the same literal comment, but the same underlying question — e.g., "is this input valid?", "does this property hold?", "should this parameter accept both values?") appears across 2+ consecutive review iterations, stop fixing and escalate to the user. Repeated findings on one topic signal that the underlying invariant is not understood well enough for a confident fix.
+- **Oscillation detection.** A conceptual topic is the same underlying question rather than the same literal comment — e.g., "is this input valid?", "does this property hold?", "should this parameter accept both values?". For a topic that appears across 2+ consecutive review iterations, take the first of these that applies:
 
-  **Escalation order.** Before presenting the fix-direction question (panic vs allow vs convert vs ...), FIRST ask whether the original plan scope is correct. Oscillation in the fix-direction space is the symptom that the contract is empty or depends on something outside the plan's scope — refining the fix without rescoping just re-anchors the same empty contract from a different angle. Ask in this order:
-
-  1. **Is this question even single-actionable inside the current plan?** Does the disagreement among reviewers concern an upstream undecided design question (consumer semantics, system invariant, layout authority, etc.) that the plan implicitly assumed?
-  2. **If yes upstream**: rescope. Close the current PR, refile the upstream design question as a separate issue, and let the current API decision fall out of that resolution. This is the right move even when the current fix is technically correct in isolation.
-  3. **If no upstream issue**: present what is known, what is uncertain, and ask the user to choose among the surviving fix options.
-
-  The "no-clarifying-questions" mode does NOT override this rule. Convergence of three independent reviewers on the same API-contract concern is the signal regardless of mode.
+  1. Evaluate `ask-criteria`'s C.
+  2. If the topic falsifies a statement of the plan, re-triage its findings as `opens-a-question`.
+  3. Otherwise, derive the contract of the artifact the topic concerns by listing the states that reach it, settle the fix option against those states on `ask-criteria`'s terms, and apply it.

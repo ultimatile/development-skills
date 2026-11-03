@@ -13,12 +13,12 @@ Investigates an issue or task through falsifiable hypotheses and posts the resul
 
 Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
 
-- **Number** → `gh issue view $ARGUMENTS` and proceed with that issue.
+- **Number** → `gh issue view $ARGUMENTS --comments` and proceed with that issue.
 - **Free text** → use the text as the task description; an issue will be created in Step 7.
 
 ## Step 1 — Read issue/task and form hypotheses
 
-1. If existing issue, read it with `gh issue view`. Otherwise use the free text.
+1. If existing issue, read it with `gh issue view --comments`. Otherwise use the free text.
 
 2. Skim the project layout (directory tree, CLAUDE.md, key entry points). Do NOT deep-read files yet.
 
@@ -50,7 +50,7 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
 
 7. **Specific-example claim sweep (REQUIRED when applicable).** If the plan attaches deductive properties to a concrete example ("this example is symmetric / non-degenerate / exercises the multi-X path"), each property MUST be a separate `derivational` hypothesis — "obvious" is not an exemption. Form: "Example E has property P, derivable from E's defining equations / specification."
 
-8. **Present hypotheses to the user for approval before Step 2.** Show the `kind` tag and the falsifier for each. The user can narrow or widen scope, split into sub-issues, or correct mis-classifications.
+8. **Present hypotheses to the user for approval before Step 2.** Show the `kind` tag and the falsifier for each. The user can narrow or widen scope, split into sub-issues, or correct mis-classifications. A return to research after a plan was posted skips this approval.
 
 ## Step 2 — Verify hypotheses
 
@@ -184,7 +184,7 @@ Before escalating a sub-decision to the user as "unresolved":
 2. **Memory and prior conversation** — check available memory entries and recent turns for decisions on the same axis.
 3. **Step 2 results** — re-read Step 2 output. A recommendation a `confirmed` hypothesis backs is resolved unless contradicted elsewhere.
 
-A sub-decision is genuinely unresolved only when the above are silent or contradictory. "More than one technically-viable option exists" is not unresolved — it is analysis you owe the user. When you do escalate, state what you checked.
+Escalate a sub-decision only on `ask-criteria`'s B, and look in the sources above before deciding that nothing settles it. "More than one technically-viable option exists" is not unresolved — it is analysis you owe the user. When you do escalate, state what you checked.
 
 Report the plan back to the main context.
 
@@ -245,16 +245,13 @@ When the plan cites a benchmark (existing or new) as evidence for a performance 
 - Benchmark provably reaches the changed path → proceed.
 - Benchmark misses it (fast-path bypass, inputs that never enter the changed branch), or the only evidence is an isolated-component microbench → not certified. Add an end-to-end benchmark that reaches the path to the Step 3 test plan, or name the different public operation — one dominated by the changed path — that will serve as the perf probe.
 
-Output: **clean** (proceed to Step 5) or **flagged** (list firings + proposed resolution + surface to user).
+Output: **clean** (proceed to Step 5) or **flagged** (the plan lists the firings and the resolution taken for each).
 
-## Step 5 — Plan review gate (mandatory offer)
+## Step 5 — Plan review gate
 
 After Step 3 produces a plan and before Step 6 collects user approval:
 
-1. **Always offer `codex-plan-review`** — never silently skip. Phrase it as a recommendation, not a question:
-
-   > "Plan ready. Recommend running `/codex-plan-review` before
-   > approval; type `skip` to bypass, or anything else to run it."
+1. Run `codex-plan-review`. On a plan revision, whether to run it is the run's decision.
 
 2. **If review runs**: triage the findings; a finding the triage closes is a concern of neither kind below, and one it holds as `opens-a-question` is a premise concern, whichever kind the distinction below would give its content.
 
@@ -263,15 +260,15 @@ After Step 3 produces a plan and before Step 6 collects user approval:
 
    Distinguishing the two: an implementation concern asks "given the plan's assumptions, is the proposed approach sound?"; a premise concern asks "are the plan's assumptions actually true?". If the reviewer would have given a different answer with empirical evidence in hand, it's a premise concern.
 
-3. **Loop gate**: after patching, re-run `codex-plan-review` per its Step 4 re-run rule. Exit the loop when the last valid verdict is `approve` or `approve with conditions`. Cap: 3 iterations within the same premise. If the cap is reached, or if the loop sits at `reject` with no further re-run warranted, surface the verdict and outstanding findings to the user and ask whether to proceed as-is, patch further manually, or escalate. Premise concerns return to Step 1 and reset the counter — iteration count is per-premise, not lifetime.
+3. **Loop gate**: after patching, re-run `codex-plan-review` per its Step 4 re-run rule. Exit the loop when the last valid verdict is `approve` or `approve with conditions`. Cap: 3 iterations within the same premise. If the cap is reached, or if the loop sits at `reject` with no further re-run warranted, carry the verdict and the outstanding findings into the plan Step 6 presents, each with its disposition. Step 6 presents a plan revision in this case too. Premise concerns return to Step 1 and reset the counter — iteration count is per-premise, not lifetime.
 
-4. **The plan that exits this step is the contract.** Step 7 posts that plan once and does not revise it afterwards; there is no "post then revise" loop. Every revision — this step's, the user's at Step 6, a discharge, a laundering fix — happens before posting.
+4. Every change to a plan — this step's, the user's at Step 6, a discharge, a laundering fix — happens before Step 7 posts it. A plan produced after a plan for this work has been posted is a **plan revision**.
 
 ## Step 6 — User approval
 
 Discharge the plan's evidence claims per `gh-body-conventions` § Evidence claims before presenting it — the plan enumerates probe outcomes, and neither the user nor the cold-reader check at 7.0 can see the returns they rest on.
 
-Present the plan (after any Step 5 revisions) and ask for approval before posting to GitHub.
+Present the plan (after any Step 5 revisions) and ask for approval before posting to GitHub. A plan revision is presented for approval only when `ask-criteria`'s B or C holds; otherwise discharge its evidence claims and go to Step 7.
 
 If the user requests changes, revise, re-discharge the plan's evidence claims, and re-show — and if 7.0 has already run, re-run it before posting.
 
@@ -279,11 +276,13 @@ If the user requests changes, revise, re-discharge the plan's evidence claims, a
 
 ### 7.0 Laundering pass — run `gh-body-audit` (MANDATORY)
 
-Run `gh-body-audit` on the plan body with artifact kind `issue` before any `gh-post` invocation. Any ⚠ blocks posting on `gh-body-audit` step 4's terms. If that changed the plan, re-show it for approval before posting — Step 6 approved the text as it stood.
+Run `gh-body-audit` on the plan body, or on the whole comment for a plan revision, with artifact kind `issue` before any `gh-post` invocation. Any ⚠ blocks posting on `gh-body-audit` step 4's terms. If that changed a plan the user approved at Step 6, re-show it for approval before posting — Step 6 approved the text as it stood.
 
 ### 7.1 Route to the correct surface
 
-After 7.0 clears, route the plan based on what `$ARGUMENTS` resolves to:
+After 7.0 clears, post a plan revision through `gh-post issue comment` on the issue that carries the plan, as a comment headed `## Plan revision`. It states what sent the run back; what the run redid; whether the user approved it; and the full revised plan.
+
+Route any other plan based on what `$ARGUMENTS` resolves to:
 
 - **Existing single-scope issue** → `gh-post issue comment $ARGUMENTS` (per `file-issue` step 6) with the plan as body.
 - **Existing umbrella issue** (the body contains a Phases table or sub-tasks list) → spawn a new sub-issue whose body IS the plan, following `file-issue`'s `Variants > Umbrella sub-issue` shape: `Parent: #<umbrella>` on the first line, `Phase N: <topic>` title, Goal / Scope / Out of scope / Acceptance derived from the plan. After creation, append the new sub-issue's number to the umbrella's Phases table row. Do not also post the plan as an umbrella comment.
@@ -291,7 +290,7 @@ After 7.0 clears, route the plan based on what `$ARGUMENTS` resolves to:
 
 Where the routed body is derived from the plan rather than posted verbatim — an umbrella sub-issue's Goal / Scope / Out of scope / Acceptance, or one of several issues a multi-commit plan splits into — discharge that body's evidence claims and run `gh-body-audit` against it with artifact kind `issue`; any ⚠ blocks filing on `gh-body-audit` step 4's terms. Show the derived body for approval before filing it; if the user requests changes, revise, re-discharge, re-run the check, and re-show.
 
-When ambiguous, ask the user. Umbrella sub-issue is the D1 default.
+When ambiguous, take the umbrella sub-issue route, the D1 default.
 
 **Issue creation rules** (research-specific; body shape and the language / reference / evidence-claim / exclusion rules come from `gh-body-conventions` via `file-issue`):
 

@@ -13,8 +13,8 @@ GitHub-integrated executor for a research plan: surfaces plan-vs-actual drift an
 
 1. Read the GitHub issue and comments using `gh issue view $ARGUMENTS --comments`.
 2. Locate the implementation plan. It can live in two places depending on how the issue was created:
-   - **Issue body** (D1 default for umbrella-spawned sub-issues): the body begins with `Parent: #<umbrella>` and contains the plan directly. When this line is present, treat the body itself as the plan and ignore comments for plan discovery.
-   - **Issue comments** (single-scope issues): scan comments for the `research` output shape (`Hypotheses`, `Inconclusive / Deferred items` sections).
+   - **Issue body** (D1 default for umbrella-spawned sub-issues): the body begins with `Parent: #<umbrella>` and contains the plan directly. When this line is present, treat the body itself as the plan unless a later comment in the `research` output shape supersedes it.
+   - **Issue comments** (single-scope issues): scan comments for the `research` output shape (`Hypotheses`, `Inconclusive / Deferred items` sections). The most recently posted such comment is the plan.
 3. The retrieved plan is expected to follow the `research` output shape, including the `Inconclusive / Deferred items` section, regardless of which surface it lived on.
 4. If no plan is found in either location, check the current conversation context. If neither is available, suggest running `/research $ARGUMENTS` first and stop.
 
@@ -31,7 +31,7 @@ From the plan, extract:
 
 These together form the **discovery contract**: the plan-side definition of what counts as "expected during implementation" vs "research gap".
 
-If the plan has no `Inconclusive / Deferred items` section at all, treat that as a research gap and stop. Do not synthesize the section yourself. Re-run `/research` or ask the user to update the plan.
+If the plan has no `Inconclusive / Deferred items` section at all, treat that as a research gap and stop. Do not synthesize the section yourself. Return to `/research`.
 
 If the plan has no `Derivations` section but the work involves specific-example fixtures (concrete Hamiltonians, concrete protocol messages, named worked cases, etc.), treat that as a research gap on the derivational axis and stop the same way. The absence of a `Derivations` section means no specific example has been derivationally cleared.
 
@@ -85,9 +85,9 @@ If, while executing a unit, an unexpected fact is observed (a behavior, type, ca
    - **Yes** → follow the listed branch. If the branch says "re-plan trigger", **stop implementation** and return to research for this hypothesis.
    - **No** → continue to step 2.
 2. **Check the `Deferred` items.** Is this discovery the resolution-point of a deferred concern?
-   - **Yes** → surface to user, decide whether to expand scope or keep it deferred.
+   - **Yes** → settle on `ask-criteria`'s terms whether to expand scope or keep it deferred.
    - **No** → continue to step 3.
-3. **Unlisted discovery = research gap.** **Stop.** Do not patch the surprise ad-hoc. Surface to the user with: what was observed, why it contradicts the plan, what hypothesis class it falls under. Ask whether to re-research or to expand the discovery contract explicitly.
+3. **Unlisted discovery = research gap.** **Stop.** Do not patch the surprise ad-hoc. Return to research with what was observed, why it contradicts the plan, and what hypothesis class it falls under.
 
 The plan's Inconclusive section is the only sanctioned channel for mid-implementation surprises.
 
@@ -104,7 +104,7 @@ For every such example, before adding the implementation:
 
 1. **Check the derivationally cleared example set** (extracted in Step 2 from the plan's `Derivations` section). If the example is on the list, it has already been derivationally verified during research; proceed.
 2. **If the example is not on the list, halt.** Do not add it on the strength of its properties feeling obvious.
-3. **Required action when halted:** Surface to the user with: the proposed example, the deductive properties it is being relied on to satisfy (e.g., "this Hamiltonian must be U(1)-symmetric, must be Hermitian, must be non-diagonal in the chosen basis, must exercise the multi-sector path"), and the request to extend the plan's `Derivations` section before proceeding. The derivation itself is performed in `research`'s Derivational hypotheses step, not in implementation.
+3. **Required action when halted:** Return to research with: the proposed example, the deductive properties it is being relied on to satisfy (e.g., "this Hamiltonian must be U(1)-symmetric, must be Hermitian, must be non-diagonal in the chosen basis, must exercise the multi-sector path"), and the request to extend the plan's `Derivations` section before proceeding. The derivation itself is performed in `research`'s Derivational hypotheses step, not in implementation.
 
 A `rejected` derivational outcome is a plan bug — return to research and choose a different example.
 
@@ -115,7 +115,7 @@ When the plan sketches a specific strategy (algorithm, data structure, unsafe pa
 Procedure when substituting:
 
 1. **Enumerate the original strategy's properties explicitly.** Not just the named motivation — every property the original mechanism happens to achieve. E.g. `MaybeUninit` + transmute provides {no zero-init, no per-element heap alloc, caller-controlled placement, deterministic layout}; `Vec::with_capacity` + push provides {no zero-init} only.
-2. **Verify the substitute preserves each property.** Any dropped property must be named in the plan-vs-actual diff and surfaced to the user — "substituting M with M' to avoid unsafe; M' loses Q. OK to ship?" — not silently discarded.
+2. **Verify the substitute preserves each property.** Any dropped property must be named in the plan-vs-actual diff and, on `ask-criteria`'s B, put to the user — not silently discarded.
 
 ### 3.3 Quality items
 
@@ -123,7 +123,7 @@ Substantive rules for guards, fixtures, docstring consistency, textual drift, na
 
 ### 3.4 Rejected commits
 
-A commit a pre-commit hook rejects was not created. Skip a hook — by `--no-verify` or any other means — only where the user or the skill that invoked this one directs it, and only that hook. Otherwise fix what the hook reports, unless the fix would depart from the plan: then stop and surface the rejection to the user. After a skip or a fix, stage what the commit carries, including the hook's rewrites of those files, and create a new commit, never `git commit --amend`.
+A commit a pre-commit hook rejects was not created. Skip a hook — by `--no-verify` or any other means — only where the user or the skill that invoked this one directs it, and only that hook. Otherwise fix what the hook reports, unless the fix would depart from the plan: then return to research with the rejection. After a skip or a fix, stage what the commit carries, including the hook's rewrites of those files, and create a new commit, never `git commit --amend`.
 
 ## Step 4 — Run done-check
 

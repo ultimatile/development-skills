@@ -24,4 +24,4 @@ Do not inline their steps, diagrams, or rule lists — they drift when the sub-s
 
 Inherits `review-pipeline`'s stop points unchanged — notably the user-controlled **merge gate** between Phase 4a and Phase 4b.
 Do not auto-merge.
-Plan approval inside `/research` is also unchanged.
+Approval of the first plan inside `/research` is also unchanged.

@@ -150,5 +150,5 @@ Present the triage to the user, not the raw output.
 ## What this skill is bad at
 
 - Project-specific scope decisions (will defer to open questions)
-- Trade-off judgments about test coverage breadth (the user makes these calls)
+- Trade-off judgments about test coverage breadth (settle these on `ask-criteria`'s terms)
 - Anything outside the test-vs-contract relationship — for full diff review, use `codex-review` instead

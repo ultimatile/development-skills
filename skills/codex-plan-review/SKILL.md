@@ -116,7 +116,7 @@ Present the triage to the user, not the raw output.
 
 ### 4. Update the plan
 
-Take each finding that is not closed, as `finding-triage` defines closed, as its disposition directs; for an `actionable` finding, that is revising the plan in the conversation. If the plan was revised, re-present it to the user for approval. Re-run Codex on the revised plan only when the revision meaningfully invalidates the prior verdict — e.g., switching to an alternative approach, invariant promotion (a symptom-level finding turned out to require an invariant-level rewrite), or scope shift. This is the triage author's call: Codex returns incremental judgments on the plan as presented, not fundamental-vs-incremental classifications of subsequent revisions, so its verdict label is not a proxy for this decision. Pure in-scope condition incorporation or a single P2 / P3 patch does not warrant re-running. See `research`'s Plan review gate for a caller-imposed loop using this trigger.
+Take each finding that is not closed, as `finding-triage` defines closed, as its disposition directs; for an `actionable` finding, that is revising the plan in the conversation. Re-run Codex on the revised plan only when the revision meaningfully invalidates the prior verdict — e.g., switching to an alternative approach, invariant promotion (a symptom-level finding turned out to require an invariant-level rewrite), or scope shift. This is the triage author's call: Codex returns incremental judgments on the plan as presented, not fundamental-vs-incremental classifications of subsequent revisions, so its verdict label is not a proxy for this decision. Pure in-scope condition incorporation or a single P2 / P3 patch does not warrant re-running. See `research`'s Plan review gate for a caller-imposed loop using this trigger.
 
 ## What Codex is bad at in plan review
 
@@ -125,4 +125,4 @@ Take each finding that is not closed, as `finding-triage` defines closed, as its
 - Trade-off decisions (will flag every simplification as a risk)
 - Whether a "documented limitation" or "deferred mitigation" in the plan is acceptable or is a self-admission that the plan is mis-scoped — Codex grounds in code, not in scope-vs-contract distinctions
 
-The user makes these calls, not Codex.
+Codex does not make these calls; settle them on `ask-criteria`'s terms.
