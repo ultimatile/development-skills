@@ -13,12 +13,12 @@ Investigates an issue or task through falsifiable hypotheses and posts the resul
 
 Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
 
-- **Number** → `gh issue view $ARGUMENTS --comments` and proceed with that issue.
+- **Number** → `gh issue view $ARGUMENTS --json title,body,comments` and proceed with that issue.
 - **Free text** → use the text as the task description; an issue will be created in Step 7.
 
 ## Step 1 — Read issue/task and form hypotheses
 
-1. If existing issue, read it with `gh issue view --comments`. Otherwise use the free text.
+1. If existing issue, read it with `gh issue view <number> --json title,body,comments`. Otherwise use the free text.
 
 2. Skim the project layout (directory tree, CLAUDE.md, key entry points). Do NOT deep-read files yet.
 
@@ -50,7 +50,7 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
 
 7. **Specific-example claim sweep (REQUIRED when applicable).** If the plan attaches deductive properties to a concrete example ("this example is symmetric / non-degenerate / exercises the multi-X path"), each property MUST be a separate `derivational` hypothesis — "obvious" is not an exemption. Form: "Example E has property P, derivable from E's defining equations / specification."
 
-8. **Present hypotheses to the user for approval before Step 2.** Show the `kind` tag and the falsifier for each. The user can narrow or widen scope, split into sub-issues, or correct mis-classifications. A return to research after a plan was posted skips this approval.
+8. **Present hypotheses to the user for approval before Step 2.** Show the `kind` tag and the falsifier for each. The user can narrow or widen scope, split into sub-issues, or correct mis-classifications. The hypotheses for a plan revision skip this approval.
 
 ## Step 2 — Verify hypotheses
 
@@ -184,7 +184,7 @@ Before escalating a sub-decision to the user as "unresolved":
 2. **Memory and prior conversation** — check available memory entries and recent turns for decisions on the same axis.
 3. **Step 2 results** — re-read Step 2 output. A recommendation a `confirmed` hypothesis backs is resolved unless contradicted elsewhere.
 
-Escalate a sub-decision only on `ask-criteria`'s B, and look in the sources above before deciding that nothing settles it. "More than one technically-viable option exists" is not unresolved — it is analysis you owe the user. When you do escalate, state what you checked.
+A sub-decision is unresolved, and goes to the user, only on `ask-criteria`'s B; look in the sources above before deciding that nothing settles it. "More than one technically-viable option exists" is not unresolved — it is analysis you owe the user. When you do escalate, state what you checked.
 
 Report the plan back to the main context.
 
@@ -245,11 +245,11 @@ When the plan cites a benchmark (existing or new) as evidence for a performance 
 - Benchmark provably reaches the changed path → proceed.
 - Benchmark misses it (fast-path bypass, inputs that never enter the changed branch), or the only evidence is an isolated-component microbench → not certified. Add an end-to-end benchmark that reaches the path to the Step 3 test plan, or name the different public operation — one dominated by the changed path — that will serve as the perf probe.
 
-Output: **clean** (proceed to Step 5) or **flagged** (the plan lists the firings and the resolution taken for each).
+Output: **clean** (proceed to Step 5) or **flagged** (list firings + proposed resolution + surface to user).
 
 ## Step 5 — Plan review gate
 
-After Step 3 produces a plan and before Step 6 collects user approval:
+After Step 3 produces a plan and before Step 6:
 
 1. Run `codex-plan-review`. On a plan revision, whether to run it is the run's decision.
 
@@ -260,9 +260,9 @@ After Step 3 produces a plan and before Step 6 collects user approval:
 
    Distinguishing the two: an implementation concern asks "given the plan's assumptions, is the proposed approach sound?"; a premise concern asks "are the plan's assumptions actually true?". If the reviewer would have given a different answer with empirical evidence in hand, it's a premise concern.
 
-3. **Loop gate**: after patching, re-run `codex-plan-review` per its Step 4 re-run rule. Exit the loop when the last valid verdict is `approve` or `approve with conditions`. Cap: 3 iterations within the same premise. If the cap is reached, or if the loop sits at `reject` with no further re-run warranted, carry the verdict and the outstanding findings into the plan Step 6 presents, each with its disposition. Step 6 presents a plan revision in this case too. Premise concerns return to Step 1 and reset the counter — iteration count is per-premise, not lifetime.
+3. **Loop gate**: after patching, re-run `codex-plan-review` per its Step 4 re-run rule. Exit the loop when the last valid verdict is `approve` or `approve with conditions`. Cap: 3 iterations within the same premise. If the cap is reached, or if the loop sits at `reject` with no further re-run warranted, carry the verdict and the outstanding findings into the plan Step 6 presents, each with its disposition; for a plan revision, this is `ask-criteria`'s C. Premise concerns return to Step 1 and reset the counter — iteration count is per-premise, not lifetime.
 
-4. Every change to a plan — this step's, the user's at Step 6, a discharge, a laundering fix — happens before Step 7 posts it. A plan produced after a plan for this work has been posted is a **plan revision**.
+4. Every change to a plan — this step's, the user's at Step 6, a discharge, a laundering fix — happens before Step 7 posts it. A plan that replaces one already posted is a **plan revision**.
 
 ## Step 6 — User approval
 
@@ -280,7 +280,7 @@ Run `gh-body-audit` on the plan body, or on the whole comment for a plan revisio
 
 ### 7.1 Route to the correct surface
 
-After 7.0 clears, post a plan revision through `gh-post issue comment` on the issue that carries the plan, as a comment headed `## Plan revision`. It states what sent the run back; what the run redid; whether the user approved it; and the full revised plan.
+After 7.0 clears, post a plan revision through `gh-post issue comment` on each issue whose plan it replaces, as a comment headed `## Plan revision`. It states what sent the run back; what the run redid; whether the user approved it; and the full revised plan. The **plan in force** on an issue is its latest plan revision, which supersedes every plan posted before it, or, with no revision, the plan Step 7 first posted there.
 
 Route any other plan based on what `$ARGUMENTS` resolves to:
 

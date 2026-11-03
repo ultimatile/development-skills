@@ -56,7 +56,7 @@ If any of the above is yes, skip `codex exec review` and use `codex exec "<inlin
 **Inline prompt template** — the prompt should tell codex to:
 
 1. Run `git log <root-rev>..HEAD --oneline` and `git show <sha>` to read the commits.
-2. Read the tracking Issue (`gh issue view <n>`) and the relevant ADRs (pass absolute paths so codex doesn't have to search).
+2. Read the tracking Issue and its comments (`gh issue view <n> --json title,body,comments`) and the relevant ADRs (pass absolute paths so codex doesn't have to search).
 3. Enumerate explicitly which states are intentional (sentinel values, scoped-off paths, deferred behaviors) and must NOT be flagged as regressions.
 4. List what the review should focus on (forwarding correctness, default / expert contract consistency, docstring drift, missed call sites, etc. — project-specific).
 5. List what to ignore — the enumerated intentional states from step 3.

@@ -11,10 +11,10 @@ GitHub-integrated executor for a research plan: surfaces plan-vs-actual drift an
 
 ## Step 1 — Retrieve the plan
 
-1. Read the GitHub issue and comments using `gh issue view $ARGUMENTS --comments`.
+1. Read the GitHub issue and comments using `gh issue view $ARGUMENTS --json title,body,comments`.
 2. Locate the implementation plan. It can live in two places depending on how the issue was created:
-   - **Issue body** (D1 default for umbrella-spawned sub-issues): the body begins with `Parent: #<umbrella>` and contains the plan directly. When this line is present, treat the body itself as the plan unless a later comment in the `research` output shape supersedes it.
-   - **Issue comments** (single-scope issues): scan comments for the `research` output shape (`Hypotheses`, `Inconclusive / Deferred items` sections). The most recently posted such comment is the plan.
+   - **Issue body** (umbrella-spawned sub-issues, the D1 default, whose body begins with `Parent: #<umbrella>`; also the issue `research` creates for a new task): the body contains the plan directly. Treat the body itself as the plan unless `research` Step 7.1 names a later plan in force.
+   - **Issue comments** (single-scope issues): scan comments for the `research` output shape (`Hypotheses`, `Inconclusive / Deferred items` sections). Where a plan revision is among them, the plan is the one `research` Step 7.1 names as in force.
 3. The retrieved plan is expected to follow the `research` output shape, including the `Inconclusive / Deferred items` section, regardless of which surface it lived on.
 4. If no plan is found in either location, check the current conversation context. If neither is available, suggest running `/research $ARGUMENTS` first and stop.
 
@@ -31,7 +31,7 @@ From the plan, extract:
 
 These together form the **discovery contract**: the plan-side definition of what counts as "expected during implementation" vs "research gap".
 
-If the plan has no `Inconclusive / Deferred items` section at all, treat that as a research gap and stop. Do not synthesize the section yourself. Return to `/research`.
+If the plan has no `Inconclusive / Deferred items` section at all, treat that as a research gap and stop. Do not synthesize the section yourself. Return to research with the missing section as what sent the run back.
 
 If the plan has no `Derivations` section but the work involves specific-example fixtures (concrete Hamiltonians, concrete protocol messages, named worked cases, etc.), treat that as a research gap on the derivational axis and stop the same way. The absence of a `Derivations` section means no specific example has been derivationally cleared.
 
@@ -115,7 +115,7 @@ When the plan sketches a specific strategy (algorithm, data structure, unsafe pa
 Procedure when substituting:
 
 1. **Enumerate the original strategy's properties explicitly.** Not just the named motivation — every property the original mechanism happens to achieve. E.g. `MaybeUninit` + transmute provides {no zero-init, no per-element heap alloc, caller-controlled placement, deterministic layout}; `Vec::with_capacity` + push provides {no zero-init} only.
-2. **Verify the substitute preserves each property.** Any dropped property must be named in the plan-vs-actual diff and, on `ask-criteria`'s B, put to the user — not silently discarded.
+2. **Verify the substitute preserves each property.** Any dropped property must be named in the plan-vs-actual diff, and put to the user when `ask-criteria`'s B holds — not silently discarded.
 
 ### 3.3 Quality items
 

@@ -11,11 +11,13 @@ The pipeline crosses a **user-controlled merge gate** (Phase 4a → 4b): the use
 
 ## Pipeline entry
 
-This pipeline takes two inputs, stated before the first phase the run executes. A run entering at Phase 4a or 4b takes neither.
+This pipeline takes three inputs, stated before the first phase the run executes; the third, Issue, may be absent. A run entering at Phase 4a or 4b takes none of them.
 
 - **Root** — the branch this change merges into, as a bare branch name, supplied by the caller on `diff-root`'s terms. Every gate here is a coverage invocation in that skill's sense, so all of them take this one value: every `/done-check` invocation (Phase 0 and the fix-loop substep), Phase 0.5's `/code-review-gate`, Phase 1's `/codex-review`, and — when the run reads fix commits rather than working from review findings alone — Phase 3's `/bug-to-contract` and `/finding-to-audit`. Phase 2 opens the PR against that same branch. This pipeline resolves no root: with none supplied, ask.
 
 - **Branch guard** — run the default-branch check in Rules.
+
+- **Issue** — the issue the work is for, supplied by the caller; absent when the caller supplies none. Oscillation detection reads its plan in force, as `research` Step 7.1 defines it.
 
 ## Phase 0: Done-check loop
 
@@ -89,7 +91,7 @@ Skip when the work is not tied to an umbrella tracking issue. Trigger only when 
 
    No match → skip Phase 4a and 4b entirely.
 
-2. **Derive the plan-vs-actual delta.** Compare the sub-issue's Scope / Out of scope / Acceptance against the merged-bound PR's actual diff and behavior. Cover:
+2. **Derive the plan-vs-actual delta.** Compare the sub-issue's Scope / Out of scope / Acceptance against the merged-bound PR's actual diff and behavior. A `## Plan revision` comment on the sub-issue (read with `gh issue view <leaf#> --comments`) is part of the delta, reported with whether the user approved it. Cover:
 
    - Scope additions (work that landed but was not in the original Scope) — was it justified, or scope creep?
    - Scope subtractions (Scope items that were deferred or dropped) — were they punted to a follow-up issue?
@@ -174,6 +176,6 @@ Runs only after the user has merged.
 
 - **Oscillation detection.** A conceptual topic is the same underlying question rather than the same literal comment — e.g., "is this input valid?", "does this property hold?", "should this parameter accept both values?". For a topic that appears across 2+ consecutive review iterations, take the first of these that applies:
 
-  1. Evaluate `ask-criteria`'s C.
-  2. If the topic falsifies a statement of the plan, re-triage its findings as `opens-a-question`.
+  1. If `ask-criteria`'s C holds, stop on it.
+  2. If the Issue input has a plan in force and the topic falsifies a statement of it, re-triage its findings as `opens-a-question`.
   3. Otherwise, derive the contract of the artifact the topic concerns by listing the states that reach it, settle the fix option against those states on `ask-criteria`'s terms, and apply it.

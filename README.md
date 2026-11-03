@@ -8,9 +8,9 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 
 | Skill | Description |
 | -- | -- |
-| `research` | Hypothesis-driven investigation under the four-state decision discipline (confirmed / rejected / inconclusive / deferred). Classifies hypotheses as empirical (probe-verified) vs derivational (deduced in main context); posts the resulting plan to the issue body (umbrella-spawned sub-issue) or comment (single-scope issue), and a later revision as a further comment. |
+| `research` | Hypothesis-driven investigation under the four-state decision discipline (confirmed / rejected / inconclusive / deferred). Classifies hypotheses as empirical (probe-verified) vs derivational (deduced in main context); posts the resulting plan to the issue (to a new sub-issue for an umbrella), and a later revision as a further comment. |
 | `codex-plan-review` | Review the implementation plan with Codex against the actual codebase before coding |
-| `implement` | Execute a plan with drift surfacing and done-check before completion. Reads the most recently posted plan, from the sub-issue body (umbrella-spawned) or comments. |
+| `implement` | Execute a plan with drift surfacing and done-check before completion. Reads the plan in force from the issue. |
 | `research-and-implement` | End-to-end wrapper that runs `research` (Phase 1) then `implement` (Phase 2), with a branch and root baseline gate up front. |
 
 ### Issue & PR drafting
