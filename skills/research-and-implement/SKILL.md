@@ -33,4 +33,4 @@ The plan posted to the issue MUST include the `Inconclusive / Deferred items` se
 
 After Phase 1 settles and the user approves the (possibly review-revised) plan, execute `/implement $ARGUMENTS`, supplying the root Phase 0 settled.
 
-Phase 2 will halt rather than ad-hoc-patch any mid-implementation discovery that is not listed in the plan's discovery contract. If that happens, return to Phase 1 before resuming.
+Phase 2 will halt rather than ad-hoc-patch any mid-implementation discovery that is not listed in the plan's discovery contract. If that happens, return to Phase 1 (or update the plan explicitly) before resuming.

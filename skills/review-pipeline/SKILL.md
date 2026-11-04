@@ -140,7 +140,7 @@ Runs only after the user has merged.
   3. Run `/done-check` in delta mode, against the previous audit's rows and concerns, with the root stated at pipeline entry.
   4. Run `/stage-commit-push`.
   5. Re-run the review (fresh, full review — no bias from previous iteration).
-  6. Preserve actionable topic classifications for the next iteration's oscillation check, and, for the rest of the run, each topic **Oscillation detection** settled with the fix option it applied and whether the run settled it without asking.
+  6. Preserve actionable topic classifications for the next iteration's oscillation check, and, for the rest of the run, each topic **Oscillation detection** settled, how it settled it, and whether the run settled it without asking.
   7. Re-triage.
 
 - **Never skip done-check, including in fix loops.** Every fix commit is itself a diff that can introduce new drift — especially `completion-hygiene` and `paired-artifact-drift`.
@@ -176,6 +176,6 @@ Runs only after the user has merged.
 
 - **Oscillation detection.** A conceptual topic is the same underlying question rather than the same literal comment — e.g., "is this input valid?", "does this property hold?", "should this parameter accept both values?". For a topic that appears across 2+ consecutive review iterations, take the first of these that applies:
 
-  1. If `ask-criteria`'s C holds, halt the fix loop: fix no finding and run no done-check until the user directs.
+  1. If `ask-criteria`'s C holds, halt the fix loop: fix no finding and run no done-check until the user directs. A mode that holds back clarifying questions does not override this halt.
   2. If the Issue input carries a `research` plan and the topic falsifies a statement of it or a premise it rests on, re-triage its findings as `opens-a-question`.
   3. Otherwise, derive the contract of the artifact the topic concerns by listing the states that reach it, settle the fix option against those states on `ask-criteria`'s terms, and apply it.

@@ -22,7 +22,7 @@ Ask the user when B, C or D holds. Otherwise take the decision, and state it and
 
 - **C — what the run decided alone has failed.** At least one of:
 
-  1. `review-pipeline`'s Oscillation detection reaches a topic to which an earlier pass of that rule applied a fix option the run settled without asking.
+  1. `review-pipeline`'s Oscillation detection reaches a topic that an earlier pass of that rule settled without asking.
   2. A review loop a skill step bounds ends because the revisions or iterations it allows have run out, or because it stops at a rejection with no further re-run warranted.
 
   Stop the procedure that reached C, and present what the run decided and what failed it.
