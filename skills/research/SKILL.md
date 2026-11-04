@@ -265,25 +265,21 @@ After Step 3 produces a plan and before Step 6 collects user approval:
 
 3. **Loop gate**: after patching, re-run `codex-plan-review` per its Step 4 re-run rule. Exit the loop when the last valid verdict is `approve` or `approve with conditions`. Cap: 3 iterations within the same premise. If the cap is reached, or if the loop sits at `reject` with no further re-run warranted, surface the verdict and outstanding findings to the user and ask whether to proceed as-is, patch further manually, or escalate. Premise concerns return to Step 1 and reset the counter — iteration count is per-premise, not lifetime.
 
-4. **The plan that exits this step is the contract.** Step 7 posts that plan once and does not revise it afterwards; there is no "post then revise" loop. Every revision — this step's, the user's at Step 6, a discharge, a laundering fix — happens before posting.
+4. **The plan that exits this step is the contract.** Step 7 posts that plan once and does not revise it afterwards; there is no "post then revise" loop. Every revision — this step's, the user's at Step 6, a discharge, a `gh-body-audit` fix — happens before posting.
 
 ## Step 6 — User approval
 
-Discharge the plan's evidence claims per `gh-body-conventions` § Evidence claims before presenting it — the plan enumerates probe outcomes, and neither the user nor the cold-reader check at 7.0 can see the returns they rest on.
+Discharge the plan's evidence claims per `gh-body-conventions` § Evidence claims.
+
+Then run `gh-body-audit` on the plan body with artifact kind `issue`. Any ⚠ blocks presenting the plan on `gh-body-audit` step 4's terms.
 
 Present the plan (after any Step 5 revisions) and ask for approval before posting to GitHub.
 
-If the user requests changes, revise, re-discharge the plan's evidence claims, and re-show — and if 7.0 has already run, re-run it before posting.
+If the user requests changes, revise, re-discharge the plan's evidence claims, re-run `gh-body-audit`, and re-show.
 
 ## Step 7 — Post plan to GitHub
 
-### 7.0 Laundering pass — run `gh-body-audit` (MANDATORY)
-
-Run `gh-body-audit` on the plan body with artifact kind `issue` before any `gh-post` invocation. Any ⚠ blocks posting on `gh-body-audit` step 4's terms. If that changed the plan, re-show it for approval before posting — Step 6 approved the text as it stood.
-
-### 7.1 Route to the correct surface
-
-After 7.0 clears, route the plan based on what `$ARGUMENTS` resolves to:
+Route the plan as last approved at Step 6 based on what `$ARGUMENTS` resolves to:
 
 - **Existing single-scope issue** → `gh-post issue comment $ARGUMENTS` (per `file-issue` step 6) with the plan as body.
 - **Existing umbrella issue** (the body contains a Phases table or sub-tasks list) → spawn a new sub-issue whose body IS the plan, following `file-issue`'s `Variants > Umbrella sub-issue` shape: `Parent: #<umbrella>` on the first line, `Phase N: <topic>` title, Goal / Scope / Out of scope / Acceptance derived from the plan. After creation, append the new sub-issue's number to the umbrella's Phases table row. Do not also post the plan as an umbrella comment.
