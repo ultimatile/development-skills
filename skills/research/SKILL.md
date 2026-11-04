@@ -184,7 +184,7 @@ Before escalating a sub-decision to the user as "unresolved":
 2. **Memory and prior conversation** — check available memory entries and recent turns for decisions on the same axis.
 3. **Step 2 results** — re-read Step 2 output. A recommendation a `confirmed` hypothesis backs is resolved unless contradicted elsewhere.
 
-A sub-decision is unresolved, and goes to the user, only when `ask-criteria`'s B, C or D holds for it; look in the sources above before deciding that nothing settles it. That more than one technically-viable option exists does not by itself make it unresolved: comparing them for dominance is analysis you owe the user. When you do escalate, state what you checked.
+Settle a sub-decision on `ask-criteria`'s terms, after reading the sources above. When you do escalate, state what you checked.
 
 Report the plan back to the main context.
 
@@ -247,13 +247,16 @@ When the plan cites a benchmark (existing or new) as evidence for a performance 
 
 Output: **clean** (proceed to Step 5) or **flagged** (list firings + proposed resolution + surface to user).
 
-## Step 5 — Plan review gate
+## Step 5 — Plan review gate (mandatory offer)
 
-After Step 3 produces a plan and before Step 6:
+After Step 3 produces a plan and before Step 6 collects user approval:
 
-1. Run `codex-plan-review`.
+1. **Always offer `codex-plan-review`** — never silently skip. Phrase it as a recommendation, not a question:
 
-2. **Triage the findings**; a finding the triage closes is a concern of neither kind below, and one it holds as `opens-a-question` is a premise concern, whichever kind the distinction below would give its content.
+   > "Plan ready. Recommend running `/codex-plan-review` before
+   > approval; type `skip` to bypass, or anything else to run it."
+
+2. **If review runs**: triage the findings; a finding the triage closes is a concern of neither kind below, and one it holds as `opens-a-question` is a premise concern, whichever kind the distinction below would give its content.
 
    - **Implementation concerns** (algorithm details, error handling, test coverage gaps, naming): patch the plan in place and proceed to the loop gate below.
    - **Premise concerns** (the assumed root cause may be wrong, the described mechanism doesn't match how the code actually fails, a fixture's claimed properties may not hold, an "obvious" derivation is unproven): **return to Step 1**. Do not patch the plan in place — the hypothesis set itself is suspect, and incremental edits perpetuate the bad premise across iterations.
