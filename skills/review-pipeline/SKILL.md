@@ -135,12 +135,12 @@ Runs only after the user has merged.
 
 - **Fix-loop substeps**: while any finding of the latest triage is not closed, as `finding-triage` defines closed, run these in order:
 
-  1. **Oscillation check (iteration N ≥ 2).** Compare current actionable topics against the previous iteration's preserved topics. Apply **Oscillation detection** to any conceptual topic that recurs, before fixing it.
+  1. **Oscillation check.** From iteration 2, compare current actionable topics against the previous iteration's preserved topics; in every iteration, compare them against the run-long record substep 6 keeps of the topics **Oscillation detection** reached. Apply **Oscillation detection** to any conceptual topic that recurs in either comparison, before fixing it.
   2. Take each finding that is not closed as its disposition directs. If every finding of the latest triage is now closed and this substep changed no file, the loop ends here; this takes precedence over the rules below against skipping done-check and codex review.
   3. Run `/done-check` in delta mode, against the previous audit's rows and concerns, with the root stated at pipeline entry.
   4. Run `/stage-commit-push`.
   5. Re-run the review (fresh, full review — no bias from previous iteration).
-  6. Preserve actionable topic classifications for the next iteration's oscillation check, and, for the rest of the run, each topic **Oscillation detection** settled, how it settled it, and whether the run settled it without asking.
+  6. Preserve actionable topic classifications for the next iteration's oscillation check, and, for the rest of the run, each topic **Oscillation detection** reached, how it was settled, and whether the run settled it without asking.
   7. Re-triage.
 
 - **Never skip done-check, including in fix loops.** Every fix commit is itself a diff that can introduce new drift — especially `completion-hygiene` and `paired-artifact-drift`.
@@ -174,8 +174,10 @@ Runs only after the user has merged.
 
 - **Select the response before fixing.** Select the edit per `finding-triage`'s **Response selection (actionable findings)**; a finding fitting `invariant-premise-check` or `opens-a-question` re-triages per those dispositions. For a premise check, if unsure, ask codex a single targeted question via `codex exec "<fix proposal + one specific question about the premise>" -o /tmp/fix-check.md`. The commit is owned by whichever `/stage-commit-push` step the current phase runs.
 
-- **Oscillation detection.** A conceptual topic is the same underlying question rather than the same literal comment — e.g., "is this input valid?", "does this property hold?", "should this parameter accept both values?". For a topic that appears across 2+ consecutive review iterations, take the first of these that applies:
+- **Oscillation detection.** A conceptual topic is the same underlying question rather than the same literal comment — e.g., "is this input valid?", "does this property hold?", "should this parameter accept both values?". For a topic that appears across 2+ consecutive review iterations, or that recurs after an earlier pass of this rule reached it, take the first of these that applies:
 
-  1. If `ask-criteria`'s C holds, halt the fix loop: fix no finding and run no done-check until the user directs. A mode that holds back clarifying questions does not override this halt.
-  2. If the Issue input carries a `research` plan and the topic falsifies a statement of it or a premise it rests on, re-triage its findings as `opens-a-question`.
+  1. If `ask-criteria`'s C holds, halt the fix loop: fix no finding and run no done-check until the user directs.
+  2. If the Issue input carries a `research` plan and the topic falsifies a statement of it or a premise it rests on, halt the fix loop as 1 does, and present the topic with the statement or premise it falsifies.
   3. Otherwise, derive the contract of the artifact the topic concerns by listing the states that reach it, settle the fix option against those states on `ask-criteria`'s terms, and apply it.
+
+  A mode that holds back clarifying questions does not override the halt in 1 or 2.

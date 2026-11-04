@@ -9,9 +9,11 @@ Skills that cite these criteria apply them by reference. Do not copy them into t
 
 ## Scope
 
-These criteria govern a decision a run faces at a step that cites them: which route to take, including how far back a return to research goes and what it re-runs; which option to apply; whether to continue. An approval a skill step requires before an action — **A**, such as filing an issue or making an edit outside the task's scope — is not such a decision, and stands as that step states it.
+These criteria govern a decision a run faces at a step that cites them: which route to take, including how far back a return to research goes and what it re-runs; which option to apply; whether to continue.
 
 ## Criteria
+
+An approval a skill step requires before an action — **A**, such as filing an issue or making an edit outside the task's scope — is not a decision these criteria govern, and stands as that step states it.
 
 Ask the user when B, C or D holds. Otherwise take the decision, and state it and its basis in the next message to the user.
 
