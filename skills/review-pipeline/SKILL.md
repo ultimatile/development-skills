@@ -11,13 +11,13 @@ The pipeline crosses a **user-controlled merge gate** (Phase 4a → 4b): the use
 
 ## Pipeline entry
 
-This pipeline takes three inputs, stated before the first phase the run executes; the third, Issue, may be absent. A run entering at Phase 4a or 4b takes none of them.
+This pipeline takes the entries below, stated before the first phase the run executes; Issue may be absent. A run entering at Phase 4a or 4b takes none of them.
 
 - **Root** — the branch this change merges into, as a bare branch name, supplied by the caller on `diff-root`'s terms. Every gate here is a coverage invocation in that skill's sense, so all of them take this one value: every `/done-check` invocation (Phase 0 and the fix-loop substep), Phase 0.5's `/code-review-gate`, Phase 1's `/codex-review`, and — when the run reads fix commits rather than working from review findings alone — Phase 3's `/bug-to-contract` and `/finding-to-audit`. Phase 2 opens the PR against that same branch. This pipeline resolves no root: with none supplied, ask.
 
 - **Branch guard** — run the default-branch check in Rules.
 
-- **Issue** — the issue the work is for, supplied by the caller; absent when the caller supplies none. Oscillation detection reads its plan in force, as `research` Step 7.1 defines it.
+- **Issue** — the issue whose `research` plan this branch implements, supplied by the caller; absent when the caller supplies none. Oscillation detection reads the `research` plan it carries.
 
 ## Phase 0: Done-check loop
 
@@ -91,7 +91,7 @@ Skip when the work is not tied to an umbrella tracking issue. Trigger only when 
 
    No match → skip Phase 4a and 4b entirely.
 
-2. **Derive the plan-vs-actual delta.** Compare the sub-issue's Scope / Out of scope / Acceptance against the merged-bound PR's actual diff and behavior. A `## Plan revision` comment on the sub-issue (read with `gh issue view <leaf#> --comments`) is part of the delta, reported with whether the user approved it. Cover:
+2. **Derive the plan-vs-actual delta.** Compare the sub-issue's Scope / Out of scope / Acceptance against the merged-bound PR's actual diff and behavior. Cover:
 
    - Scope additions (work that landed but was not in the original Scope) — was it justified, or scope creep?
    - Scope subtractions (Scope items that were deferred or dropped) — were they punted to a follow-up issue?
@@ -135,12 +135,12 @@ Runs only after the user has merged.
 
 - **Fix-loop substeps**: while any finding of the latest triage is not closed, as `finding-triage` defines closed, run these in order:
 
-  1. **Oscillation check (iteration N ≥ 2).** Compare current actionable topics against the previous iteration's preserved topics. Take any conceptual topic that recurs through **Oscillation detection** before fixing it.
+  1. **Oscillation check (iteration N ≥ 2).** Compare current actionable topics against the previous iteration's preserved topics. Apply **Oscillation detection** to any conceptual topic that recurs, before fixing it.
   2. Take each finding that is not closed as its disposition directs. If every finding of the latest triage is now closed and this substep changed no file, the loop ends here; this takes precedence over the rules below against skipping done-check and codex review.
   3. Run `/done-check` in delta mode, against the previous audit's rows and concerns, with the root stated at pipeline entry.
   4. Run `/stage-commit-push`.
   5. Re-run the review (fresh, full review — no bias from previous iteration).
-  6. Preserve actionable topic classifications for the next iteration's oscillation check.
+  6. Preserve actionable topic classifications for the next iteration's oscillation check, and, for the rest of the run, each topic **Oscillation detection** settled with the fix option it applied and whether the run settled it without asking.
   7. Re-triage.
 
 - **Never skip done-check, including in fix loops.** Every fix commit is itself a diff that can introduce new drift — especially `completion-hygiene` and `paired-artifact-drift`.
@@ -176,6 +176,6 @@ Runs only after the user has merged.
 
 - **Oscillation detection.** A conceptual topic is the same underlying question rather than the same literal comment — e.g., "is this input valid?", "does this property hold?", "should this parameter accept both values?". For a topic that appears across 2+ consecutive review iterations, take the first of these that applies:
 
-  1. If `ask-criteria`'s C holds, stop on it.
-  2. If the Issue input has a plan in force and the topic falsifies a statement of it, re-triage its findings as `opens-a-question`.
+  1. If `ask-criteria`'s C holds, halt the fix loop: fix no finding and run no done-check until the user directs.
+  2. If the Issue input carries a `research` plan and the topic falsifies a statement of it or a premise it rests on, re-triage its findings as `opens-a-question`.
   3. Otherwise, derive the contract of the artifact the topic concerns by listing the states that reach it, settle the fix option against those states on `ask-criteria`'s terms, and apply it.

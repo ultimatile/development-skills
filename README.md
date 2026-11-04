@@ -8,9 +8,9 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 
 | Skill | Description |
 | -- | -- |
-| `research` | Hypothesis-driven investigation under the four-state decision discipline (confirmed / rejected / inconclusive / deferred). Classifies hypotheses as empirical (probe-verified) vs derivational (deduced in main context); posts the resulting plan to the issue (to a new sub-issue for an umbrella), and a later revision as a further comment. |
+| `research` | Hypothesis-driven investigation under the four-state decision discipline (confirmed / rejected / inconclusive / deferred). Classifies hypotheses as empirical (probe-verified) vs derivational (deduced in main context); posts the resulting plan to the issue body (umbrella-spawned sub-issue) or comment (single-scope issue). |
 | `codex-plan-review` | Review the implementation plan with Codex against the actual codebase before coding |
-| `implement` | Execute a plan with drift surfacing and done-check before completion. Reads the plan in force from the issue. |
+| `implement` | Execute a plan with drift surfacing and done-check before completion. Reads the plan from the sub-issue body (umbrella-spawned) or comments (single-scope). |
 | `research-and-implement` | End-to-end wrapper that runs `research` (Phase 1) then `implement` (Phase 2), with a branch and root baseline gate up front. |
 
 ### Issue & PR drafting
@@ -36,7 +36,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | `stage-commit-push` | Stage, generate conventional commit message, commit, and push |
 | `finding-triage` | Single source of truth for per-finding review-triage dispositions and for selecting the response to an actionable finding, which the review and audit skills apply by reference |
 | `diff-root` | Single source of truth for the diff root — the ref a change is measured from. Holds the consumer contract, where the root comes from, and the per-command range conversion. Root-using skills and their callers apply this definition by reference. |
-| `ask-criteria` | Single source of truth for when an executing agent asks the user instead of deciding — applied by reference wherever a skill reaches a route, an option, or whether to continue |
+| `ask-criteria` | Single source of truth for when an executing agent asks the user instead of deciding; skills that cite it settle routes, options, and whether to continue on its terms |
 | `codex-review` | Run OpenAI Codex review with triage before PR creation |
 | `copilot-review` | Create PR with GitHub Copilot review, poll for results, triage |
 | `code-review-gate` | Run the built-in `/code-review` through a fallback lane chain; used by `review-pipeline` at Phase 0.5 |
