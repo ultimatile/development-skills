@@ -273,7 +273,7 @@ Discharge the plan's evidence claims per `gh-body-conventions` § Evidence claim
 
 Then run `gh-body-audit` on the plan body with artifact kind `issue`. Any ⚠ blocks presenting the plan on `gh-body-audit` step 4's terms.
 
-Present the plan (after any Step 5 revisions) and ask for approval before posting to GitHub.
+Present the plan and ask for approval before posting to GitHub.
 
 If the user requests changes, revise, re-discharge the plan's evidence claims, re-run `gh-body-audit`, and re-show.
 
