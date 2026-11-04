@@ -260,7 +260,7 @@ After Step 3 produces a plan and before Step 6:
 
    Distinguishing the two: an implementation concern asks "given the plan's assumptions, is the proposed approach sound?"; a premise concern asks "are the plan's assumptions actually true?". If the reviewer would have given a different answer with empirical evidence in hand, it's a premise concern.
 
-3. **Loop gate**: after patching, re-run `codex-plan-review` per its Step 4 re-run rule. Exit the loop when the last valid verdict is `approve` or `approve with conditions`. Cap: 3 iterations within the same premise. If the cap is reached, or if the loop sits at `reject` with no further re-run warranted, show the verdict and the outstanding findings, each with its disposition, alongside the plan Step 6 presents; that presentation is the stop `ask-criteria`'s C asks for. Premise concerns return to Step 1 and reset the counter — iteration count is per-premise, not lifetime.
+3. **Loop gate**: after patching, re-run `codex-plan-review` per its Step 4 re-run rule. Exit the loop when the last valid verdict is `approve` or `approve with conditions`. Cap: 3 iterations within the same premise. If the cap is reached, or if the loop sits at `reject` with no further re-run warranted, surface the verdict and outstanding findings to the user and ask whether to proceed as-is, patch further manually, or escalate. Premise concerns return to Step 1 and reset the counter — iteration count is per-premise, not lifetime.
 
 4. **The plan that exits this step is the contract.** Step 7 posts that plan once and does not revise it afterwards; there is no "post then revise" loop. Every revision — this step's, the user's at Step 6, a discharge, a laundering fix — happens before posting.
 

@@ -9,7 +9,7 @@ Skills that cite these criteria apply them by reference. Do not copy them into t
 
 ## Scope
 
-These criteria govern a decision a run faces at a step that cites them: which route to take, including how far back a return to research goes and what it re-runs; which option to apply; whether to continue.
+These criteria govern a decision a run faces where a skill cites them: which route to take; which option to apply; whether to continue.
 
 ## Criteria
 
@@ -22,10 +22,7 @@ Ask the user when B, C or D holds. Otherwise take the decision, and state it and
   1. The option the run would take changes what the issue the run holds asks for (with none, the task it was given), brings in something the plan the user approved excludes or defers, or drops something that plan includes; the last two apply when the run holds such a plan.
   2. Nothing the run can read, or find out by a probe it can run, settles the answer, and no option dominates. An option dominates when, in every state the outcome can reach, it is at least as good as every other option on each of truth, usefulness and harm, cost counting as harm.
 
-- **C — what the run decided alone has failed.** At least one of:
-
-  1. `review-pipeline`'s Oscillation detection reaches a topic that an earlier pass of that rule settled without asking.
-  2. A review loop a skill step bounds ends because the revisions or iterations it allows have run out, or because it stops at a rejection with no further re-run warranted.
+- **C — what the run decided alone has failed.** A review loop a skill step bounds ends because the revisions or iterations it allows have run out, or because it stops at a rejection with no further re-run warranted.
 
   Stop the procedure that reached C, and present what the run decided and what failed it.
 
