@@ -133,7 +133,7 @@ Runs only after the user has merged.
 
 - **Fix-loop substeps**: while any finding of the latest triage is not closed, as `finding-triage` defines closed, run these in order:
 
-  1. **Oscillation check (iteration N ≥ 2).** Compare current actionable topics against the previous iteration's preserved topics. If any conceptual topic recurs, halt and follow the escalation order below — do NOT fix or done-check.
+  1. **Oscillation check.** From iteration 2, compare current actionable topics against the previous iteration's preserved topics; in every iteration, compare them against the oscillation record. Take any conceptual topic that recurs in either comparison through **Oscillation detection** before fixing it.
   2. Take each finding that is not closed as its disposition directs. If every finding of the latest triage is now closed and this substep changed no file, the loop ends here; this takes precedence over the rules below against skipping done-check and codex review.
   3. Run `/done-check` in delta mode, against the previous audit's rows and concerns, with the root stated at pipeline entry.
   4. Run `/stage-commit-push`.
@@ -170,9 +170,12 @@ Runs only after the user has merged.
 
 - **Triage is mandatory.** Never present raw review output to the user. Classify every finding under the `finding-triage` SSOT dispositions and lead with actionable items.
 
-- **Select the response before fixing.** Select the edit per `finding-triage`'s **Response selection (actionable findings)**; a finding fitting `invariant-premise-check` or `opens-a-question` re-triages per those dispositions. For a premise check, if unsure, ask codex a single targeted question via `codex exec "<fix proposal + one specific question about the premise>" -o /tmp/fix-check.md`. The commit is owned by whichever `/stage-commit-push` step the current phase runs.
+- **Select the response before fixing.** Select the edit per `finding-triage`'s **Response selection (actionable findings)**, except for the findings of a topic **Oscillation detection** has settled, which are fixed to carry the topic's decision; a finding fitting `invariant-premise-check` or `opens-a-question` re-triages per those dispositions. For a premise check, if unsure, ask codex a single targeted question via `codex exec "<fix proposal + one specific question about the premise>" -o /tmp/fix-check.md`. The commit is owned by whichever `/stage-commit-push` step the current phase runs.
 
-- **Oscillation detection.** If the same conceptual topic (not the same literal comment, but the same underlying question — e.g., "is this input valid?", "does this property hold?", "should this parameter accept both values?") appears across 2+ consecutive review iterations, stop fixing and escalate to the user. Repeated findings on one topic signal that the underlying invariant is not understood well enough for a confident fix.
+- **Oscillation detection.** A conceptual topic is the same underlying question rather than the same literal comment — e.g., "is this input valid?", "does this property hold?", "should this parameter accept both values?". The **oscillation record** holds, for the rest of the run, each topic this rule has settled, the decision that settled it, and who made it on what basis. To **escalate** under this rule is to halt the fix loop — fix no finding and run no done-check — and ask the user by the escalation order below; the user's decision then settles the topic, and the run records it and acts on it. Take the first of these that applies:
+
+  1. **A topic in the oscillation record recurs**, in any later iteration of any phase: escalate, presenting the topic's record entry with the findings that brought it back. A settled topic that comes back signals that the underlying invariant is not understood well enough for a confident fix.
+  2. **A topic appears across 2+ consecutive review iterations**: derive the contract of the artifact the topic concerns — list the states that reach it, and evaluate, for truth, usefulness and harm in each state, the fix the previous iteration made on the topic and each fix option the current iteration's findings on it propose. If some option is at least as good as every other on each of the three in every state, take one such option as the topic's decision: in substep 2, fix the topic's findings so the text carries it, which for those findings takes the place of Response selection. Record the topic, and state the option and the derivation in the next message to the user. If no option is, escalate.
 
   **Escalation order.** Before presenting the fix-direction question (panic vs allow vs convert vs ...), FIRST ask whether the original plan scope is correct. Oscillation in the fix-direction space is the symptom that the contract is empty or depends on something outside the plan's scope — refining the fix without rescoping just re-anchors the same empty contract from a different angle. Ask in this order:
 
@@ -180,4 +183,4 @@ Runs only after the user has merged.
   2. **If yes upstream**: rescope. Close the current PR, refile the upstream design question as a separate issue, and let the current API decision fall out of that resolution. This is the right move even when the current fix is technically correct in isolation.
   3. **If no upstream issue**: present what is known, what is uncertain, and ask the user to choose among the surviving fix options.
 
-  The "no-clarifying-questions" mode does NOT override this rule. Convergence of three independent reviewers on the same API-contract concern is the signal regardless of mode.
+  The "no-clarifying-questions" mode does NOT override an escalation under this rule.

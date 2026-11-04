@@ -95,5 +95,5 @@ Present to the user:
 ## Important principles
 
 - **Name the contract**: If you can't name the implicit specification in one sentence, you haven't understood the issue yet.
-- **Patterns are worth reporting**: A cluster of findings in the same category (e.g., three layout-related issues in one review cycle) indicates a systematically untested contract. Report this to the user.
+- **Patterns are escalation-worthy**: A cluster of findings in the same category (e.g., three layout-related issues in one review cycle) indicates a systematically untested contract. Escalate this to the user.
 - **Don't boil the ocean**: One contract test per finding is enough.

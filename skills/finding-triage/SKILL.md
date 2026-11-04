@@ -28,7 +28,7 @@ Each finding receives exactly one disposition. A finding may be *re-triaged* to 
   - "fix in place" is wrong — the fix is not local.
   - "escalate to the user" is wrong — the resolution is probe-able.
 
-  The correct handling is to **re-enter `research`** with the finding as the task, then escalate only the residue `ask-criteria` sends to the user.
+  The correct handling is to **re-enter `research`** with the finding as the task, then escalate only the genuinely user-owned residue (scope authority, taste, an external constraint).
 
 - **invariant-premise-check** — the finding's *conclusion* may be correct, but its *premise* may be wrong. Applies to claims about mathematical properties, semantic validity, or precondition necessity. Before committing a fix, **verify the premise** — check whether the invariant the finding assumes actually holds, by reading code and tests and running targeted experiments. When the premise is an external-system-behavior claim, verify it per **Verifying external-system claims** below. Once the premise is verified, the finding resolves to `actionable` (premise holds → fix it) or `false-positive` (premise fails → the finding's conclusion does not follow). The mechanism for verifying the premise is the caller's; this SSOT owns only the class.
 
@@ -108,4 +108,4 @@ What follows binds a verdict that rests on a claim about an **external system's 
 
 **Scope.** This fires only for claims about an external system's *behavior*, and only at the point a verdict is committed (a fix shipped, a finding dismissed) — not for intermediate reasoning.
 
-**When the authoritative implementation is unavailable or too costly to run.** Cost decides whether you can pay to confirm; it never makes a proxy into sufficient evidence. If you cannot run the authoritative implementation, the claim does not resolve via a proxy: the finding stays unresolved rather than advancing to a committed verdict, and whether the verification is worth its cost — or whether an alternative authoritative source exists — is settled on `ask-criteria`'s terms.
+**When the authoritative implementation is unavailable or too costly to run.** Cost decides whether you can pay to confirm; it never makes a proxy into sufficient evidence. If you cannot run the authoritative implementation, the claim does not resolve via a proxy: the finding stays unresolved rather than advancing to a committed verdict, and whether the verification is worth its cost — or whether an alternative authoritative source exists — escalates to the user.

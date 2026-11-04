@@ -144,11 +144,11 @@ Present the triage to the user, not the raw output.
 ### 5. Apply or hand back
 
 - Take each finding that is not closed, as `finding-triage` defines closed, as its disposition directs.
-- If that revised the test on this skill's first run for that test, re-run this skill once. If it revised the test on that re-run, escalate to the user, `ask-criteria`'s C, instead of re-running again.
+- If that revised the test on this skill's first run for that test, re-run this skill once. If it revised the test on that re-run, escalate to the user instead of re-running again.
 - Otherwise: hand back to the caller.
 
 ## What this skill is bad at
 
 - Project-specific scope decisions (will defer to open questions)
-- Trade-off judgments about test coverage breadth (settle these on `ask-criteria`'s terms)
+- Trade-off judgments about test coverage breadth (the user makes these calls)
 - Anything outside the test-vs-contract relationship — for full diff review, use `codex-review` instead

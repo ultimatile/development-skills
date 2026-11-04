@@ -125,4 +125,4 @@ Take each finding that is not closed, as `finding-triage` defines closed, as its
 - Trade-off decisions (will flag every simplification as a risk)
 - Whether a "documented limitation" or "deferred mitigation" in the plan is acceptable or is a self-admission that the plan is mis-scoped — Codex grounds in code, not in scope-vs-contract distinctions
 
-Codex does not make these calls; settle them on `ask-criteria`'s terms.
+The user makes these calls, not Codex.

@@ -49,7 +49,6 @@
         "./skills/gh-body-audit",
         "./skills/finding-triage",
         "./skills/diff-root",
-        "./skills/ask-criteria",
         "./skills/reimre/",
         "./skills/land-via-integration-branch"
       ]

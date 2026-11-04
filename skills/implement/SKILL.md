@@ -11,7 +11,7 @@ GitHub-integrated executor for a research plan: surfaces plan-vs-actual drift an
 
 ## Step 1 — Retrieve the plan
 
-1. Read the GitHub issue and comments using `gh issue view $ARGUMENTS --json title,body,comments`.
+1. Read the GitHub issue and comments using `gh issue view $ARGUMENTS --comments`.
 2. Locate the implementation plan. It can live in two places depending on how the issue was created:
    - **Issue body** (D1 default for umbrella-spawned sub-issues): the body begins with `Parent: #<umbrella>` and contains the plan directly. When this line is present, treat the body itself as the plan and ignore comments for plan discovery.
    - **Issue comments** (single-scope issues): scan comments for the `research` output shape (`Hypotheses`, `Inconclusive / Deferred items` sections).
@@ -85,7 +85,7 @@ If, while executing a unit, an unexpected fact is observed (a behavior, type, ca
    - **Yes** → follow the listed branch. If the branch says "re-plan trigger", **stop implementation** and return to research for this hypothesis.
    - **No** → continue to step 2.
 2. **Check the `Deferred` items.** Is this discovery the resolution-point of a deferred concern?
-   - **Yes** → settle on `ask-criteria`'s terms whether to expand scope or keep it deferred.
+   - **Yes** → surface to user, decide whether to expand scope or keep it deferred.
    - **No** → continue to step 3.
 3. **Unlisted discovery = research gap.** **Stop.** Do not patch the surprise ad-hoc. Surface to the user with: what was observed, why it contradicts the plan, what hypothesis class it falls under. Ask whether to re-research or to expand the discovery contract explicitly.
 
