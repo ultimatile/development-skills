@@ -11,7 +11,7 @@ GitHub-integrated executor for a research plan: surfaces plan-vs-actual drift an
 
 ## Step 1 — Retrieve the plan
 
-1. Read the GitHub issue and its comments using `gh issue view $ARGUMENTS --json title,body,comments --jq '"# " + .title, .body, (.comments[] | "----- comment by \(.author.login) at \(.createdAt) -----", .body)'`.
+1. Read the GitHub issue and its comments using `gh issue view $ARGUMENTS --json title,body,comments --jq '"# " + .title, .body, (.comments[] | "----- comment by \(.author.login) at \(.createdAt) -----", .body)'`. Its first line is `# ` followed by the issue's title, the body follows, and each comment follows its own `----- comment by … -----` line.
 2. Locate the implementation plan. It can live in two places depending on how the issue was created:
    - **Issue body** (D1 default for umbrella-spawned sub-issues): the body begins with `Parent: #<umbrella>` and contains the plan directly. When this line is present, treat the body itself as the plan and ignore comments for plan discovery.
    - **Issue comments** (single-scope issues): scan comments for the `research` output shape (`Hypotheses`, `Inconclusive / Deferred items` sections).

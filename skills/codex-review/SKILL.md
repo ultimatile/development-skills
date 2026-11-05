@@ -62,7 +62,7 @@ gh issue view <n> --json title,body,comments --jq '"# " + .title, .body, (.comme
 The prompt should tell codex to:
 
 1. Run `git log <root-rev>..HEAD --oneline` and `git show <sha>` to read the commits.
-2. Read the tracking Issue from `<issue-file>`, when one was saved, and the relevant ADRs (pass absolute paths so codex doesn't have to search), reading each file in full and re-reading by line range any part a read reports as truncated.
+2. Read the tracking Issue from `<issue-file>`, when one was saved, and the relevant ADRs, each named by absolute path so codex doesn't have to search, reading each file in full and re-reading by line range any part a read reports as truncated.
 3. Enumerate explicitly which states are intentional (sentinel values, scoped-off paths, deferred behaviors) and must NOT be flagged as regressions.
 4. List what the review should focus on (forwarding correctness, default / expert contract consistency, docstring drift, missed call sites, etc. — project-specific).
 5. List what to ignore — the enumerated intentional states from step 3.
