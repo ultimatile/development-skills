@@ -53,7 +53,7 @@ If any of the above is yes, skip `codex exec review` and use `codex exec "<inlin
 
 **Why the workaround is needed:** `--base` and the positional `[PROMPT]` are mutually exclusive on `codex exec review`, so phase context cannot be attached to a `review` invocation. The free-form `codex exec "..."` accepts an arbitrary prompt that can direct codex to read the surrounding context first.
 
-**Inline prompt template** — before writing the prompt, save the tracking Issue to a file outside the working tree:
+**Inline prompt template** — when the change has a tracking Issue, save it to a file outside the working tree before writing the prompt:
 
 ```bash
 gh issue view <n> --json title,body,comments --jq '"# " + .title, .body, (.comments[] | "----- comment by \(.author.login) at \(.createdAt) -----", .body)' > <issue-file>
@@ -62,7 +62,7 @@ gh issue view <n> --json title,body,comments --jq '"# " + .title, .body, (.comme
 The prompt should tell codex to:
 
 1. Run `git log <root-rev>..HEAD --oneline` and `git show <sha>` to read the commits.
-2. Read the tracking Issue from `<issue-file>` and the relevant ADRs (pass absolute paths so codex doesn't have to search), reading each file in full and re-reading by line range any part a read reports as truncated.
+2. Read the tracking Issue from `<issue-file>`, when one was saved, and the relevant ADRs (pass absolute paths so codex doesn't have to search), reading each file in full and re-reading by line range any part a read reports as truncated.
 3. Enumerate explicitly which states are intentional (sentinel values, scoped-off paths, deferred behaviors) and must NOT be flagged as regressions.
 4. List what the review should focus on (forwarding correctness, default / expert contract consistency, docstring drift, missed call sites, etc. — project-specific).
 5. List what to ignore — the enumerated intentional states from step 3.
