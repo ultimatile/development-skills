@@ -265,7 +265,7 @@ After Step 3 produces a plan and before Step 6 collects user approval:
 
 3. **Loop gate**: after patching, re-run `codex-plan-review` per its Step 4 re-run rule. Exit the loop when the last valid verdict is `approve` or `approve with conditions`. Cap: 3 iterations within the same premise. If the cap is reached, or if the loop sits at `reject` with no further re-run warranted, surface the verdict and outstanding findings to the user and ask whether to proceed as-is, patch further manually, or escalate. Premise concerns return to Step 1 and reset the counter — iteration count is per-premise, not lifetime.
 
-4. **Step 7 posts the plan once.** It does not revise the plan afterwards; there is no "post then revise" loop. Every revision — this step's, the user's at Step 6, a discharge, a `gh-body-audit` fix — happens before posting.
+4. **Step 7 posts each body once.** It does not revise a body after posting it; there is no "post then revise" loop. Every revision — this step's, the user's at Step 6, a discharge, a `gh-body-audit` fix — happens before the body it changes is posted.
 
 ## Step 6 — User approval
 
@@ -275,7 +275,7 @@ Then run `gh-body-audit` on the plan body with artifact kind `issue`. Any ⚠ bl
 
 Present the plan and ask for approval before posting to GitHub.
 
-If the user requests changes, revise, re-discharge the plan's evidence claims, re-run `gh-body-audit`, and re-show.
+If the user requests changes, alongside an approval or in place of one, revise, re-discharge the plan's evidence claims, re-run `gh-body-audit`, and re-show it for approval.
 
 ## Step 7 — Post plan to GitHub
 
