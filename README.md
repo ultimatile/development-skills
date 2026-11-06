@@ -12,6 +12,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | `codex-plan-review` | Review the implementation plan with Codex against the actual codebase before coding |
 | `implement` | Execute a plan with drift surfacing and done-check before completion. Reads the plan from the sub-issue body (umbrella-spawned) or comments (single-scope). |
 | `research-and-implement` | End-to-end wrapper that runs `research` (Phase 1) then `implement` (Phase 2), with a branch and root baseline gate up front. |
+| `read-issue` | Read a GitHub issue's title, body and every comment as one CommonMark document, each in a fenced code block under its own heading. |
 
 ### Issue & PR drafting
 

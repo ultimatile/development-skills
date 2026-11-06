@@ -53,10 +53,19 @@ If any of the above is yes, skip `codex exec review` and use `codex exec "<inlin
 
 **Why the workaround is needed:** `--base` and the positional `[PROMPT]` are mutually exclusive on `codex exec review`, so phase context cannot be attached to a `review` invocation. The free-form `codex exec "..."` accepts an arbitrary prompt that can direct codex to read the surrounding context first.
 
-**Inline prompt template** — the prompt should tell codex to:
+**Inline prompt template** — when the change has a tracking Issue, save it before each prompt is written, to a fresh file from `mktemp`:
+
+```bash
+mktemp   # prints <issue-file>
+"${CLAUDE_SKILL_DIR}/../read-issue/scripts/read-issue.sh" <n> > <issue-file>
+```
+
+When `read-issue.sh` exits nonzero, stop and report its message instead of running the review. Delete `<issue-file>` once the read has failed or codex has exited.
+
+The prompt names, each by its absolute path so codex doesn't have to search, the relevant ADRs and, when the change has a tracking Issue, `<issue-file>` as that Issue. It should tell codex to:
 
 1. Run `git log <root-rev>..HEAD --oneline` and `git show <sha>` to read the commits.
-2. Read the tracking Issue (`gh issue view <n>`) and the relevant ADRs (pass absolute paths so codex doesn't have to search).
+2. Read each file the prompt names in full, and re-read by line range any part a read reports as truncated.
 3. Enumerate explicitly which states are intentional (sentinel values, scoped-off paths, deferred behaviors) and must NOT be flagged as regressions.
 4. List what the review should focus on (forwarding correctness, default / expert contract consistency, docstring drift, missed call sites, etc. — project-specific).
 5. List what to ignore — the enumerated intentional states from step 3.

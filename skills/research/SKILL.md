@@ -13,12 +13,12 @@ Investigates an issue or task through falsifiable hypotheses and posts the resul
 
 Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
 
-- **Number** → `gh issue view $ARGUMENTS` and proceed with that issue.
+- **Number** → proceed with that issue.
 - **Free text** → use the text as the task description; an issue will be created in Step 7.
 
 ## Step 1 — Read issue/task and form hypotheses
 
-1. If existing issue, read it with `gh issue view`. Otherwise use the free text.
+1. For an existing issue, read it with `"${CLAUDE_SKILL_DIR}/../read-issue/scripts/read-issue.sh" <n>`, `<n>` being the issue number `$ARGUMENTS` names; when the read exits nonzero, stop and report its message. For a new task, use the free text.
 
 2. Skim the project layout (directory tree, CLAUDE.md, key entry points). Do NOT deep-read files yet.
 
