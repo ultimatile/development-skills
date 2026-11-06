@@ -36,121 +36,39 @@ check() {
   fi
 }
 
-check "body and two comments" \
+check "title, body and two comments" \
   '{"title":"T","body":"b1\nb2","comments":[{"author":{"login":"u1"},"createdAt":"C1","body":"c1"},{"author":{"login":"u2"},"createdAt":"C2","body":"c2a\nc2b"}]}' \
-  '# T
-
-## body
-
-```markdown
-b1
-b2
-```
-
-## comment by u1 at C1
-
-```markdown
-c1
-```
-
-## comment by u2 at C2
-
-```markdown
-c2a
-c2b
-```'
+  $'# issue\n\n## title\n\n```text\nT\n```\n\n## body\n\n```markdown\nb1\nb2\n```\n\n## comment by u1 at C1\n\n```markdown\nc1\n```\n\n## comment by u2 at C2\n\n```markdown\nc2a\nc2b\n```'
 
 check "structure-shaped content comes out unchanged" \
-  '{"title":"T","body":"x\n-----\n## comment by z at Z\n# heading","comments":[{"author":{"login":"u"},"createdAt":"C","body":"## body\n\\-----"}]}' \
-  '# T
-
-## body
-
-```markdown
-x
------
-## comment by z at Z
-# heading
-```
-
-## comment by u at C
-
-```markdown
-## body
-\-----
-```'
+  '{"title":"Support issue #","body":"x\n-----\n## comment by z at Z\n# heading","comments":[{"author":{"login":"u"},"createdAt":"C","body":"## body\n\\-----"}]}' \
+  $'# issue\n\n## title\n\n```text\nSupport issue #\n```\n\n## body\n\n```markdown\nx\n-----\n## comment by z at Z\n# heading\n```\n\n## comment by u at C\n\n```markdown\n## body\n\\-----\n```'
 
 check "a fence grows past the longest backtick run in its content" \
-  '{"title":"T","body":"```sh\necho hi\n```\n````\n`x`","comments":[{"author":{"login":"u"},"createdAt":"C","body":"``````"}]}' \
-  '# T
-
-## body
-
-`````markdown
-```sh
-echo hi
-```
-````
-`x`
-`````
-
-## comment by u at C
-
-```````markdown
-``````
-```````'
-
-check "CRLF content comes out unchanged" \
-  '{"title":"T","body":"x\r\n-----\r\ny","comments":[]}' \
-  "# T
-
-## body
-
-\`\`\`markdown
-x"$'\r'"
------"$'\r'"
-y
-\`\`\`"
+  '{"title":"T `x` ````","body":"```sh\necho hi\n```\n````\n`x`","comments":[{"author":{"login":"u"},"createdAt":"C","body":"``````"}]}' \
+  $'# issue\n\n## title\n\n`````text\nT `x` ````\n`````\n\n## body\n\n`````markdown\n```sh\necho hi\n```\n````\n`x`\n`````\n\n## comment by u at C\n\n```````markdown\n``````\n```````'
 
 check "short backtick runs, a tilde fence and blank lines keep the three-backtick fence" \
   '{"title":"T","body":"  \n~~~\n``","comments":[{"author":{"login":"u"},"createdAt":"C","body":"`a`"}]}' \
-  $'# T\n\n## body\n\n```markdown\n  \n~~~\n``\n```\n\n## comment by u at C\n\n```markdown\n`a`\n```'
+  $'# issue\n\n## title\n\n```text\nT\n```\n\n## body\n\n```markdown\n  \n~~~\n``\n```\n\n## comment by u at C\n\n```markdown\n`a`\n```'
 
-check "every line ending in the title is folded into the first line" \
-  '{"title":"T1\n## T2\r\nT3\rT4","body":"b","comments":[]}' \
-  '# T1 ## T2 T3 T4
-
-## body
-
-```markdown
-b
-```'
+check "line endings in the title and body come out unchanged" \
+  '{"title":"T1\r\nT2\rT3","body":"x\r\n-----\r\ny","comments":[]}' \
+  $'# issue\n\n## title\n\n```text\nT1\r\nT2\rT3\n```\n\n## body\n\n```markdown\nx\r\n-----\r\ny\n```'
 
 check "empty body, empty comment" \
   '{"title":"T","body":"","comments":[{"author":{"login":"u"},"createdAt":"C","body":""}]}' \
-  '# T
-
-## body
-
-```markdown
-
-```
-
-## comment by u at C
-
-```markdown
-
-```'
+  $'# issue\n\n## title\n\n```text\nT\n```\n\n## body\n\n```markdown\n\n```\n\n## comment by u at C\n\n```markdown\n\n```'
 
 # A closed issue of this repository with comments: the script and the filter together.
 if ! "$SCRIPT_DIR/read-issue.sh" 266 --repo ultimatile/development-skills >"$tmpdir/out" 2>"$tmpdir/err"; then
   echo "FAIL real issue: exited nonzero: $(cat "$tmpdir/err")"
   fail=1
-elif ! head -1 "$tmpdir/out" | rg -q '^# \S'; then
-  echo "FAIL real issue: first line is not the title"
+elif [[ "$(head -1 "$tmpdir/out")" != "# issue" ]]; then
+  echo "FAIL real issue: first line is not the document heading"
   fail=1
-elif [[ "$(sed -n 3p "$tmpdir/out")" != "## body" ]]; then
-  echo "FAIL real issue: third line is not the body heading"
+elif ! rg -q '^## title$' "$tmpdir/out" || ! rg -q '^## body$' "$tmpdir/out"; then
+  echo "FAIL real issue: no title or body heading"
   fail=1
 elif ! rg -q '^## comment by \S+ at \S+$' "$tmpdir/out"; then
   echo "FAIL real issue: no comment heading"
