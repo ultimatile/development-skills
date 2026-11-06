@@ -18,7 +18,7 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
 
 ## Step 1 — Read issue/task and form hypotheses
 
-1. If existing issue, read it with `gh issue view $ARGUMENTS --json title,body,comments --jq '"# " + .title, .body, (.comments[] | "----- comment by \(.author.login) at \(.createdAt) -----", .body)'`. Otherwise use the free text.
+1. If existing issue, read it with `${CLAUDE_SKILL_DIR}/../read-issue/scripts/read-issue.sh $ARGUMENTS`. Otherwise use the free text.
 
 2. Skim the project layout (directory tree, CLAUDE.md, key entry points). Do NOT deep-read files yet.
 

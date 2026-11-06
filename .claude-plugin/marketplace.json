@@ -19,6 +19,7 @@
         "./skills/research-and-implement",
         "./skills/research",
         "./skills/implement",
+        "./skills/read-issue",
         "./skills/codex-plan-review",
         "./skills/review-pipeline",
         "./skills/code-review-gate",
