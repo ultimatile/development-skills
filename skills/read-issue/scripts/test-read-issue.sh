@@ -75,11 +75,15 @@ b
 ----- comment by u at C -----
 '
 
-check "a line already beginning with a backslash is left as is" \
-  '{"title":"T","body":"\\-----","comments":[]}' \
+check "a line beginning with backslashes before ----- gets one more" \
+  '{"title":"T","body":"\\-----\n\\\\-----\n\\x","comments":[{"author":{"login":"u"},"createdAt":"C","body":"\\-----"}]}' \
   '# T
 ----- body -----
-\-----'
+\\-----
+\\\-----
+\x
+----- comment by u at C -----
+\\-----'
 
 check "a newline in the title is folded into the first line" \
   '{"title":"T1\n-----T2\r\nT3","body":"b","comments":[]}' \

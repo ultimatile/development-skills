@@ -20,7 +20,7 @@ Lines are separated by LF.
 - The first line is `# ` followed by the issue's title, with each LF in the title, together with a CR just before it, replaced by a space.
 - The line `----- body -----` opens the body.
 - Each comment opens with the line `----- comment by <login> at <timestamp> -----`.
-- A body or comment line that begins with `-----` is printed with a leading `\`. Every line that begins with `-----` is therefore one of the two markers above.
+- A body or comment line that begins with `-----`, or with one or more `\` followed by `-----`, is printed with one more leading `\`. Every line that begins with `-----` is therefore one of the two markers above, and removing one leading `\` from a line that begins with one or more `\` followed by `-----` restores it.
 
 ## Failure
 

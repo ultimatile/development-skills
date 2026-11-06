@@ -1,4 +1,5 @@
+def esc: gsub("(?m)^(?<x>\\\\*-----)"; "\\\(.x)");
 "# " + (.title | gsub("\r?\n"; " ")),
 "----- body -----",
-(.body | gsub("(?m)^-----"; "\\-----")),
-(.comments[] | "----- comment by \(.author.login) at \(.createdAt) -----", (.body | gsub("(?m)^-----"; "\\-----")))
+(.body | esc),
+(.comments[] | "----- comment by \(.author.login) at \(.createdAt) -----", (.body | esc))
