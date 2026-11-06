@@ -24,4 +24,4 @@ Each fence is a run of backticks whose length is the larger of three and one mor
 
 ## Failure
 
-When the script cannot read its filter file or `gh` cannot read the issue, the script exits with the failing command's nonzero status, prints that command's message on stderr, and prints nothing on stdout.
+When the script cannot read its filter file or `gh` cannot read the issue, the script exits nonzero, prints the failing command's message on stderr, and prints nothing on stdout.
