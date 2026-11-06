@@ -18,7 +18,7 @@ Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
 
 ## Step 1 — Read issue/task and form hypotheses
 
-1. For an existing issue, read it with `${CLAUDE_SKILL_DIR}/../read-issue/scripts/read-issue.sh $ARGUMENTS`; when the read exits nonzero, stop and report its message. For a new task, use the free text.
+1. For an existing issue, read it with `${CLAUDE_SKILL_DIR}/../read-issue/scripts/read-issue.sh <n>`, `<n>` being the issue number `$ARGUMENTS` names; when the read exits nonzero, stop and report its message. For a new task, use the free text.
 
 2. Skim the project layout (directory tree, CLAUDE.md, key entry points). Do NOT deep-read files yet.
 

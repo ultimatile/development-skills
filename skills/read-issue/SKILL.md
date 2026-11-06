@@ -11,8 +11,6 @@ description: Read a GitHub issue's title, body and every comment as one CommonMa
 ${CLAUDE_SKILL_DIR}/scripts/read-issue.sh <number> [--repo OWNER/REPO]
 ```
 
-A skill in a sibling directory calls it as `${CLAUDE_SKILL_DIR}/../read-issue/scripts/read-issue.sh`.
-
 ## Output
 
 A CommonMark document whose headings hold only fixed text, logins and timestamps. Everything written in the issue sits in a fenced code block:
