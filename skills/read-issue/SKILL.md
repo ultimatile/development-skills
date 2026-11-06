@@ -8,7 +8,7 @@ description: Read a GitHub issue's title, body and every comment as one CommonMa
 ## Invocation
 
 ```bash
-${CLAUDE_SKILL_DIR}/scripts/read-issue.sh <number> [--repo OWNER/REPO]
+"${CLAUDE_SKILL_DIR}/scripts/read-issue.sh" <number> [--repo OWNER/REPO]
 ```
 
 ## Output

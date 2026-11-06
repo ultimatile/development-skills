@@ -57,7 +57,7 @@ If any of the above is yes, skip `codex exec review` and use `codex exec "<inlin
 
 ```bash
 mktemp   # prints <issue-file>
-${CLAUDE_SKILL_DIR}/../read-issue/scripts/read-issue.sh <n> > <issue-file>
+"${CLAUDE_SKILL_DIR}/../read-issue/scripts/read-issue.sh" <n> > <issue-file>
 ```
 
 When `read-issue.sh` exits nonzero, stop and report its message instead of running the review. Delete `<issue-file>` once the read has failed or codex has exited.
