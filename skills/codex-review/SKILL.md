@@ -60,7 +60,9 @@ mktemp   # prints <issue-file>
 ${CLAUDE_SKILL_DIR}/../read-issue/scripts/read-issue.sh <n> > <issue-file>
 ```
 
-The prompt names, each by its absolute path so codex doesn't have to search, the relevant ADRs and, when `read-issue.sh` exited 0, `<issue-file>` as the tracking Issue. It should tell codex to:
+When `read-issue.sh` exits nonzero, stop and report its message instead of running the review.
+
+The prompt names, each by its absolute path so codex doesn't have to search, the relevant ADRs and, when the change has a tracking Issue, `<issue-file>` as that Issue. It should tell codex to:
 
 1. Run `git log <root-rev>..HEAD --oneline` and `git show <sha>` to read the commits.
 2. Read each file the prompt names in full, and re-read by line range any part a read reports as truncated.
