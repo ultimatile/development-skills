@@ -60,10 +60,10 @@ mktemp   # prints <issue-file>
 ${CLAUDE_SKILL_DIR}/../read-issue/scripts/read-issue.sh <n> > <issue-file>
 ```
 
-The prompt should tell codex to:
+The prompt names, each by its absolute path so codex doesn't have to search, the relevant ADRs and, when `read-issue.sh` exited 0, `<issue-file>` as the tracking Issue. It should tell codex to:
 
 1. Run `git log <root-rev>..HEAD --oneline` and `git show <sha>` to read the commits.
-2. Read the tracking Issue from `<issue-file>`, when one was saved, and the relevant ADRs, each named by its absolute path so codex doesn't have to search, reading each file in full and re-reading by line range any part a read reports as truncated.
+2. Read each file the prompt names in full, and re-read by line range any part a read reports as truncated.
 3. Enumerate explicitly which states are intentional (sentinel values, scoped-off paths, deferred behaviors) and must NOT be flagged as regressions.
 4. List what the review should focus on (forwarding correctness, default / expert contract consistency, docstring drift, missed call sites, etc. — project-specific).
 5. List what to ignore — the enumerated intentional states from step 3.

@@ -1,6 +1,6 @@
 ---
 name: read-issue
-description: Read a GitHub issue's title, body and every comment as multi-line text, each section opened by a marker line.
+description: Read a GitHub issue's title, body and every comment as multi-line text, the body and each comment opened by a marker line.
 ---
 
 # Read Issue
@@ -15,11 +15,13 @@ A skill in a sibling directory calls it as `${CLAUDE_SKILL_DIR}/../read-issue/sc
 
 ## Output
 
-- The first line is `# ` followed by the issue's title.
+Lines are separated by LF.
+
+- The first line is `# ` followed by the issue's title, with each LF in the title, together with a CR just before it, replaced by a space.
 - The line `----- body -----` opens the body.
 - Each comment opens with the line `----- comment by <login> at <timestamp> -----`.
 - A body or comment line that begins with `-----` is printed with a leading `\`. Every line that begins with `-----` is therefore one of the two markers above.
 
 ## Failure
 
-When `gh` cannot read the issue, the script exits with `gh`'s nonzero status, prints `gh`'s message on stderr, and prints nothing on stdout.
+When the script cannot read its filter file or `gh` cannot read the issue, the script exits with the failing command's nonzero status, prints that command's message on stderr, and prints nothing on stdout.

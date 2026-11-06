@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Contract test for read-issue.jq's output layout and read-issue.sh's failure path.
+# Contract test for read-issue.jq's output layout, and for read-issue.sh on a
+# real issue and on its two failure paths.
 #
-# Requires an authenticated gh with network access. Each fixture is run through
+# Requires rg, and an authenticated gh with network access. Each fixture is run through
 # gh's own --jq engine: `gh api rate_limit --jq '<fixture> | (<filter>)'`
 # replaces the API response with the fixture before the filter applies.
 #
@@ -74,6 +75,18 @@ b
 ----- comment by u at C -----
 '
 
+check "a line already beginning with a backslash is left as is" \
+  '{"title":"T","body":"\\-----","comments":[]}' \
+  '# T
+----- body -----
+\-----'
+
+check "a newline in the title is folded into the first line" \
+  '{"title":"T1\n-----T2\r\nT3","body":"b","comments":[]}' \
+  '# T1 -----T2 T3
+----- body -----
+b'
+
 check "empty body, no comments" \
   '{"title":"T","body":"","comments":[]}' \
   '# T
@@ -86,6 +99,23 @@ check "body, no comments" \
 ----- body -----
 only'
 
+# A closed issue of this repository with comments: the script and the filter together.
+if ! "$SCRIPT_DIR/read-issue.sh" 266 --repo ultimatile/development-skills >"$tmpdir/out" 2>"$tmpdir/err"; then
+  echo "FAIL real issue: exited nonzero: $(cat "$tmpdir/err")"
+  fail=1
+elif ! head -1 "$tmpdir/out" | rg -q '^# \S'; then
+  echo "FAIL real issue: first line is not the title"
+  fail=1
+elif [[ "$(sed -n 2p "$tmpdir/out")" != "----- body -----" ]]; then
+  echo "FAIL real issue: second line is not the body marker"
+  fail=1
+elif ! rg -q '^----- comment by \S+ at \S+ -----$' "$tmpdir/out"; then
+  echo "FAIL real issue: no comment marker"
+  fail=1
+else
+  echo "ok   real issue"
+fi
+
 if "$SCRIPT_DIR/read-issue.sh" 999999999 --repo ultimatile/development-skills >"$tmpdir/out" 2>"$tmpdir/err"; then
   echo "FAIL unknown number: exited 0"
   fail=1
@@ -97,6 +127,21 @@ elif ! rg -q 'Could not resolve' "$tmpdir/err"; then
   fail=1
 else
   echo "ok   unknown number"
+fi
+
+mkdir "$tmpdir/nofilter"
+cp "$SCRIPT_DIR/read-issue.sh" "$tmpdir/nofilter/"
+if "$tmpdir/nofilter/read-issue.sh" 296 --repo ultimatile/development-skills >"$tmpdir/out" 2>"$tmpdir/err"; then
+  echo "FAIL missing filter file: exited 0"
+  fail=1
+elif [[ -s "$tmpdir/out" ]]; then
+  echo "FAIL missing filter file: stdout not empty"
+  fail=1
+elif ! rg -q 'read-issue\.jq' "$tmpdir/err"; then
+  echo "FAIL missing filter file: stderr does not name the filter file: $(cat "$tmpdir/err")"
+  fail=1
+else
+  echo "ok   missing filter file"
 fi
 
 exit "$fail"
