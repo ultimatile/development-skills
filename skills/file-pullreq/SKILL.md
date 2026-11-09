@@ -69,7 +69,6 @@ Section headings are optional for trivial PRs — a 5-line body covering Summary
 ### 3. Discharge evidence claims
 
 Discharge every evidence claim in the draft, as `gh-body-conventions` § Evidence claims defines one — across all sections, not only `## Verification`.
-Run this in main context: the record the rule compares against is the drafting session's own, which a subagent does not have.
 
 Editing the body here is expected; the laundering pass runs on the result.
 

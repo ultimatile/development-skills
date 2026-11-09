@@ -98,10 +98,12 @@ Common shapes whose referents an external reader cannot reach:
 ## Evidence claims
 
 A statement that verification was performed — a command run, a suite executed, a measurement taken, a probe or agent run carried out — is admissible only if a record of that execution is available to the author at drafting time.
-This is a relation between the text and the drafting session rather than a property of the text, so a cold reader cannot see it and it is discharged in main context by whoever drafts the text.
+A statement of what another text says — an issue, a pull request, a comment, a specification, a file, or the code, for instance — is admissible only if that text is available to the author at drafting time and bears the statement out: a stated predicate holds of the text, and a quotation reproduces its wording.
+Each is a relation between the body and the drafting session rather than a property of the body, so a cold reader cannot see it and it is discharged in main context by whoever drafts the body.
 
 A record is available when the author observed the execution's result and can still point at it: a command's output, an agent's return, or something durable that holds the result itself — a committed fixture, a linked run.
 Work done in another session, or in a stretch of this one since summarized, leaves no such record unless something durable holds it; a summary or a handoff note describing that work is not a record of it.
+A text is available when the author has read the text itself, as it now stands, in the drafting session and outside any stretch since summarized; recall of it, a summary of it, a subagent's report of it, and the body's own earlier wording are not the text.
 
 - A command-backed claim names the command and its observed result in the body.
   An agent-backed claim maps to one result in one return; the author checks that mapping, and the body need not name the run.
@@ -112,9 +114,12 @@ Work done in another session, or in a stretch of this one since summarized, leav
 - An enumeration need not be complete — work performed but not written up states nothing false.
   An enumeration that claims completeness ("all runs performed", "the only cases exercised") does require every record within the scope it claims to appear; work that verifies the body itself is outside any such scope.
   Later work can falsify a completeness claim without its own text changing, so it is re-checked whenever the body is discharged again.
-- A claim with no available record is re-run or dropped.
+- A statement of what a text says is checked against that text, which the author reads first where it is not available.
+  One the text does not bear out is corrected against it or dropped, and one whose text the author cannot read is dropped.
   It is not softened into a hedge.
-- Text edited after its claims were discharged is discharged again before it is shown or filed.
+- A claim about an execution with no available record is re-run or dropped.
+  It is not softened into a hedge.
+- Body text edited after its claims were discharged is discharged again before it is shown or filed.
 
-A statement is an evidence claim if it asserts an execution or reports what an execution produced, or if the property it states could only be known by running something — a suite passing, a coverage figure, a timing — however phrased.
-A statement of an artifact's existence, or of a property establishable by reading the code (a test file added, a tolerance value, an identifier, which cases a test covers), is not one; it is checked against the code, not against a record, even where something was also run to confirm it. Reading the code is not an execution, so saying you read it changes nothing; reporting a run is a separate statement, and that one is an evidence claim.
+A statement is an evidence claim if it asserts an execution or reports what an execution produced, if the property it states could only be known by running something — a suite passing, a coverage figure, a timing — however phrased, or if it states what another text says.
+A statement of an artifact's existence, or of a property establishable by reading the code (a test file added, a tolerance value, an identifier, which cases a test covers), states what a text says: it is checked against the code, not against a record, even where something was also run to confirm it. Reading the code is not an execution, so saying you read it changes nothing; reporting a run is a separate statement, checked against its record.
