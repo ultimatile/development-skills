@@ -112,8 +112,6 @@ A `rejected` derivational hypothesis is a **plan bug**. Correct the plan and re-
 
 Merge Step 2's results into a single plan with the following sections.
 
-Wherever a section states what a clause defining an API's behavior says — a clause of a specification or of the API's documentation — it quotes that clause verbatim. A summary may sit beside the quotes but not in their place, and the clauses of different APIs are not merged into one statement.
-
 ### Failure scenarios
 
 Write this section first, then run the review this section ends with, and design the Plan body against the section as that review leaves it.
@@ -155,7 +153,7 @@ One row for each hypothesis Step 2 decided, with columns **Hypothesis**, **Kind*
   - Paired APIs that must stay consistent (sibling methods)
   - Constructor validations required
   - State that needs an explicit field rather than heuristic inference
-- **Derivations** (from confirmed derivational hypotheses): for each specific example whose properties were claimed in the plan, reproduce the derivation: the defining equations or clauses it starts from, then its steps in compressed form, then its conclusion. The plan reader should be able to retrace the deduction without re-running Step 2.B.
+- **Derivations** (from confirmed derivational hypotheses): for each specific example whose properties were claimed in the plan, reproduce the derivation in compressed form (defining equations → steps → conclusion). The plan reader should be able to retrace the deduction without re-running Step 2.B.
 - **Conflicts or dependencies between hypotheses** (if any)
 
 ### Inconclusive / Deferred items (REQUIRED section)
