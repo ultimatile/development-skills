@@ -137,15 +137,18 @@ Runs only after the user has merged.
   6. Preserve actionable topic classifications for the next iteration's oscillation check.
   7. Re-triage.
 
+- **Changes requested on the open PR.** When the user asks for changes once Phase 2 has opened the PR, triage the request under the `finding-triage` dispositions as a new iteration of Phase 1, then apply the **fix-loop substeps** to it, with Phase 1's `/codex-review` as the review substep 5 re-runs and Phase 1's iterations as the oscillation history. When that loop ends, run Phase 3 over the findings it took, and Phase 4a when it applies, before stopping at the merge gate again.
+
 - **Never skip done-check, including in fix loops.** Every fix commit is itself a diff that can introduce new drift — especially `completion-hygiene` and `paired-artifact-drift`.
 
 - **A halted done-check stops the pipeline.** This binds every `/done-check` invocation here. A halted run emits no table. The step that invoked it does not complete: do not fix, do not commit, do not re-review. It has surfaced something to the user; that is where the pipeline waits.
 
 - **Done-check delta mode.** `done-check` defines the mode, what a delta report carries, and what its step 5 gate binds. Satisfy that gate before the subsequent `/stage-commit-push` rather than only the ⚠ the delta printed. Pay special attention to:
 
-  - `paired-artifact-drift`: every comment / docstring sentence touched by or referring to the fixed code must still be accurate. Accuracy is not the whole test: a fix that answers a reviewer by *qualifying* a documented behavior — admitting a case the doc did not — strands every unqualified statement of that behavior elsewhere, which an accuracy check over the fix's own text never looks at. Run the item's **Qualification completeness** sweep on those fixes. Fix loops generate this class, which the first-pass audit cannot pre-empt: the caveat does not exist yet for the earlier text to contradict.
+  - `paired-artifact-drift`: every comment / docstring / PR-body sentence touched by or referring to the fixed code must still be accurate. Accuracy is not the whole test: a fix that answers a reviewer by *qualifying* a documented behavior — admitting a case the doc did not — strands every unqualified statement of that behavior elsewhere, which an accuracy check over the fix's own text never looks at. Run the item's **Qualification completeness** sweep on those fixes. Fix loops generate this class, which the first-pass audit cannot pre-empt: the caveat does not exist yet for the earlier text to contradict.
   - `completion-hygiene`: pre-commit hooks catch lint / fmt / line count, but the fix may have added stray `dbg!` / `println!` / scratch test code.
   - `behavior-coverage`: a fix that edits a docstring / module doc stating a behavioral guarantee can silently widen it to sibling symbols, creating a per-symbol coverage obligation the previous audit never saw. Run the delta pass as a fresh `done-check` (subagent) invocation rather than informal doc-truth reasoning — confirming the broadened claim is *true* does not confirm each newly-covered symbol is *tested*.
+  - The PR description: if a fix invalidates a claim in the description (e.g., "previously-missed mutant is now caught" became "now excluded"), update the description in the same iteration. That edit is text changed after its claims were discharged, so re-discharge the description in main context per `gh-body-conventions` § Evidence claims and re-run `/gh-body-audit` against the result before posting it.
 
 - **Never skip codex review.** Even for small fixes, run the full loop.
 
@@ -172,7 +175,7 @@ Runs only after the user has merged.
   **Escalation order.** Before presenting the fix-direction question (panic vs allow vs convert vs ...), FIRST ask whether the original plan scope is correct. Ask in this order:
 
   1. **Is this question even single-actionable inside the current plan?** Does the disagreement among reviewers concern an upstream undecided design question (consumer semantics, system invariant, layout authority, etc.) that the plan implicitly assumed?
-  2. **If yes upstream**: rescope. Stop work on the current branch, refile the upstream design question as a separate issue, and let the current API decision fall out of that resolution. This is the right move even when the current fix is technically correct in isolation.
+  2. **If yes upstream**: rescope. Close the current PR, refile the upstream design question as a separate issue, and let the current API decision fall out of that resolution. This is the right move even when the current fix is technically correct in isolation.
   3. **If no upstream issue**: present what is known, what is uncertain, and ask the user to choose among the surviving fix options.
 
   The "no-clarifying-questions" mode does NOT override this rule.

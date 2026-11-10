@@ -1,11 +1,11 @@
 ---
 name: file-pullreq
-description: Draft and file a GitHub PR using gh-body-conventions and the PR body skeleton, via the gh-post wrapper.
+description: Draft and file a GitHub PR using gh-body-conventions and the PR body skeleton, via the gh-post wrapper. Supports a gate mode that stops at user approval.
 ---
 
 # File Pull Request
 
-Draft a GitHub PR title and body that follow the user's conventions, show the draft for approval, then file via `gh-post`.
+Draft a GitHub PR title and body that follow the user's conventions, show the draft for approval, then file via `gh-post` (or, in gate mode, hand off to a caller).
 
 ## Conventions
 
@@ -87,7 +87,11 @@ If the user requests changes, revise, re-discharge its evidence claims, re-run t
 
 ### 6. File
 
-Write the laundered body to a temp file, then invoke the wrapper:
+Two modes, distinguished by the caller.
+
+#### 6a. Standalone mode (default)
+
+Used when invoked directly by the user, not in gate mode. Write the laundered body to a temp file, then invoke the wrapper:
 
 ```bash
 gh-post pr create \
@@ -101,9 +105,38 @@ Add `--draft` if the user wants a draft PR; extra flags (`--label`, `--reviewer 
 
 Do not auto-add `@copilot` here.
 
+#### 6b. Gate mode
+
+Used when invoked as a gate by a caller that creates the PR itself. Stop after approval; do NOT run `gh pr create`. Output the approved title and body for the caller to pass into its PR-creation step.
+
+Output format:
+
+```
+APPROVED TITLE:
+<title>
+
+APPROVED BODY (HEREDOC-ready):
+<body>
+```
+
+The caller then writes the approved body to a temp file and runs its PR-creation step, e.g.:
+
+```bash
+cat > /tmp/<descriptive-name>.md <<'EOF'
+<approved body>
+EOF
+
+${CLAUDE_SKILL_DIR}/../copilot-review/scripts/pr-with-copilot-review.sh \
+  --base <base-branch> \
+  --title "<approved title>" \
+  --body-file /tmp/<descriptive-name>.md
+```
+
 ### 7. Report
 
-After filing, show the user:
+After filing in standalone mode, show the user:
 
 - The PR number and URL.
 - Any follow-up actions (linking from a parent umbrella issue, triggering Copilot review separately via `copilot-review`, etc.).
+
+In gate mode, just confirm the approval and hand off to the caller.

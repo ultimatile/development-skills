@@ -20,7 +20,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | -- | -- |
 | `file-issue` | Draft and file a GitHub issue following formatting conventions (semantic line breaks, LaTeX math, no local references). Includes an umbrella sub-issue variant (Parent: linkage, Goal/Scope/Out of scope/Acceptance shape) used by `research` when spawning sub-issues from an umbrella |
 | `file-adr` | Draft an Architecture Decision Record (a timeless decision, distinct from an implementation schedule) and write the file under the project's ADR directory. Enforces classification against `file-issue` and a frozen-after-Acceptance discipline |
-| `file-pullreq` | Draft and file a GitHub PR following the PR body skeleton, routed through the `gh-post` wrapper |
+| `file-pullreq` | Draft and file a GitHub PR following the PR body skeleton, routed through the `gh-post` wrapper. Supports a gate mode that stops at user approval before posting |
 | `gh-body-conventions` | Single source of truth for GitHub issue / PR body conventions — semantic line breaks, LaTeX-safe math, reference / exclusion policies, language defaults. Drafting and audit skills apply these conventions by reference. |
 | `gh-body-audit` | Audit a drafted or filed GitHub issue / PR body against `gh-body-conventions` via a fresh-context subagent; any unresolved ⚠ blocks the caller |
 
@@ -40,7 +40,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | `codex-review` | Run OpenAI Codex review with triage before PR creation |
 | `copilot-review` | Create PR with GitHub Copilot review, poll for results, triage |
 | `code-review-gate` | Run the built-in `/code-review` through a fallback lane chain; used by `review-pipeline` at Phase 0.5 |
-| `review-pipeline` | Orchestrator — runs the full flow from local changes to reviewed PR |
+| `review-pipeline` | Orchestrator — runs the full flow from local changes through review to an opened PR |
 
 ### End-to-end composite
 
