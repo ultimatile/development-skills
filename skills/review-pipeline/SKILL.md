@@ -51,7 +51,7 @@ When that diff received a valid gate review (i.e. the gate was not waived), attr
 
 ## Phase 2: Open the PR
 
-1. Run `/file-pullreq`, passing the root stated at pipeline entry as the base branch. When it ends without filing the PR, the pipeline waits there and continues as the user directs.
+1. Run `/file-pullreq` in standalone mode, passing the root stated at pipeline entry as the base branch. When it ends without filing the PR, the pipeline waits there and continues as the user directs.
 
 ## Phase 3: Postmortem elevation (pre-merge)
 
@@ -136,8 +136,6 @@ Runs only after the user has merged.
   5. Re-run the review (fresh, full review — no bias from previous iteration).
   6. Preserve actionable topic classifications for the next iteration's oscillation check.
   7. Re-triage.
-
-- **Changes requested on the open PR.** When the user asks for changes once Phase 2 has opened the PR, triage the request under the `finding-triage` dispositions as a new iteration of Phase 1, then apply the **fix-loop substeps** to it, with Phase 1's `/codex-review` as the review substep 5 re-runs and Phase 1's iterations as the oscillation history. When that loop ends, run Phase 3 over the findings it took, and Phase 4a when it applies, before stopping at the merge gate again.
 
 - **Never skip done-check, including in fix loops.** Every fix commit is itself a diff that can introduce new drift — especially `completion-hygiene` and `paired-artifact-drift`.
 
