@@ -91,7 +91,7 @@ Two modes, distinguished by the caller.
 
 #### 6a. Standalone mode (default)
 
-Used when invoked directly by the user, not in gate mode. Write the laundered body to a temp file, then invoke the wrapper:
+Used when not invoked in gate mode. Write the laundered body to a temp file, then invoke the wrapper:
 
 ```bash
 gh-post pr create \
