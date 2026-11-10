@@ -102,7 +102,7 @@ Skip when the work is not tied to an umbrella tracking issue. Trigger only when 
 
    Apply `gh-body-conventions` to the appended section.
 
-   Discharge the body's evidence claims per `gh-body-conventions` § Evidence claims before running the check below.
+   Discharge the final body's evidence claims per `gh-body-conventions` § Evidence claims before running the check below.
 
    Before invoking `gh-post pr edit`, run `/gh-body-audit` against the **final body** (existing PR body concatenated with the appended delta section). Paragraph boundaries and reference patterns can cross the section seam, so auditing only the appended section would miss them. Pass artifact kind `pr`. Any ⚠ blocks `gh-post pr edit` on `gh-body-audit` step 4's terms.
 
