@@ -98,7 +98,8 @@ Normalization rules:
 
 - `gates[].gate` slugs: `done-check`, `code-review`, `codex-review`, `copilot-pr`. One entry per gate, however many times it ran.
 - Records predating the CodeRabbit lane's retirement carry values from it: the gate slug `coderabbit-pr`, and the `pipeline` values `review-pipeline-coderabbit` and `coderabbit-review`. They are history — read them, never write them. `coderabbit-pr`'s counts end at the retirement; a reader who takes that ending for a gate that went quiet misreads it.
-- `copilot-pr` is written only for a run that invoked `copilot-review`, which `review-pipeline` no longer does. Its counts therefore end at that removal in every run that goes through `review-pipeline`, whatever the record's `pipeline` value; a reader who takes that ending for a gate that went quiet misreads it.
+- `copilot-pr` is written only for a run that invoked `copilot-review`. A run that did not invoke it omits the gate; that is not a skipped gate, and `gaps` names nothing about it.
+- `review-pipeline` invoked `copilot-review` until ultimatile/development-skills#305 removed it, so `copilot-pr` largely disappears from the records of runs that go through `review-pipeline`, whatever their `pipeline` value. A reader who takes that disappearance for a gate that went quiet misreads it.
 - `findings[].disposition` uses the `finding-triage` SSOT slugs verbatim; that file's catalogue is the value set.
 - `findings[].topic` is a short kebab-case slug at **class level**, reused across gates and runs for grouping; per-variant detail goes in the one-sentence `summary`. Splitting one class into per-variant slugs breaks every topic aggregation.
 - `duplicate_of_gate` and `topic_opened_by` are written per their definitions in **Collect the run's facts**. Never encode class recurrence in `duplicate_of_gate` — that conflation is exactly what the two fields exist to prevent.
