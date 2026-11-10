@@ -93,4 +93,4 @@ Any unresolved ⚠ blocks the caller's next step. Return the report; the caller 
 
 ## What this skill does NOT do
 
-Does not draft or file the body (caller's job). Does not maintain the rule set (`gh-body-conventions` is SSOT — update it first, then add the corresponding check here if a new mechanical rule is needed). Does not discharge `gh-body-conventions` § Evidence claims; the caller discharges it before invoking this check. Does not check hard-wrap, sub-clause line endings, or reference anchoring (whether a citation is pinned to a fixed revision as `gh-body-conventions` § References requires — the drafter's to check).
+Does not draft or file the body (caller's job). Does not maintain the rule set (`gh-body-conventions` is SSOT — update it first, then add the corresponding check here if a new mechanical rule is needed). Does not discharge `gh-body-conventions` § Evidence claims. Does not check hard-wrap, sub-clause line endings, or reference anchoring (whether a citation is pinned to a fixed revision as `gh-body-conventions` § References requires — the drafter's to check).
