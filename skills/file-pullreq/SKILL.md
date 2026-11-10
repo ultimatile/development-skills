@@ -1,11 +1,11 @@
 ---
 name: file-pullreq
-description: Draft and file a GitHub PR using gh-body-conventions and the PR body skeleton, via the gh-post wrapper. Supports a gate mode that stops at user approval.
+description: Draft and file a GitHub PR using gh-body-conventions and the PR body skeleton, via the gh-post wrapper.
 ---
 
 # File Pull Request
 
-Draft a GitHub PR title and body that follow the user's conventions, show the draft for approval, then file via `gh` (or, in gate mode, hand off to a caller).
+Draft a GitHub PR title and body that follow the user's conventions, show the draft for approval, then file via `gh`.
 
 ## Conventions
 
@@ -25,7 +25,7 @@ A single descriptive line under ~70 characters. Use a conventional commit prefix
 
 Before drafting, identify:
 
-- **Target repo and base branch.** `gh repo view` and `git symbolic-ref --short refs/remotes/origin/HEAD` if unclear.
+- **Target repo and base branch.** Take the base branch the caller supplies. Otherwise, `gh repo view` and `git symbolic-ref --short refs/remotes/origin/HEAD` if unclear.
 - **Linked issue.** Read the issue body and comments — especially any `research` plan they carry — with `"${CLAUDE_SKILL_DIR}/../read-issue/scripts/read-issue.sh" <n> --repo <owner>/<repo>`, `<owner>/<repo>` being the repo the link names, or the target repo above when the link is a bare `#<n>`. When the read exits nonzero, stop and report its message.
 - **Whether the work went through `research`.** When `## Impact` is kept, fold the plan's `Impact list` into it if yes, and derive it from the local diff and commits if no. Report `## Verification` against the plan's `Test plan` if yes, without copying the `Test plan` into it, and let it report the checks this run made if no. The plan's `Checklist of changes` goes into no section. Whether or not the work went through `research`, do not transcribe the plan's process bookkeeping — see the reader-facing note below the skeleton.
 
@@ -87,11 +87,7 @@ If the user requests changes, revise, re-discharge its evidence claims, re-run t
 
 ### 6. File
 
-Two modes, distinguished by the caller.
-
-#### 6a. Standalone mode (default)
-
-Used when invoked directly by the user, not in gate mode. Write the laundered body to a temp file, then invoke the wrapper:
+Write the laundered body to a temp file, then invoke the wrapper:
 
 ```bash
 gh-post pr create \
@@ -105,38 +101,9 @@ Add `--draft` if the user wants a draft PR; extra flags (`--label`, `--reviewer 
 
 Do not auto-add `@copilot` here.
 
-#### 6b. Gate mode
-
-Used when invoked as a gate by a caller that creates the PR itself. Stop after approval; do NOT run `gh pr create`. Output the approved title and body for the caller to pass into its PR-creation step.
-
-Output format:
-
-```
-APPROVED TITLE:
-<title>
-
-APPROVED BODY (HEREDOC-ready):
-<body>
-```
-
-The caller then writes the approved body to a temp file and runs its PR-creation step, e.g.:
-
-```bash
-cat > /tmp/<descriptive-name>.md <<'EOF'
-<approved body>
-EOF
-
-${CLAUDE_SKILL_DIR}/../copilot-review/scripts/pr-with-copilot-review.sh \
-  --base <base-branch> \
-  --title "<approved title>" \
-  --body-file /tmp/<descriptive-name>.md
-```
-
 ### 7. Report
 
-After filing in standalone mode, show the user:
+After filing, show the user:
 
 - The PR number and URL.
 - Any follow-up actions (linking from a parent umbrella issue, triggering Copilot review separately via `copilot-review`, etc.).
-
-In gate mode, just confirm the approval and hand off to the caller.

@@ -20,7 +20,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | -- | -- |
 | `file-issue` | Draft and file a GitHub issue following formatting conventions (semantic line breaks, LaTeX math, no local references). Includes an umbrella sub-issue variant (Parent: linkage, Goal/Scope/Out of scope/Acceptance shape) used by `research` when spawning sub-issues from an umbrella |
 | `file-adr` | Draft an Architecture Decision Record (a timeless decision, distinct from an implementation schedule) and write the file under the project's ADR directory. Enforces classification against `file-issue` and a frozen-after-Acceptance discipline |
-| `file-pullreq` | Draft and file a GitHub PR following the PR body skeleton, routed through the `gh-post` wrapper. Supports a gate mode that stops at user approval before posting |
+| `file-pullreq` | Draft and file a GitHub PR following the PR body skeleton, routed through the `gh-post` wrapper |
 | `gh-body-conventions` | Single source of truth for GitHub issue / PR body conventions — semantic line breaks, LaTeX-safe math, reference / exclusion policies, language defaults. Drafting and audit skills apply these conventions by reference. |
 | `gh-body-audit` | Audit a drafted or filed GitHub issue / PR body against `gh-body-conventions` via a fresh-context subagent; any unresolved ⚠ blocks the caller |
 
@@ -47,7 +47,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | Skill | Description |
 | -- | -- |
 | `reimre` | Full end-to-end wrapper — runs `research-and-implement` then `review-pipeline` back to back, with an automatic seam rule that skips the duplicate `done-check` at the boundary. Stops at the user-controlled merge gate inherited from `review-pipeline`. |
-| `land-via-integration-branch` | Land a change too big for one PR as a sequence of PRs merging into a long-lived integration branch, under a five-gate cadence (per-commit done-check, per-unit codex review, pre-open code-review gate, per-PR-open codex review, per-PR-review Copilot); a final PR merges the branch into main via `review-pipeline`. Use when the intermediate PRs intentionally break the project-wide build and therefore cannot land on main — typically a cross-component API migration where several components must move together. |
+| `land-via-integration-branch` | Land a change too big for one PR as a sequence of PRs merging into a long-lived integration branch, under a four-gate cadence (per-commit done-check, per-unit codex review, pre-open code-review gate, per-PR-open codex review); a final PR merges the branch into main via `review-pipeline`. Use when the intermediate PRs intentionally break the project-wide build and therefore cannot land on main — typically a cross-component API migration where several components must move together. |
 
 ### Quality Gates
 

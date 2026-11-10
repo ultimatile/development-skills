@@ -1,11 +1,11 @@
 ---
 name: review-pipeline
-description: Full review pipeline from local changes through PR, Copilot review, postmortem elevation, and umbrella drift join. Pauses at the user-controlled merge gate between Phase 4a and 4b.
+description: Full review pipeline from local changes through PR, postmortem elevation, and umbrella drift join. Pauses at the user-controlled merge gate between Phase 4a and 4b.
 ---
 
 # Review Pipeline
 
-Orchestrate the full flow from local changes through PR review, user merge, postmortem elevation, and umbrella drift join. This skill ties together several sub-skills — invoke each by name.
+Orchestrate the full flow from local changes through review, PR creation, user merge, postmortem elevation, and umbrella drift join. This skill ties together several sub-skills — invoke each by name.
 
 The pipeline crosses a **user-controlled merge gate** (Phase 4a → 4b): the user, not Claude, merges the PR. Phases before the gate run on the PR branch; phases after run on `main` and tracking issues. Claude pauses at the `## ← user merges PR ←` section.
 
@@ -40,7 +40,7 @@ What binds this phase is that the audit closing it saw the diff that proceeds �
 
 Step 4 gives this gate the same property Phase 0 has: the review closing it saw the diff that proceeds.
 
-When that diff received a valid gate review (i.e. the gate was not waived), attribute each **Phase 1 and Phase 2** reviewer finding to one of two provenances, and note it in the triage presentation. A finding already present in the diff this gate reviewed is by construction a penetration of it. A finding introduced by a Phase 1 or Phase 2 fix is not: those fix loops run the audit, commit, and re-run the current reviewer, never this gate, so the defect did not exist when this gate ran.
+When that diff received a valid gate review (i.e. the gate was not waived), attribute each **Phase 1** reviewer finding to one of two provenances, and note it in the triage presentation. A finding already present in the diff this gate reviewed is by construction a penetration of it. A finding introduced by a Phase 1 fix is not: that fix loop runs the audit, commits, and re-runs its reviewer, never this gate, so the defect did not exist when this gate ran.
 
 ## Phase 1: Codex review loop
 
@@ -49,19 +49,15 @@ When that diff received a valid gate review (i.e. the gate was not waived), attr
 3. Triage the output — classify each finding under the `finding-triage` SSOT dispositions
 4. Apply the **fix-loop substeps** (see Rules).
 
-## Phase 2: Copilot review
+## Phase 2: Open the PR
 
-1. Run `/file-pullreq` in **gate mode** — drafts the PR title + body following `gh-body-conventions` and the standard body skeleton, discharges its evidence claims, runs the laundering pass, and gets the user's approval. The skill stops at approval and emits the approved title + body for the next step. It does NOT create the PR itself.
-2. Run `/copilot-review` in its normal mode, passing the approved title + body and **the root as this pipeline's `--base`** — this creates the PR with `--reviewer @copilot` and polls until the review arrives. The root is a branch name, which is what that flag takes; `/codex-review`'s `--base` one phase earlier is a different value, a merge base derived from the same root.
-3. Triage the review — filter to the latest review's comments only (by `pull_request_review_id`)
-4. Apply the **fix-loop substeps** (see Rules), replacing the re-review step with two actions in this order: reply per `copilot-review` § Respond to review, then run `${CLAUDE_SKILL_DIR}/../copilot-review/scripts/pr-with-copilot-review.sh --re-review <PR_URL>`. Triage only new comments.
-5. Reply per `copilot-review` § Respond to review.
+1. Run `/file-pullreq`, passing the root stated at pipeline entry as the base branch.
 
 ## Phase 3: Postmortem elevation (pre-merge)
 
-After Phase 1 and 2 complete, before the user merges, fold review findings into durable artifacts:
+After Phase 2 opens the PR, before the user merges, fold review findings into durable artifacts:
 
-1. **`/bug-to-contract`** — for each actionable finding from Phase 1 and 2 (not just fix commits), ask whether an implicit contract was violated and whether it is now tested.
+1. **`/bug-to-contract`** — for each actionable finding from Phase 1 (not just fix commits), ask whether an implicit contract was violated and whether it is now tested.
 
 2. **`/stage-commit-push`**.
 
@@ -75,7 +71,7 @@ After Phase 1 and 2 complete, before the user merges, fold review findings into 
 
 A finding can map to either `bug-to-contract`, `finding-to-audit`, both, or neither. Use both when both apply.
 
-**`/gate-miss-to-issue`** (process-postmortem) — when a defect surfaced only at Phase 1/2 review or by user pushback that an earlier gate should have caught, file the gate gap against `development-skills` (independent of the project merge gate, like `/finding-to-audit`). Skip when every defect was caught at its earliest gate.
+**`/gate-miss-to-issue`** (process-postmortem) — when a defect surfaced only at Phase 1 review or by user pushback that an earlier gate should have caught, file the gate gap against `development-skills` (independent of the project merge gate, like `/finding-to-audit`). Skip when every defect was caught at its earliest gate.
 
 ## Phase 4a: PR description delta (pre-merge)
 
