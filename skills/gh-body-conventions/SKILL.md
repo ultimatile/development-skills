@@ -97,23 +97,24 @@ Common shapes whose referents an external reader cannot reach:
 
 ## Evidence claims
 
-An evidence claim is a statement in the body whose truth rests on something other than the body — what a text says, what the code does, the state of an issue or pull request, what an execution did or produced, for instance.
-It is discharged in main context by whoever drafts the body, before the body is shown or filed: for each claim, the author identifies what the claim rests on, its source, and checks the claim against an observation of that source.
-A statement of what only running something could show — a suite passing, a coverage figure, a timing — is observed only by running it, however phrased.
+An evidence claim is a statement in the body whose truth rests on something other than the body or the author's own intent — what a text says, what the code does, the state of an issue or pull request, what an execution did or produced, for instance.
+It is discharged in main context by whoever drafts the body: for each claim, the author identifies what the claim rests on, its source, and checks the claim against an observation of that source.
+A statement resting on several sources is that many claims, one per source.
+A claim stating what only running something could show — a suite passing, a coverage figure, a timing — has an execution as its source, however phrased.
 
 - An observation of a source is one of these, made by the author in the session performing the discharge and outside any stretch since summarized: reading the source, a command's output, an agent's return, or reading something durable that holds the source itself — a committed fixture, a linked run.
-  Nothing seen before its source last changed is an observation of it.
   Recall, a summary of the session, a handoff note, and the body's own earlier wording are not observations.
-- A claim the observed source bears out passes the check: a stated predicate holds of the source, and a quotation reproduces its wording.
+- A claim passes the check when the observed source bears it out: what the claim states holds of the source, and what it quotes reproduces the source's wording.
 - A claim the observed source does not bear out is corrected against the source or dropped.
-- A claim whose source the author has not observed is checked after observing it — reading the text, re-running the command. Re-running a command observes the new run, not an earlier one. Where the author cannot observe it, the author asks the user for the source itself or drops the claim.
+- A claim whose source the author has not observed is checked after observing it — reading the text, re-running the command.
+  Where the author cannot observe it, the author either drops the claim or asks the user for the source itself; reading the source the user supplies is then an observation of it, and a claim whose source the user does not supply is dropped.
 - A claim is not softened into a hedge in place of any of these outcomes.
 - A claim observed through an agent's return maps to one result in one return; the author checks that mapping.
-  A statement asserting several runs is that many claims, one per run, and a return reporting several results is that many observations, one per result.
-  Matching totals are not sufficient: a fabricated entry and an omitted one cancel, so the mapping is checked entry by entry rather than by count.
-  Within an enumeration of runs, no two entries map to the same result; describing one run in two places is not double-counting — claiming it as two entries is.
+- A return or a command's output reporting several results is that many observations, one per result.
+  Matching totals are not sufficient: a fabricated entry and an omitted one cancel, so each entry is checked against its own observation rather than by count.
+  Within an enumeration of runs, no two entries map to the same run; describing one run in two places is not double-counting — claiming it as two entries is.
 - An enumeration need not be complete — work performed but not written up states nothing false.
   An enumeration that claims completeness ("all runs performed", "the only cases exercised") does require every member of the scope it claims to appear; work that verifies the body itself is outside any such scope.
+  Later work can falsify a completeness claim without its own text changing, so it is re-checked whenever the body is discharged again.
 - A claim that cannot be stated without naming something § Exclusions forbids is dropped, or restated against something nameable.
 - Body text edited after its claims were discharged is discharged again before it is shown or filed.
-  Each discharge after the body's first, of the whole body or of any part of it, checks every evidence claim anywhere in the body again.
