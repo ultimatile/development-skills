@@ -51,7 +51,7 @@ When that diff received a valid gate review (i.e. the gate was not waived), attr
 
 ## Phase 2: Open the PR
 
-1. Run `/file-pullreq` in standalone mode, passing the root stated at pipeline entry as the base branch. When it ends without filing the PR, the pipeline waits there and continues as the user directs.
+1. Run `/file-pullreq` in standalone mode, passing the root stated at pipeline entry as the base branch.
 
 ## Phase 3: Postmortem elevation (pre-merge)
 
