@@ -99,14 +99,14 @@ Common shapes whose referents an external reader cannot reach:
 
 An evidence claim is a statement in the body whose truth rests on something other than the body — what a text says, what the code does, the state of an issue or pull request, what an execution did or produced, for instance.
 It is discharged in main context by whoever drafts the body, before the body is shown or filed: for each claim, the author identifies what the claim rests on, its source, and checks the claim against an observation of that source.
-A statement of what only running something could show — a suite passing, a coverage figure, a timing — rests on an execution, however phrased.
+A statement of what only running something could show — a suite passing, a coverage figure, a timing — is observed only by running it, however phrased.
 
 - An observation of a source is one of these, made by the author in the session performing the discharge and outside any stretch since summarized: reading the source, a command's output, an agent's return, or reading something durable that holds the source itself — a committed fixture, a linked run.
-  Nothing seen before its source last changed is an observation of it, and the output of an execution that ran before anything it ran on last changed is not one either.
+  Nothing seen before its source last changed is an observation of it.
   Recall, a summary of the session, a handoff note, and the body's own earlier wording are not observations.
 - A claim the observed source bears out passes the check: a stated predicate holds of the source, and a quotation reproduces its wording.
 - A claim the observed source does not bear out is corrected against the source or dropped.
-- A claim whose source the author has not observed is checked after observing it — reading the text, re-running the command. Where the author cannot observe it, the author asks the user for the source itself or drops the claim.
+- A claim whose source the author has not observed is checked after observing it — reading the text, re-running the command. Re-running a command observes the new run, not an earlier one. Where the author cannot observe it, the author asks the user for the source itself or drops the claim.
 - A claim is not softened into a hedge in place of any of these outcomes.
 - A claim observed through an agent's return maps to one result in one return; the author checks that mapping.
   A statement asserting several runs is that many claims, one per run, and a return reporting several results is that many observations, one per result.
