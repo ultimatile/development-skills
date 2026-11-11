@@ -5,7 +5,7 @@ description: Full review pipeline from local changes through PR, postmortem elev
 
 # Review Pipeline
 
-Orchestrate the full flow from local changes through PR review, user merge, postmortem elevation, and umbrella drift join. This skill ties together several sub-skills — invoke each by name.
+Orchestrate the full flow from local changes through review, PR creation, user merge, postmortem elevation, and umbrella drift join. This skill ties together several sub-skills — invoke each by name.
 
 The pipeline crosses a **user-controlled merge gate** (Phase 4a → 4b): the user, not Claude, merges the PR. Phases before the gate run on the PR branch; phases after run on `main` and tracking issues. Claude pauses at the `## ← user merges PR ←` section.
 
@@ -55,7 +55,7 @@ When that diff received a valid gate review (i.e. the gate was not waived), attr
 
 ## Phase 3: Postmortem elevation (pre-merge)
 
-After Phase 1 and 2 complete, before the user merges, fold review findings into durable artifacts:
+After Phase 2 opens the PR, before the user merges, fold review findings into durable artifacts:
 
 1. **`/bug-to-contract`** — for each actionable finding from Phase 1 (not just fix commits), ask whether an implicit contract was violated and whether it is now tested.
 

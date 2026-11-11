@@ -17,7 +17,7 @@ A four-gate review cadence for landing a large change that does not fit a single
 | per-commit | each `git commit` | `/done-check` (preflight `/todo-check`) | the PR's base |
 | per-unit | unit / design-boundary completion | `codex exec review --base <last-approved-SHA>` | last unit-approved SHA |
 | pre-open code-review | per PR, before the per-PR-open gate | `/code-review-gate`, via `/review-pipeline` Phase 0.5 | integration branch |
-| per-PR-open | PR creation | `/codex-review` against PR diff | PR base (integration branch) |
+| per-PR-open | before PR creation | `/codex-review` against PR diff | PR base (integration branch) |
 
 The Baseline column is the authority on what each gate measures from, and the workflow steps below are what pass each cell to its gate. The cells split by `diff-root`'s two kinds of gate:
 
@@ -68,7 +68,7 @@ For PR `k` in the sequence (each PR is one or more units):
 
    **Committing past a workspace-wide pre-commit hook.** A hook that lints the whole workspace (e.g. a project-wide type/lint check) will fail by design on a `pr<k>/...` branch — downstream components scheduled for a later PR are still on the old API. Skip only that one workspace-coherence hook (e.g. `SKIP=<workspace-lint-hook> git commit ...`) after confirming the per-component test and lint gates both pass, and note the skip rationale in the commit body. Do NOT use `--no-verify`; it also drops formatting and line-count hooks, which remain binding.
 
-3. **Open the PR against the integration branch.** Run `/review-pipeline` from Phase 0.5 forward (code-review gate, then codex-review), supplying `integration/<issue#>-<slug>` as its root — the pipeline opens the PR against that same branch. Do not open the PR here: the pipeline's Phase 2 owns PR creation.
+3. **Open the PR against the integration branch.** Run `/review-pipeline` from Phase 0.5 forward, supplying `integration/<issue#>-<slug>` as its root — the pipeline opens the PR against that same branch. Do not open the PR here: the pipeline's Phase 2 owns PR creation.
 
 4. **Merge into the integration branch when reviews are clean.** Workspace builds may be temporarily broken on it between PRs — the per-component gate is what binds intermediate.
 
@@ -78,7 +78,7 @@ After all per-PR PRs are merged into the integration branch:
 
 1. **Workspace must build clean on the integration branch.** Run the full project CI / test gate on its tip. Fix workspace-level integration issues before opening the final PR. Those fixes are committed on the integration branch itself. Capture its tip SHA before the first fix commit — the branch ref advances with that commit, so the name stops naming this point — and use that SHA as the root for their per-commit `/done-check`, which is the commit-root case `diff-root` defines for an incremental gate that audits the fixes and not the per-PR work already merged and reviewed below them. Step 2's pipeline is the coverage invocation that holds the whole merge-bound diff.
 
-2. **Open the integration → main PR.** Standard `/review-pipeline` applies end to end, with the repository default branch as its root: Phase 0 done-check, Phase 0.5 code-review gate, Phase 1 codex-review, Phase 2 PR creation, Phase 3 postmortem elevation, Phase 4a description delta. This is the second of the two points at which this skill enters the pipeline, and the two are separate runs, so each declares its own root.
+2. **Open the integration → main PR.** Standard `/review-pipeline` applies end to end, with the repository default branch as its root. This is the second of the two points at which this skill enters the pipeline, and the two are separate runs, so each declares its own root.
 
 3. **Final merge after the user-controlled gate.** The user merges; Phase 4b runs post-merge for umbrella drift join if the work referenced a tracking issue.
 
