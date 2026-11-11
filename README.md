@@ -40,7 +40,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | `codex-review` | Run OpenAI Codex review with triage before PR creation |
 | `copilot-review` | Create PR with GitHub Copilot review, poll for results, triage |
 | `code-review-gate` | Run the built-in `/code-review` through a fallback lane chain; used by `review-pipeline` at Phase 0.5 |
-| `review-pipeline` | Orchestrator — runs the full flow from local changes through review and PR creation to the user-controlled merge gate and after |
+| `review-pipeline` | Orchestrator — runs the full flow from local changes to reviewed PR |
 
 ### End-to-end composite
 
