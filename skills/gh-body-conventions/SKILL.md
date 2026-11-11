@@ -81,7 +81,7 @@ The body must not contain a token whose referent an external reader cannot reach
 A repo-relative path the body itself proposes to create designates nothing yet, and this requirement does not reach it.
 The body must also be followable: a reader who does not open the target repo can follow every sentence in it.
 A token whose referent an external reader can reach, and whose sentence asserts only its identity or location, carries no substance requirement — an issue number or a repo-relative path, for instance.
-A well-known external standard — an RFC or a language spec, for instance — is the one class of text the reader is assumed to hold, and a claim may rest on it as it stands.
+A well-known external standard — an RFC or a language spec, for instance — is the one class of text the reader is assumed to hold, so a claim resting on it need not carry its substance.
 A claim resting on what any other text *says* carries that substance itself, in the form that claim's own case selects; a sentence resting on two texts takes one form per claim, not one for the sentence:
 
 - **State the predicate** — where the exact wording is not what is at issue. Say what the pointed-at text establishes; for a rule or a behavior, that is its trigger, its effect, and the outcome in the case at hand.
@@ -112,7 +112,7 @@ A claim stating what only running something could show — a suite passing, a co
 - A claim observed through an agent's return maps to one result in one return; the author checks that mapping.
 - A return or a command's output reporting several results is that many observations, one per result.
   Matching totals are not sufficient: a fabricated entry and an omitted one cancel, so each entry is checked against its own observation rather than by count.
-  Within an enumeration of runs, no two entries map to the same run; describing one run in two places is not double-counting — claiming it as two entries is.
+  Within an enumeration of runs, no run is counted as two: describing one run in two places, or reporting several of its results, is not double-counting — claiming it as two runs is.
 - An enumeration need not be complete — work performed but not written up states nothing false.
   An enumeration that claims completeness ("all runs performed", "the only cases exercised") does require every member of the scope it claims to appear; work that verifies the body itself is outside any such scope.
   Later work can falsify a completeness claim without its own text changing, so it is re-checked whenever the body is discharged again.
