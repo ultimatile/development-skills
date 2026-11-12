@@ -81,7 +81,7 @@ The body must not contain a token whose referent an external reader cannot reach
 A repo-relative path the body itself proposes to create designates nothing yet, and this requirement does not reach it.
 The body must also be followable: a reader who does not open the target repo can follow every sentence in it.
 A token whose referent an external reader can reach, and whose sentence asserts only its identity or location, carries no substance requirement — an issue number or a repo-relative path, for instance.
-A well-known external standard — an RFC or a language spec, for instance — is the one class of text the reader is assumed to hold, and a claim may rest on it as it stands.
+A well-known external standard — an RFC or a language spec, for instance — is the one class of text the reader is assumed to hold, so a claim resting on it need not carry its substance.
 A claim resting on what any other text *says* carries that substance itself, in the form that claim's own case selects; a sentence resting on two texts takes one form per claim, not one for the sentence:
 
 - **State the predicate** — where the exact wording is not what is at issue. Say what the pointed-at text establishes; for a rule or a behavior, that is its trigger, its effect, and the outcome in the case at hand.
@@ -97,24 +97,24 @@ Common shapes whose referents an external reader cannot reach:
 
 ## Evidence claims
 
-A statement that verification was performed — a command run, a suite executed, a measurement taken, a probe or agent run carried out — is admissible only if a record of that execution is available to the author at drafting time.
-This is a relation between the text and the drafting session rather than a property of the text, so a cold reader cannot see it and it is discharged in main context by whoever drafts the text.
+An evidence claim is a statement in the body whose truth rests on something other than the body or the author's own intent — what a text says, what the code does, the state of an issue or pull request, what an execution did or produced, for instance.
+It is discharged in main context by whoever drafts the body: for each claim, the author identifies what the claim rests on, its source, and checks the claim against an observation of that source.
+A statement resting on several sources is that many claims, one per source.
+A claim stating what only running something could show — a suite passing, a coverage figure, a timing — has an execution as its source, however phrased.
 
-A record is available when the author observed the execution's result and can still point at it: a command's output, an agent's return, or something durable that holds the result itself — a committed fixture, a linked run.
-Work done in another session, or in a stretch of this one since summarized, leaves no such record unless something durable holds it; a summary or a handoff note describing that work is not a record of it.
-
-- A command-backed claim names the command and its observed result in the body.
-  An agent-backed claim maps to one result in one return; the author checks that mapping, and the body need not name the run.
-  A statement asserting several runs is that many claims, one per run, and a return reporting several results holds that many records.
-  Matching totals are not sufficient: a fabricated entry and an omitted one cancel, so the mapping is checked entry by entry rather than by count.
-  Within an enumeration of runs, no two entries map to the same record; describing one run in two places is not double-counting — claiming it as two entries is.
-- A claim that cannot be stated without naming something § Exclusions forbids is dropped, or restated against something nameable.
+- An observation of a source is one of these, made by the author in the session performing the discharge and outside any stretch since summarized: reading the source, a command's output, an agent's return, or reading something durable that holds the source itself — a committed fixture, a linked run.
+  Recall, a summary of the session, a handoff note, and the body's own earlier wording are not observations.
+- A claim passes the check when the observed source bears it out: what the claim states holds of the source, and what it quotes reproduces the source's wording.
+- A claim the observed source does not bear out is corrected against the source or dropped.
+- A claim whose source the author has not observed is checked after observing it — reading the text, re-running the command.
+  Where the author cannot observe it, the author either drops the claim or asks the user for the source itself; reading the source the user supplies is then an observation of it, and a claim whose source the user does not supply is dropped.
+- A claim is not softened into a hedge in place of any of these outcomes.
+- A claim observed through an agent's return maps to one result in one return; the author checks that mapping.
+- A return or a command's output reporting several results is that many observations, one per result.
+  Matching totals are not sufficient: a fabricated entry and an omitted one cancel, so each entry is checked against its own observation rather than by count.
+  Within an enumeration of runs, no run is counted as two: describing one run in two places, or reporting several of its results, is not double-counting — claiming it as two runs is.
 - An enumeration need not be complete — work performed but not written up states nothing false.
-  An enumeration that claims completeness ("all runs performed", "the only cases exercised") does require every record within the scope it claims to appear; work that verifies the body itself is outside any such scope.
+  An enumeration that claims completeness ("all runs performed", "the only cases exercised") does require every member of the scope it claims to appear; work that verifies the body itself is outside any such scope.
   Later work can falsify a completeness claim without its own text changing, so it is re-checked whenever the body is discharged again.
-- A claim with no available record is re-run or dropped.
-  It is not softened into a hedge.
-- Text edited after its claims were discharged is discharged again before it is shown or filed.
-
-A statement is an evidence claim if it asserts an execution or reports what an execution produced, or if the property it states could only be known by running something — a suite passing, a coverage figure, a timing — however phrased.
-A statement of an artifact's existence, or of a property establishable by reading the code (a test file added, a tolerance value, an identifier, which cases a test covers), is not one; it is checked against the code, not against a record, even where something was also run to confirm it. Reading the code is not an execution, so saying you read it changes nothing; reporting a run is a separate statement, and that one is an evidence claim.
+- A claim that cannot be stated without naming something § Exclusions forbids is dropped, or restated against something nameable.
+- Body text edited after its claims were discharged is discharged again before it is shown or filed.
