@@ -115,6 +115,6 @@ A claim stating what only running something could show — a suite passing, a co
   Within an enumeration of runs, no run is counted as two: describing one run in two places, or reporting several of its results, is not double-counting — claiming it as two runs is.
 - An enumeration need not be complete — work performed but not written up states nothing false.
   An enumeration that claims completeness ("all runs performed", "the only cases exercised") does require every member of the scope it claims to appear; work that verifies the body itself is outside any such scope.
-  Later work can falsify a completeness claim without its own text changing, so it is re-checked whenever the body is discharged again.
+  Later work can falsify a completeness claim without its own text changing, so the claim is re-checked whenever text added to or edited in the body after the claim's discharge is discharged.
 - A claim that cannot be stated without naming something § Exclusions forbids is dropped, or restated against something nameable.
 - Body text edited after its claims were discharged is discharged again before it is shown or filed.
