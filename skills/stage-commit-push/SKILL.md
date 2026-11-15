@@ -41,7 +41,7 @@ git diff --staged
 git log --oneline -5
 ```
 
-**Type selection** — a commit convention the repository states takes precedence over the list below. Before selecting, read the repository's contributor and agent guidance, such as `CONTRIBUTING.md`, `CLAUDE.md`, or `AGENTS.md`, for one. Where the convention decides the type for this change, use that type. Where it decides none and rules out the type the list gives, ask the user for the type. Otherwise select from the list, based on what changed and why:
+**Type selection** — a commit convention the repository states takes precedence over the list below. Before selecting, read the repository's contributor and agent guidance, such as `CONTRIBUTING.md`, `CLAUDE.md`, or `AGENTS.md`, for one. Where the convention decides the type for this change, use that type. Where it decides none and rules out every type the list maps this change to, ask the user for the type. Otherwise select from the list, based on what changed and why:
 
 - Documentation only → `docs`
 - Build/CI config → `ci` or `build`
@@ -52,7 +52,7 @@ git log --oneline -5
 - New functionality that didn't exist before → `feat`
 - Existing functionality that was wrong/broken → `fix`
 
-Size doesn't determine type. API signature changes that correct a mistake are `fix`, not `feat`.
+When selecting from the list, size doesn't determine type, and API signature changes that correct a mistake are `fix`, not `feat`.
 
 **Title length** — keep the commit title (first line) to 72 characters or fewer. Use the body for details.
 
