@@ -39,10 +39,7 @@ Before drafting, identify:
 
 - Target repo (`gh repo view` if unclear).
 - Whether this is a bug, feature, design discussion, or umbrella sub-issue. The default body shape covers the first three; umbrella sub-issues use the shape defined in `Variants > Umbrella sub-issue` above.
-- Any related issues/PRs to link.
-- **Premise type (rot exposure).** Is the premise an **absence** (a capability / perf / test not built yet) or **coupled to current code state** (a specific construct is wrong / missing a test / a stopgap with a known expiry)?
-  - Absence → it stays valid until built.
-  - Code-coupled → step 6 decides whether the issue takes the `perishable` label. If a known issue/refactor would obviate or reshape it, link that trigger in the body (or fold it in there as a checklist item).
+- Related issues/PRs to link, including those that would obviate or reshape this issue.
 
 ### 2. Draft
 
@@ -99,10 +96,7 @@ gh-post issue create \
   --body-file /tmp/<descriptive-name>.md
 ```
 
-Add a `--label` flag to `gh-post issue create` for each of these, and no other labels:
-
-- `perishable`, when the premise is code-coupled by step 1's premise-type classification and the target repo has a label named `perishable`. When the premise is code-coupled and the target repo has no such label, offer to create it there; if the user accepts, create it and add it.
-- Each label the user asked this issue to carry, and each label the target repo states this issue must carry.
+Add a `--label` flag to `gh-post issue create` for each label the user asked this issue to carry and each label the target repo states this issue must carry, and no other labels.
 
 ### 7. Report
 
