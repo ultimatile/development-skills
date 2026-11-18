@@ -39,7 +39,7 @@ Before drafting, identify:
 
 - Target repo (`gh repo view` if unclear).
 - Whether this is a bug, feature, design discussion, or umbrella sub-issue. The default body shape covers the first three; umbrella sub-issues use the shape defined in `Variants > Umbrella sub-issue` above.
-- Related issues/PRs to link. If an issue or PR would obviate or reshape this one, link that issue or PR in the body.
+- Related issues/PRs to link, including those that would obviate or reshape this issue.
 
 ### 2. Draft
 
