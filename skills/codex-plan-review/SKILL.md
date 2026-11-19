@@ -39,7 +39,7 @@ Specific questions:
 </task>
 
 <failure_scenarios>
-The plan above carries a Failure scenarios section; the definitions it uses, the records the run holds about its scenarios, and the hypotheses the plan rests on follow. A scenario the table lists as Covered `no` is one the plan deliberately leaves unguarded: do not report a missing guard for it, whatever the dig_deeper_nudge block asks. Report any evidence you read that the section is not accurate for the change, as its definitions define accurate, quoting that evidence, grounded in code you read or in the records given here. Apart from that grounding, the grounding_rules, verification_loop and missing_context_gating blocks do not apply to these reports.
+The plan above carries a Failure scenarios section; the definitions it uses, the records the run holds about its scenarios, and the hypotheses the plan rests on follow. A scenario the table lists as Covered `no` is one the plan deliberately leaves unguarded: do not report a missing guard for it, whatever the dig_deeper_nudge block asks. Report, as a finding, any evidence you read that the section is not accurate for the change, as its definitions define accurate, quoting that evidence, grounded in code you read or in the records given here. Apart from that grounding, the grounding_rules, verification_loop and missing_context_gating blocks do not apply to these reports.
 <FAILURE_SCENARIOS_DEFINITIONS_RECORDS_AND_HYPOTHESES>
 </failure_scenarios>
 
@@ -90,7 +90,7 @@ Block selection rationale:
 
 ### 2. Run Codex
 
-Write the prompt to a new file `<prompt-file>` with the Write tool, then run:
+Run `mktemp -d`, write the prompt with the Write tool to a new file `<prompt-file>` inside the directory it prints, then run:
 
 ```bash
 "${CLAUDE_SKILL_DIR}/../run-codex/scripts/run-codex.sh" prompt --schema "${CLAUDE_SKILL_DIR}/schema.json" <prompt-file>

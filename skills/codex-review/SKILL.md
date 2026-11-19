@@ -66,7 +66,7 @@ The prompt names, each by its absolute path so codex doesn't have to search, the
 4. List what the review should focus on (forwarding correctness, default / expert contract consistency, docstring drift, missed call sites, etc. — project-specific).
 5. List what to ignore — the enumerated intentional states from step 3.
 
-Write the prompt to a new file with the Write tool and pass that file as `<prompt-file>`.
+Run `mktemp -d`, write the prompt with the Write tool to a new file `<prompt-file>` inside the directory it prints, and pass that file.
 
 **For non-phased self-contained changes**, keep using `run-codex.sh review --base ...` in the form Core commands gives. The inline-context workaround is only needed when judgement criteria live outside the diff.
 

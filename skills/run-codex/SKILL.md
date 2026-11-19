@@ -14,7 +14,7 @@ Supported CLI baseline: codex-cli 0.170.0.
 "${CLAUDE_SKILL_DIR}/scripts/run-codex.sh" review <review-target-arguments>...
 ```
 
-- `prompt` runs `codex exec` on the content of `<prompt-file>`. With `--schema`, Codex's final response follows the JSON Schema in `<schema-file>`.
+- `prompt` runs `codex exec` on the content of `<prompt-file>`. With `--schema`, Codex is given the JSON Schema in `<schema-file>` for its final response.
 - `review` runs `codex exec review` with `<review-target-arguments>`: `--base <rev>`, `--uncommitted`, or `--commit <sha>`.
 
 Each run starts a new Codex session that is not saved, and writes into its own new directory.

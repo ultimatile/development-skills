@@ -127,7 +127,7 @@ Block selection rationale:
 
 ### 3. Run Codex
 
-Write the prompt to a new file `<prompt-file>` with the Write tool, then run:
+Run `mktemp -d`, write the prompt with the Write tool to a new file `<prompt-file>` inside the directory it prints, then run:
 
 ```bash
 "${CLAUDE_SKILL_DIR}/../run-codex/scripts/run-codex.sh" prompt --schema "${CLAUDE_SKILL_DIR}/schema.json" <prompt-file>
