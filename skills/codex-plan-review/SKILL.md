@@ -50,12 +50,11 @@ If a point is an inference rather than a verified fact, label it as such.
 </grounding_rules>
 
 <structured_output_contract>
-Return:
-1. verdict — one of: approve / approve with conditions / reject
-2. findings ordered by severity, each tagged [P1/P2/P3] with file:line where applicable
-3. supporting evidence for each finding (quoted code or exact file reference)
-4. open questions you could not resolve from the repository alone
-Keep the output compact. Do not restate the plan.
+Your final response follows the supplied JSON schema:
+- verdict: one of approve / approve with conditions / reject
+- findings: ordered by severity; location is file:line where applicable, else empty; evidence is quoted code or an exact file reference
+- open_questions: what you could not resolve from the repository alone
+Keep each field compact. Do not restate the plan.
 </structured_output_contract>
 
 <dig_deeper_nudge>
@@ -92,14 +91,12 @@ Block selection rationale:
 ### 2. Run Codex
 
 ```bash
-codex exec "<prompt>" < /dev/null -o /tmp/codex-plan-review.md
+"${CLAUDE_SKILL_DIR}/../run-codex/scripts/run-codex.sh" prompt --schema "${CLAUDE_SKILL_DIR}/schema.json" "<prompt>"
 ```
 
-**Important:**
-
-- Always use `< /dev/null`
-- Set timeout to 600000ms (10 minutes)
-- Use `-o` to capture output to a file
+Set the Bash timeout to 600000 ms.
+When the status line reads `completed`, triage the file the `result:` line names.
+On any other status, stop and report the status lines.
 
 ### 3. Triage the feedback
 

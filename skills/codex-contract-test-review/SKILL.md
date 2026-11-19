@@ -65,16 +65,18 @@ such.
 </grounding_rules>
 
 <structured_output_contract>
-Return:
-1. verdict — one of: approve / approve with conditions / reject
-2. primary findings (max 3) — contract-expression problems. Tag each
-   [P1/P2] with file:line, and state explicitly: "would this test
-   fail on the original buggy implementation? yes / no / unclear"
-3. secondary findings (max 2) — P1 critical bugs in the test code
-   only. Drop P2/P3 / stylistic.
-4. open questions you could not resolve from the repository alone
+Your final response follows the supplied JSON schema:
+- verdict: one of approve / approve with conditions / reject
+- primary_findings (max 3): contract-expression problems, each with
+  severity P1/P2, location as file:line, and fails_on_original
+  answering "would this test fail on the original buggy
+  implementation?" with yes / no / unclear
+- secondary_findings (max 2): P1 critical bugs in the test code
+  only, with location as file:line. Drop P2/P3 / stylistic.
+- open_questions: what you could not resolve from the repository
+  alone
 Total: at most 5 findings across primary + secondary.
-Keep the output compact. Do not restate the test or the contract.
+Keep each field compact. Do not restate the test or the contract.
 </structured_output_contract>
 
 <dig_deeper_nudge>
@@ -125,12 +127,12 @@ Block selection rationale:
 ### 3. Run Codex
 
 ```bash
-codex exec "<prompt>" < /dev/null -o /tmp/codex-contract-test-review.md
+"${CLAUDE_SKILL_DIR}/../run-codex/scripts/run-codex.sh" prompt --schema "${CLAUDE_SKILL_DIR}/schema.json" "<prompt>"
 ```
 
-- Always use `< /dev/null`
-- Set timeout to 600000ms (10 minutes); typical run is 30s–2min
-- Use `-o` to capture output
+Set the Bash timeout to 600000 ms.
+When the status line reads `completed`, triage the file the `result:` line names.
+On any other status, stop and report the status lines.
 
 ### 4. Triage the feedback
 

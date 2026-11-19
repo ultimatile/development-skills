@@ -18,30 +18,26 @@ The caller supplies the **root** — the ref the change under review is measured
 ```bash
 mb=$(git merge-base <root-rev> HEAD)
 test -n "$mb" || { echo "no merge base for <root>"; exit 1; }
-codex exec review --base "$mb" -o <output-file> </dev/null
+"${CLAUDE_SKILL_DIR}/../run-codex/scripts/run-codex.sh" review --base "$mb"
 ```
 
 This runs `git diff <base-SHA>` internally and reviews the entire diff. The review covers all committed changes on the current branch relative to the base — both the original work and any subsequent fix commits.
+
+When a `run-codex.sh` command's status line reads `completed`, triage the file its `result:` line names. On any other status, stop and report the status lines.
 
 ### Other review modes
 
 | Command | Scope |
 | -- | -- |
-| `codex exec review --uncommitted </dev/null` | Staged + unstaged + untracked changes |
-| `codex exec review --commit <SHA> </dev/null` | A single commit's diff |
-| `codex exec "<inline prompt>" </dev/null` | Free-form prompt with inline context (see "Switching to `exec` with inline context" below) |
+| `run-codex.sh review --uncommitted` | Staged + unstaged + untracked changes |
+| `run-codex.sh review --commit <SHA>` | A single commit's diff |
+| `run-codex.sh prompt "<inline prompt>"` | Free-form prompt with inline context (see "Switching to `exec` with inline context" below) |
 
-### Output options
-
-| Flag | Effect |
-| -- | -- |
-| `-o <file>` | Write final review message to file |
-| `--json` | Emit JSONL event stream to stdout |
-| `"custom prompt"` | Positional arg — additional review instructions |
+`run-codex.sh` is `"${CLAUDE_SKILL_DIR}/../run-codex/scripts/run-codex.sh"`.
 
 ## Switching to `exec` with inline context
 
-`codex exec review --base ...` operates on `git diff` alone — it cannot read GitHub Issues, ADRs, or any design intent encoded outside the diff. For self-contained changes this is fine; for **phased rollouts** where the judgement criteria live outside the diff, `review` mode systematically misjudges intentional design decisions as regressions. Switch to free-form `codex exec "<inline prompt>"` to attach the context.
+`codex exec review` starts without this conversation's history, and with `--base` it takes no instructions beyond its built-in review prompt, so nothing points it at design intent encoded outside the diff — a GitHub Issue, an ADR. For self-contained changes this is fine; for **phased rollouts** where the judgement criteria live outside the diff, `review` mode systematically misjudges intentional design decisions as regressions. Switch to free-form `run-codex.sh prompt "<inline prompt>"` to attach the context.
 
 **Trigger — before every codex review, check:**
 
@@ -49,7 +45,7 @@ This runs `git diff <base-SHA>` internally and reviews the entire diff. The revi
 - Does the relevant ADR contain phrases like "unmeasured → sentinel X", "tracked separately in a follow-up", "intentional default until <later phase>", "out of this phase's scope"?
 - Are there thresholds, defaults, or scoped-off paths that look like bugs from the diff but are ADR / Issue-intentional?
 
-If any of the above is yes, skip `codex exec review` and use `codex exec "<inline prompt>"` instead.
+If any of the above is yes, skip `run-codex.sh review` and use `run-codex.sh prompt "<inline prompt>"` instead.
 
 **Why the workaround is needed:** `--base` and the positional `[PROMPT]` are mutually exclusive on `codex exec review`, so phase context cannot be attached to a `review` invocation. The free-form `codex exec "..."` accepts an arbitrary prompt that can direct codex to read the surrounding context first.
 
@@ -70,11 +66,11 @@ The prompt names, each by its absolute path so codex doesn't have to search, the
 4. List what the review should focus on (forwarding correctness, default / expert contract consistency, docstring drift, missed call sites, etc. — project-specific).
 5. List what to ignore — the enumerated intentional states from step 3.
 
-**For non-phased self-contained changes**, keep using vanilla `codex exec review --base ...` in the form Core commands gives. The inline-context workaround is only needed when judgement criteria live outside the diff.
+**For non-phased self-contained changes**, keep using `run-codex.sh review --base ...` in the form Core commands gives. The inline-context workaround is only needed when judgement criteria live outside the diff.
 
 ## Triaging review output
 
-codex review operates on `git diff` output alone — it has no access to the broader project context, test results, runtime behavior, or design rationale. This means a significant fraction of its findings will be false positives: technically plausible concerns that don't apply given information the reviewer can't see.
+The reviewer reads the repository and runs commands, with web search disabled, but it starts without this conversation's history: the design rationale, scope decisions, and test results established here are not in front of it. This means a significant fraction of its findings will be false positives: technically plausible concerns that don't apply given information the reviewer can't see.
 
 Typical false positive patterns:
 
@@ -100,7 +96,7 @@ Each iteration runs a full, unbiased review of the entire diff against base. Do 
    ```bash
    mb=$(git merge-base <root-rev> HEAD)
    test -n "$mb" || { echo "no merge base for <root>"; exit 1; }
-   codex exec review --base "$mb" -o /tmp/codex-review.md </dev/null
+   "${CLAUDE_SKILL_DIR}/../run-codex/scripts/run-codex.sh" review --base "$mb"
    ```
 
 2. **Triage the output** using the process above. Present classified findings to the user.
@@ -119,7 +115,5 @@ Every finding of the latest triage is closed, as `finding-triage` defines closed
 
 ## Important constraints
 
-- **Stdin redirect**: every `codex exec` invocation needs `</dev/null`; hang signal is absence of the `OpenAI Codex v...` banner after `Reading additional input from stdin...`.
 - **Run fresh**: run each review with fresh context — fresh reviews are the correct approach for iteration.
-- **Non-interactive only**: Always use `codex exec review`, not `codex review`, when running from scripts or automation. The `exec` variant runs non-interactively and exits when done.
 - **Timeout**: Set timeout to 600000ms (10 minutes) when calling from Bash. Reviews of large diffs can take several minutes.
