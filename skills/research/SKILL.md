@@ -267,13 +267,13 @@ After Step 3 produces a plan and before the plan goes to the user for approval:
 
 4. **The plan that exits this step is the contract.** Step 7 posts that plan once and does not revise it afterwards; there is no "post then revise" loop. Every revision — this step's, the user's at approval, a discharge, a `gh-body-audit` fix — happens before posting.
 
-## Step 6 — Route the plan and approve it
+## Step 6 — Route the plan, and approve it on the comment route
 
 Decide where the plan goes, based on what `$ARGUMENTS` resolves to:
 
 - **Existing single-scope issue** → Step 7 posts the plan as a comment on it.
-- **Existing umbrella issue** (the body contains a Phases table or sub-tasks list) → Step 7 files a sub-issue of it whose body is the plan. Do not also post the plan as an umbrella comment.
-- **New task** → Step 7 files a new issue whose body is the plan.
+- **Existing umbrella issue** (the body contains a Phases table or sub-tasks list) → Step 7 files a sub-issue of it. Do not also post the plan as an umbrella comment.
+- **New task** → Step 7 files a new issue.
 
 When ambiguous, ask the user. Umbrella sub-issue is the D1 default.
 
@@ -285,11 +285,13 @@ On the umbrella and new-task routes, Step 6 does nothing more: Step 7 hands the 
 
 Post the plan on the route Step 6 decided:
 
-- **Existing single-scope issue** → write the plan as approved at Step 6 to a file and run `gh-post issue comment <n> --repo <owner>/<repo> --body-file <file>`, `<n>` being the issue number `$ARGUMENTS` names and `<owner>/<repo>` the repository Step 1 read it from.
-- **Existing umbrella issue** → invoke `file-issue` to file the sub-issue in its `Variants > Umbrella sub-issue` form, handing it the umbrella's issue number and the plan as the body.
+- **Existing single-scope issue** → write the plan as approved at Step 6 to a file and run `gh-post issue comment <n> --repo <owner>/<repo> --body-file <file>`, `<n>` being the issue number `$ARGUMENTS` names and `<owner>/<repo>` the repository `gh repo view` resolves, which is the one Step 1 read the issue from.
+- **Existing umbrella issue** → invoke `file-issue` to file the sub-issue in its `Variants > Umbrella sub-issue` form, handing it the umbrella's issue number, the row of the umbrella's Phases table or sub-tasks list the plan covers, and the plan as the body.
 - **New task** → invoke `file-issue`, handing it the plan as the body; report the issue number `file-issue` reports.
+
+Issue creation rule 1 below says how a plan it splits goes to `file-issue` in place of the whole plan.
 
 **Issue creation rules** (research-specific; body shape and the language / reference / evidence-claim / exclusion rules come from `gh-body-conventions` via `file-issue`):
 
-1. **Split issues by commit unit.** Each issue corresponds to one atomic, independently committable change. Multi-commit plans become multiple issues with `Depends on #N` links; derive each issue's body from the plan and hand it to its own `file-issue` invocation in place of the whole plan.
+1. **Split issues by commit unit.** Each issue corresponds to one atomic, independently committable change. On the umbrella and new-task routes, multi-commit plans become multiple issues with `Depends on #N` links; derive each issue's body from the plan and hand it to its own `file-issue` invocation in place of the whole plan, on the umbrella route with the row that issue covers.
 2. **No "rejected alternatives" sections** unless explicitly requested. The Hypotheses section is not one.
