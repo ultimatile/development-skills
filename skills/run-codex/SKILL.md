@@ -18,20 +18,19 @@ Supported CLI baseline: codex-cli 0.170.0.
 - `review` runs `codex exec review` with `<review-target-arguments>`: `--base <rev>`, `--uncommitted`, or `--commit <sha>`.
 
 Each run starts a new Codex session that is not saved, and writes into its own new directory.
-Set the Bash timeout to 600000 ms.
 
 ## Output
 
-Four lines on stdout:
+After running Codex, the script prints four lines on stdout:
 
-- `status: <status>`, one of:
-  - `completed`;
+- `status: <status>`, the first of these that applies, in this order:
   - `failed` — Codex exited nonzero;
-  - `missing-result` — Codex exited 0 and left no final message;
-  - `invalid-result` — with `--schema`, the final message is not a JSON object holding every key the schema's top-level `required` lists.
-- `model: <model>` — the model Codex itself reports for the run's completed model requests, or `unknown` when it reports none or more than one.
+  - `missing-result` — Codex left no final message;
+  - `invalid-result` — with `--schema`, the final message is not a JSON object holding every key the schema's top-level `required` lists;
+  - `completed` — otherwise.
+- `model: <model>` — the model Codex itself reports for the run's completed model requests when they name exactly one, `unknown` otherwise.
 - `result: <path>` — the file holding Codex's final message.
 - `log: <path>` — the file holding Codex's stdout and stderr.
 
-The script exits 0 when the status is `completed` and 1 otherwise.
-On a usage error it prints its usage on stderr, runs nothing, and exits 2.
+The script exits 0 when the status is `completed` and 1 for any other status.
+When it does not run Codex, it prints the reason on stderr and no status lines, and exits 2.

@@ -96,7 +96,7 @@ Block selection rationale:
 
 Set the Bash timeout to 600000 ms.
 When the status line reads `completed`, triage the file the `result:` line names.
-On any other status, stop and report the status lines.
+Otherwise, report what the script printed to the user and wait for their direction.
 
 ### 3. Triage the feedback
 

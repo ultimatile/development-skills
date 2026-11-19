@@ -23,7 +23,7 @@ test -n "$mb" || { echo "no merge base for <root>"; exit 1; }
 
 This runs `git diff <base-SHA>` internally and reviews the entire diff. The review covers all committed changes on the current branch relative to the base — both the original work and any subsequent fix commits.
 
-When a `run-codex.sh` command's status line reads `completed`, triage the file its `result:` line names. On any other status, stop and report the status lines.
+When a `run-codex.sh` command's status line reads `completed`, triage the file its `result:` line names. Otherwise, report what the script printed to the user and wait for their direction.
 
 ### Other review modes
 
@@ -70,7 +70,7 @@ The prompt names, each by its absolute path so codex doesn't have to search, the
 
 ## Triaging review output
 
-The reviewer reads the repository and runs commands, with web search disabled, but it starts without this conversation's history: the design rationale, scope decisions, and test results established here are not in front of it. This means a significant fraction of its findings will be false positives: technically plausible concerns that don't apply given information the reviewer can't see.
+The reviewer reads the repository and runs commands, but it starts without this conversation's history: the design rationale, scope decisions, and test results established here are not in front of it. This means a significant fraction of its findings will be false positives: technically plausible concerns that don't apply given information the reviewer can't see.
 
 Typical false positive patterns:
 

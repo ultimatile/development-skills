@@ -68,11 +68,12 @@ such.
 Your final response follows the supplied JSON schema:
 - verdict: one of approve / approve with conditions / reject
 - primary_findings (max 3): contract-expression problems, each with
-  severity P1/P2, location as file:line, and fails_on_original
-  answering "would this test fail on the original buggy
-  implementation?" with yes / no / unclear
+  severity P1/P2, location as file:line, a summary, and
+  fails_on_original answering "would this test fail on the original
+  buggy implementation?" with yes / no / unclear
 - secondary_findings (max 2): P1 critical bugs in the test code
-  only, with location as file:line. Drop P2/P3 / stylistic.
+  only, each with location as file:line and a summary. Drop P2/P3 /
+  stylistic.
 - open_questions: what you could not resolve from the repository
   alone
 Total: at most 5 findings across primary + secondary.
@@ -132,7 +133,7 @@ Block selection rationale:
 
 Set the Bash timeout to 600000 ms.
 When the status line reads `completed`, triage the file the `result:` line names.
-On any other status, stop and report the status lines.
+Otherwise, report what the script printed to the user and wait for their direction.
 
 ### 4. Triage the feedback
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Run codex exec non-interactively in a fresh directory and print four status lines:
-# status, model, result, log. Exit 0 when the status is `completed`, 1 otherwise,
-# 2 on a usage error.
+# Run codex exec non-interactively with its output in a fresh directory, then print four status lines:
+# status, model, result, log. Exit 0 when the status is `completed`, 1 for any other status,
+# 2 without status lines when codex is not run.
 #
 #   run-codex.sh prompt [--schema <schema-file>] <prompt>
 #   run-codex.sh review <review-target-arguments>...
@@ -24,8 +24,10 @@ prompt)
     schema="$2"
     shift 2
   fi
+  [[ $# -eq 1 ]] || usage
   ;;
 review)
+  [[ $# -ge 1 ]] || usage
   for arg in "$@"; do
     [[ "$arg" == "--schema" ]] && usage
   done
@@ -35,18 +37,25 @@ review)
   ;;
 esac
 
-dir="$(mktemp -d)" || exit 1
+for tool in codex jq; do
+  command -v "$tool" >/dev/null || {
+    echo "run-codex.sh: $tool is required" >&2
+    exit 2
+  }
+done
+
+dir="$(mktemp -d "${TMPDIR:-/tmp}/run-codex.XXXXXX")" || exit 2
 result="$dir/result"
 log="$dir/log"
 requests="$dir/requests.jsonl"
 
-# Codex pipes a JSON payload naming the model of each model request it makes into this hook.
+# When Codex runs this hook, it pipes in a JSON payload naming the model of each model request.
 hook="hooks.PostModelRequest=[{hooks=[{type=\"command\",command=\"cat >> '$requests'\"}]}]"
 
 if [[ "$mode" == prompt ]]; then
   args=(exec --ephemeral -o "$result" -c "$hook")
   [[ -n "$schema" ]] && args+=(--output-schema "$schema")
-  args+=(-- "$@")
+  args+=(-- "$1")
 else
   args=(exec review --ephemeral -o "$result" -c "$hook" "$@")
 fi
@@ -59,8 +68,8 @@ if [[ $rc -ne 0 ]]; then
 elif [[ ! -s "$result" ]]; then
   status=missing-result
 elif [[ -n "$schema" ]] &&
-  ! jq -e --slurpfile s "$schema" \
-    'type == "object" and (. as $r | all($s[0].required[]?; . as $k | $r | has($k)))' \
+  ! jq -se --slurpfile s "$schema" \
+    'length == 1 and (.[0] | type == "object" and (. as $r | all($s[0].required[]?; . as $k | $r | has($k))))' \
     "$result" >/dev/null 2>&1; then
   status=invalid-result
 else

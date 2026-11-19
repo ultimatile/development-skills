@@ -15,7 +15,7 @@ A four-gate review cadence for landing a large change that does not fit a single
 | Gate | Trigger | Action | Baseline |
 | -- | -- | -- | -- |
 | per-commit | each `git commit` | `/done-check` (preflight `/todo-check`) | the PR's base |
-| per-unit | unit / design-boundary completion | `run-codex.sh review --base <last-approved-SHA>` | last unit-approved SHA |
+| per-unit | unit / design-boundary completion | the `run-codex` skill's `run-codex.sh review --base <last-approved-SHA>` | last unit-approved SHA |
 | pre-open code-review | per PR, before the per-PR-open gate | `/code-review-gate`, via `/review-pipeline` Phase 0.5 | integration branch |
 | per-PR-open | before PR creation | `/codex-review` against PR diff | PR base (integration branch) |
 
@@ -64,7 +64,7 @@ For PR `k` in the sequence (each PR is one or more units):
    "${CLAUDE_SKILL_DIR}/../run-codex/scripts/run-codex.sh" review --base <last-unit-approve-SHA>
    ```
 
-   When its status line reads `completed`, triage the file its `result:` line names; on any other status, stop and report the status lines. The baseline starts as the integration branch tip when PR `k` begins; advance it to the last approved SHA after each unit. Triage P1 / P2 findings at this gate before continuing to the next unit.
+   Run it with a 600000 ms Bash timeout. When its status line reads `completed`, triage the file its `result:` line names; otherwise, report what the script printed to the user and wait for their direction. The baseline starts as the integration branch tip when PR `k` begins; advance it to the last approved SHA after each unit. Triage P1 / P2 findings at this gate before continuing to the next unit.
 
    **Committing past a workspace-wide pre-commit hook.** A hook that lints the whole workspace (e.g. a project-wide type/lint check) will fail by design on a `pr<k>/...` branch — downstream components scheduled for a later PR are still on the old API. Skip only that one workspace-coherence hook (e.g. `SKIP=<workspace-lint-hook> git commit ...`) after confirming the per-component test and lint gates both pass, and note the skip rationale in the commit body. Do NOT use `--no-verify`; it also drops formatting and line-count hooks, which remain binding.
 
