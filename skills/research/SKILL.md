@@ -267,11 +267,11 @@ After Step 3 produces a plan and before the plan goes to the user for approval:
 
 4. **The plan that exits this step is the contract.** Step 7 posts that plan once and does not revise it afterwards; there is no "post then revise" loop. Every revision — this step's, the user's at approval, a discharge, a `gh-body-audit` fix — happens before posting.
 
-## Step 6 — Route the plan, and approve it on the comment route
+## Step 6 — Route the plan, and approve a plan comment or a split
 
 Decide where the plan goes, based on what `$ARGUMENTS` resolves to:
 
-- **Existing single-scope issue** → Step 7 posts the plan as a comment on it.
+- **Existing single-scope issue** → Step 7 posts the plan as one comment on it, whatever number of commits the plan spans.
 - **Existing umbrella issue** (the body contains a Phases table or sub-tasks list) → Step 7 files a sub-issue of it. Do not also post the plan as an umbrella comment.
 - **New task** → Step 7 files a new issue.
 
@@ -279,7 +279,7 @@ When ambiguous, ask the user. Umbrella sub-issue is the D1 default.
 
 On the single-scope issue route, discharge the plan's evidence claims per `gh-body-conventions` § Evidence claims. Then run `gh-body-audit` on the plan body with artifact kind `issue`. Any ⚠ blocks presenting the plan on `gh-body-audit` step 4's terms. Present the plan and ask for approval before posting to GitHub. If the user requests changes, revise, re-discharge the plan's evidence claims, re-run `gh-body-audit`, and re-show.
 
-On the umbrella and new-task routes, Step 6 does nothing more: Step 7 hands the plan to `file-issue`.
+On the umbrella and new-task routes, Step 7 hands the plan to `file-issue`. Where Issue creation rule 1 splits the plan, first present the split — each issue's part of the plan and the `Depends on` links between them — and ask for approval of it before Step 7; if the user requests changes, revise the split and re-show it. Otherwise Step 6 does nothing more on these routes.
 
 ## Step 7 — Post plan to GitHub
 
@@ -293,5 +293,5 @@ Issue creation rule 1 below says how a plan it splits goes to `file-issue` in pl
 
 **Issue creation rules** (research-specific; body shape and the language / reference / evidence-claim / exclusion rules come from `gh-body-conventions` via `file-issue`):
 
-1. **Split issues by commit unit.** Each issue corresponds to one atomic, independently committable change. On the umbrella and new-task routes, multi-commit plans become multiple issues with `Depends on #N` links; derive each issue's body from the plan and hand it to its own `file-issue` invocation in place of the whole plan, on the umbrella route with the row that issue covers.
+1. **Split issues by commit unit.** Each issue corresponds to one atomic, independently committable change. On the umbrella and new-task routes, multi-commit plans become multiple issues with `Depends on #N` links; derive each issue's body from the plan and hand it to its own `file-issue` invocation in place of the whole plan, on the umbrella route with the row that issue covers. Each derived body keeps the plan's shape from Step 3, narrowed to that issue, its `Inconclusive / Deferred items` section included. File the issues in dependency order, so that each body's `Depends on #N` names an issue number an earlier `file-issue` run reported.
 2. **No "rejected alternatives" sections** unless explicitly requested. The Hypotheses section is not one.
