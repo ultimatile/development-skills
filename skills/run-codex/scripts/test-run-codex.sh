@@ -66,10 +66,11 @@ out=""
 code=0
 
 # run <args...>: run run-codex.sh with a fresh record directory; sets $out and $code.
+# RUN_PATH, when set, replaces PATH for run-codex.sh alone.
 run() {
   rm -rf "$RECORD"
   mkdir "$RECORD"
-  out="$("$RUN" "$@" 2>"$tmpdir/stderr")"
+  out="$(PATH="${RUN_PATH:-$PATH}" "$RUN" "$@" 2>"$tmpdir/stderr")"
   code=$?
 }
 
@@ -116,7 +117,7 @@ expect "missing required key -> invalid-result" "$(field status)" "invalid-resul
 STUB_RESULT='["verdict","findings"]' run prompt --schema "$tmpdir/schema.json" "$P"
 expect "non-object JSON -> invalid-result" "$(field status)" "invalid-result"
 
-STUB_RESULT='"x" {"verdict":"approve","findings":[]}' run prompt --schema "$tmpdir/schema.json" "$P"
+STUB_RESULT='{"verdict":"approve","findings":[]} {"verdict":"reject","findings":[]}' run prompt --schema "$tmpdir/schema.json" "$P"
 expect "two JSON values -> invalid-result" "$(field status)" "invalid-result"
 
 STUB_RESULT='{"verdict":"approve","findings":[]}' run prompt --schema "$tmpdir/schema.json" "$P"
@@ -188,20 +189,14 @@ done
 mkdir "$tmpdir/nojq"
 for tool in bash cat mktemp; do ln -s "$(command -v "$tool")" "$tmpdir/nojq/$tool"; done
 ln -s "$tmpdir/bin/codex" "$tmpdir/nojq/codex"
-rm -rf "$RECORD"
-mkdir "$RECORD"
-out="$(STUB_RESULT=x PATH="$tmpdir/nojq" "$RUN" prompt "$P" 2>"$tmpdir/stderr")"
-code=$?
+STUB_RESULT=x RUN_PATH="$tmpdir/nojq" run prompt "$P"
 expect_not_run "no jq"
 expect "no jq -> stderr names jq" "$(cat "$tmpdir/stderr")" "run-codex.sh: jq is required"
 
 mkdir "$tmpdir/nocodex"
 for tool in bash cat mktemp; do ln -s "$(command -v "$tool")" "$tmpdir/nocodex/$tool"; done
 ln -s "$(command -v jq)" "$tmpdir/nocodex/jq"
-rm -rf "$RECORD"
-mkdir "$RECORD"
-out="$(PATH="$tmpdir/nocodex" "$RUN" prompt "$P" 2>"$tmpdir/stderr")"
-code=$?
+RUN_PATH="$tmpdir/nocodex" run prompt "$P"
 expect_not_run "no codex"
 expect "no codex -> stderr names codex" "$(cat "$tmpdir/stderr")" "run-codex.sh: codex is required"
 
