@@ -11,7 +11,7 @@ Investigates an issue or task through falsifiable hypotheses and posts the resul
 
 ## Step 0 — Determine issue context
 
-Check whether `$ARGUMENTS` names an existing issue or is free text describing a new task. It names an issue when it is an issue number (`267` or `#267`), alone or followed only by `key:value` tokens such as a diff root (`267 root:main`); anything else is free text, including text that mentions an issue number.
+Check whether `$ARGUMENTS` names an existing issue or is free text describing a new task. It names an issue when it is an issue number (`267` or `#267`), alone or followed only by a diff root token `root:<branch>` (`267 root:main`); anything else is free text, including text that mentions an issue number.
 
 - **Issue number** → proceed with that issue.
 - **Free text** → use the text as the task description; an issue will be created in Step 7.

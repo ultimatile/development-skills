@@ -23,11 +23,11 @@ A typical issue body is 5–25 lines. Longer is fine when warranted (e.g., a des
 
 When the new issue is a phase / sub-issue of an existing umbrella tracking issue, the body shape and title convention differ from a standalone issue.
 
-- **Row.** The umbrella's Phases table row or sub-tasks list item this sub-issue covers: the one the caller hands, or else the one the user confirms. The title and the umbrella edit after filing take this row, and so does the "Out of scope" extraction where the umbrella has a Phases table.
+- **Row.** The umbrella's Phases table row or sub-tasks list item this sub-issue covers: the one the caller hands, or else the one the user confirms. The title and the umbrella edit after filing take this row, and it is "the chosen one" of the "Out of scope" extraction below.
 - **First body line.** `Parent: #<umbrella#>`. Always included so tooling can detect the umbrella linkage.
 - **Title.** `Phase N: <topic>` when the umbrella uses phase naming; otherwise mirror the umbrella's sub-task naming convention.
-- **Body shape.** Goal / Scope / Out of scope / Acceptance (in place of the default problem-statement shape). When the caller hands a finished body, as step 2 defines one, the body after the `Parent:` first line is those four sections, derived from the handed body except where the "Out of scope" extraction below says otherwise, followed by the handed body in full, as steps 3 to 5 may still correct it, and then any links step 2 adds — the sub-issue body is the canonical contract surface, not a thin pointer to a comment elsewhere.
-- **"Out of scope" extraction.** When inheriting from an umbrella with a Phases table: list only **unspawned sibling phases later than the chosen one**, formatted as `<topic> (Phase <id>)`. The point is to pin scope-creep boundaries against work the umbrella has already promised to a future sub-issue. Do not copy umbrella-wide deferrals shared across all phases (e.g. "1-site DMRG", "opsum DSL"). Already-completed earlier phases are also not listed (the boundary is forward-looking).
+- **Body shape.** Goal / Scope / Out of scope / Acceptance (in place of the default problem-statement shape). When the caller hands a finished body, as step 2 defines one, the body after the `Parent:` first line is those of the four sections that have content, derived from the handed body except where the "Out of scope" extraction below says otherwise, followed by the handed body in full, as steps 3 to 5 may still correct it, and then any links step 2 adds — the sub-issue body is the canonical contract surface, not a thin pointer to a comment elsewhere.
+- **"Out of scope" extraction.** When the row is a Phases table row: list only **unspawned sibling phases later than the chosen one**, formatted as `<topic> (Phase <id>)`. The point is to pin scope-creep boundaries against work the umbrella has already promised to a future sub-issue. Do not copy umbrella-wide deferrals shared across all phases (e.g. "1-site DMRG", "opsum DSL"). Already-completed earlier phases are also not listed (the boundary is forward-looking).
 - **Frozen-contract discipline.** The sub-issue body is written at file time and not edited during implementation. Drift discovered during implementation goes to the PR's `Plan-vs-actual delta` (and, when a reader genuinely needs it, a `Notes` caveat in the PR body framed as the code's own limitation), never back to the issue body. Editing the body rewrites history that PR titles, commit messages, and `Closes #N` references already point to.
 
 After filing, append the new sub-issue's number to the umbrella's Phases table row, or to its sub-tasks list item when the umbrella tracks its sub-issues in a sub-tasks list instead. This is the only umbrella-body edit performed at sub-issue spawn time; deeper umbrella drift (decisions captured, out-of-scope changes) is handled later at sub-issue close, not at spawn.
@@ -101,11 +101,12 @@ gh-post issue create \
 
 Add a `--label` flag to `gh-post issue create` for each label the user asked this issue to carry and each label the target repo states this issue must carry, and no other labels.
 
-For an umbrella sub-issue, then make the umbrella edit that `Variants > Umbrella sub-issue` describes after filing.
+For an umbrella sub-issue, then make the umbrella edit that `Variants > Umbrella sub-issue` describes after filing. If that edit fails, do not stop: go on to step 7 and report the failure there with the new issue's number.
 
 ### 7. Report
 
 After filing, show the user:
 
 - The issue number and URL.
+- A failed umbrella edit from step 6, if any.
 - Any follow-up actions (e.g., mentioning in a PR).
