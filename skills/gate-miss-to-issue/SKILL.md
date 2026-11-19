@@ -9,7 +9,7 @@ A gate's failure is invisible to the gates downstream of it — they judge the p
 
 ## Do
 
-- Propose which gate should have caught it, written as the **Gate (proposed)** point under **Issue content** defines. This is a hypothesis the issue confirms or redirects, not a blame verdict.
+- Propose which gate should have caught it, in the form the **Gate (proposed)** point under **Issue content** defines. This is a hypothesis the issue confirms or redirects, not a blame verdict.
 - State the blind spot as a **general class**, not the one token that slipped.
 - File the proposal as an issue against `ultimatile/development-skills`, via `file-issue`, with the four points below.
 - On recurrence of a class that already has an open issue, comment on it instead of filing a duplicate.
