@@ -25,7 +25,11 @@ prompt)
     shift 2
   fi
   [[ $# -eq 1 ]] || usage
-  prompt="$(cat -- "$1")" || exit 2
+  prompt_file="$1"
+  [[ -f "$prompt_file" && -r "$prompt_file" ]] || {
+    echo "run-codex.sh: cannot read prompt file $prompt_file" >&2
+    exit 2
+  }
   ;;
 review)
   [[ $# -ge 1 ]] || usage
@@ -45,23 +49,33 @@ for tool in codex jq; do
   }
 done
 
+if [[ -n "$schema" ]] && ! jq -e 'type == "object"' "$schema" >/dev/null 2>&1; then
+  echo "run-codex.sh: schema file $schema is not a readable JSON object" >&2
+  exit 2
+fi
+
 dir="$(mktemp -d "${TMPDIR:-/tmp}/run-codex.XXXXXX")" || exit 2
 result="$dir/result"
 log="$dir/log"
 requests="$dir/requests.jsonl"
 
 # When Codex runs this hook, it pipes in a JSON payload naming the model of each model request.
+# Codex loads hooks layer by layer (codex-rs/hooks/src/engine/discovery.rs), so this one runs
+# alongside hooks configured elsewhere.
 hook="hooks.PostModelRequest=[{hooks=[{type=\"command\",command=\"cat >> '$requests'\"}]}]"
 
 if [[ "$mode" == prompt ]]; then
+  # `-` makes codex read the prompt from stdin.
   args=(exec --ephemeral -o "$result" -c "$hook")
   [[ -n "$schema" ]] && args+=(--output-schema "$schema")
-  args+=(-- "$prompt")
+  args+=(-)
+  input="$prompt_file"
 else
   args=(exec review --ephemeral -o "$result" -c "$hook" "$@")
+  input=/dev/null
 fi
 
-codex "${args[@]}" </dev/null >"$log" 2>&1
+codex "${args[@]}" <"$input" >"$log" 2>&1
 rc=$?
 
 if [[ $rc -ne 0 ]]; then

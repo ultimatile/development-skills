@@ -125,7 +125,7 @@ expect "completed -> script exit 0" "$code" "0"
 dir="$(dirname "$(field result)")"
 hook="hooks.PostModelRequest=[{hooks=[{type=\"command\",command=\"cat >> '$dir/requests.jsonl'\"}]}]"
 expect "prompt argv" "$(tr '\n' '|' <"$RECORD/argv")" \
-  "exec|--ephemeral|-o|$dir/result|-c|$hook|--output-schema|$tmpdir/schema.json|--|p|"
+  "exec|--ephemeral|-o|$dir/result|-c|$hook|--output-schema|$tmpdir/schema.json|-|"
 expect "run directory is under TMPDIR" "$(dirname "$dir")" "$TMPDIR"
 
 STUB_RESULT='prose review' run prompt "$P"
@@ -155,8 +155,9 @@ STUB_RESULT='{}' run prompt --schema "$tmpdir/norequired.json" "$P"
 expect "schema without required -> completed" "$(field status)" "completed"
 
 printf '%s' '-m reply `ok` "$HOME"' >"$tmpdir/dash-prompt"
-STUB_RESULT=x run prompt "$tmpdir/dash-prompt"
-expect "prompt file content follows -- verbatim" "$(tail -2 "$RECORD/argv" | tr '\n' '|')" '--|-m reply `ok` "$HOME"|'
+STUB_RESULT=x run prompt "$tmpdir/dash-prompt" <<<"piped data"
+expect "prompt file reaches codex stdin verbatim" "$(cat "$RECORD/stdin")" '-m reply `ok` "$HOME"'
+expect "prompt stays out of argv" "$(tail -1 "$RECORD/argv")" "-"
 
 STUB_RESULT=x run review --base X
 result_path="$(field result)"
@@ -167,8 +168,8 @@ expect "review argv" "$(tr '\n' '|' <"$RECORD/argv")" \
 expect "log holds stdout and stderr" "$(tr '\n' '|' <"$(field log)")" "stub stdout|stub stderr|"
 expect "stdout is the four lines" "$(printf '%s\n' "$out" | cut -d: -f1 | tr '\n' '|')" "status|model|result|log|"
 
-STUB_RESULT=x run prompt "$P" <<<"piped data"
-expect "codex reads nothing on stdin" "$(wc -c <"$RECORD/stdin" | tr -d ' ')" "0"
+STUB_RESULT=x run review --base X <<<"piped data"
+expect "review: codex reads nothing on stdin" "$(wc -c <"$RECORD/stdin" | tr -d ' ')" "0"
 
 # expect_not_run <name>: the last run did not run codex, exited 2, printed no
 # status lines, and gave a reason on stderr.
@@ -209,6 +210,14 @@ expect_not_run "no run directory"
 
 run prompt "$tmpdir/no-such-prompt"
 expect_not_run "unreadable prompt file"
+
+printf 'not json' >"$tmpdir/broken-schema.json"
+run prompt --schema "$tmpdir/broken-schema.json" "$P"
+expect_not_run "unreadable schema"
+
+printf '[]' >"$tmpdir/array-schema.json"
+run prompt --schema "$tmpdir/array-schema.json" "$P"
+expect_not_run "non-object schema"
 
 STUB_RESULT=x run prompt "$P"
 first="$(field result)"
