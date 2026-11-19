@@ -45,20 +45,6 @@ The **root** — the ref this change is measured from — is an input, supplied 
 
 Before any implementation change, invoke `todo-check` against the plan, passing the root stated above, to extract the active preflight items and their setup actions for this work. Carry out each △ row's setup action: run a command it names before any change, with the 3.1 baseline, and make any other setup action with the changes it concerns. A preflight that halts emits no table at all, so there are no △ rows to carry out; it has surfaced something to the user, and implementation does not start. A file the diff will carry but the plan does not name has no preflight setup row here; the Step 4 `done-check` catches it against the diff.
 
-### 3.0.1 Pre-commit hook recall
-
-Once per session (cache for the duration of the conversation), read the project's pre-commit configuration to identify the constraints each hook will enforce. Typical config locations: `.pre-commit-config.yaml`, `lefthook.yml`, `.husky/`, the `[hooks]` section of a project task runner (e.g. `Makefile.toml` / `Justfile`).
-
-For each hook, summarize what it enforces. Do not memorize hook internals. Pay particular attention to:
-
-- **Line-count / file-size limits.** Correct response is file-split first, trim only genuinely redundant text (see `quality-list` `completion-hygiene`).
-- **Linter constraints** that gate commits (e.g., warnings-as-errors flags). They feed into Step 3.1 Baseline.
-- **Custom checks** specific to the project (banned imports, header enforcement, schema validation). Note their existence.
-
-Formatter hooks (rustfmt, prettier, black, clang-format) do not need anticipation — they reformat in place at commit time.
-
-Output: a short summary of the binding constraints. Do not paste the configuration into context.
-
 ### 3.0.2 Memory recall
 
 Make recall deliberate once per session.
@@ -75,7 +61,7 @@ Once per session, read any contributor / agent guidance docs present at the repo
 
 ### 3.1 Baseline
 
-Before any code change, build and run existing tests to record pre-existing failures, and run the project's linter (e.g., `cargo clippy`, `clang-tidy`, `ruff check`, `eslint`) to record pre-existing warnings. Compare against both baselines whenever the tests or the linter run. Pre-commit-gated linters (Step 3.0.1) are especially important — the gate rejects on any new violation. Formatters are excluded.
+Before any code change, build and run existing tests to record pre-existing failures, and run the project's linter (e.g., `cargo clippy`, `clang-tidy`, `ruff check`, `eslint`), including any linter a pre-commit hook runs (leaving off any option that rewrites files), to record pre-existing warnings. Compare against both baselines whenever the tests or the linter run. Formatters are excluded.
 
 ### 3.2 Discovery handling during a unit
 
@@ -123,7 +109,7 @@ Substantive rules for guards, fixtures, docstring consistency, textual drift, na
 
 ### 3.4 Rejected commits
 
-A commit a pre-commit hook rejects was not created. Skip a hook — by `--no-verify` or any other means — only where the user or the skill that invoked this one directs it, and only that hook. Otherwise fix what the hook reports, unless the fix would depart from the plan: then stop and surface the rejection to the user. After a skip or a fix, stage what the commit carries, including the hook's rewrites of those files, and create a new commit, never `git commit --amend`.
+A commit a pre-commit hook rejects was not created. Skip a hook — by `--no-verify` or any other means — only where the user or the skill that invoked this one directs it, and only that hook. Otherwise fix what the hook reports — a per-file size or line-count rejection as `quality-list` `completion-hygiene`'s Pre-commit constraint response directs — unless the fix would depart from the plan: then stop and surface the rejection to the user. After a skip or a fix, stage what the commit carries, including the hook's rewrites of those files, and create a new commit, never `git commit --amend`.
 
 ## Step 4 — Run done-check
 
