@@ -100,9 +100,11 @@ gh-post issue create \
 
 Add a `--label` flag to `gh-post issue create` for each label the user asked this issue to carry and each label the target repo states this issue must carry, and no other labels.
 
+For an umbrella sub-issue, then make the umbrella edit that `Variants > Umbrella sub-issue` describes after filing.
+
 ### 7. Report
 
 After filing, show the user:
 
 - The issue number and URL.
-- Any follow-up actions (e.g., linking from a parent umbrella issue, mentioning in a PR).
+- Any follow-up actions (e.g., mentioning in a PR).
