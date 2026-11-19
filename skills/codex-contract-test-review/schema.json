@@ -1,0 +1,41 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["verdict", "primary_findings", "secondary_findings", "open_questions"],
+  "properties": {
+    "verdict": {
+      "type": "string",
+      "enum": ["approve", "approve with conditions", "reject"]
+    },
+    "primary_findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["severity", "location", "summary", "fails_on_original"],
+        "properties": {
+          "severity": { "type": "string", "enum": ["P1", "P2"] },
+          "location": { "type": "string" },
+          "summary": { "type": "string" },
+          "fails_on_original": { "type": "string", "enum": ["yes", "no", "unclear"] }
+        }
+      }
+    },
+    "secondary_findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["location", "summary"],
+        "properties": {
+          "location": { "type": "string" },
+          "summary": { "type": "string" }
+        }
+      }
+    },
+    "open_questions": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

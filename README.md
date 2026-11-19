@@ -38,6 +38,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 | `finding-triage` | Single source of truth for per-finding review-triage dispositions and for selecting the response to an actionable finding, which the review and audit skills apply by reference |
 | `diff-root` | Single source of truth for the diff root — the ref a change is measured from. Holds the consumer contract, where the root comes from, and the per-command range conversion. Root-using skills and their callers apply this definition by reference. |
 | `codex-review` | Run OpenAI Codex review with triage before PR creation |
+| `run-codex` | Run a Codex prompt or review non-interactively and report its outcome, the model that served it, and its result file |
 | `copilot-review` | Create PR with GitHub Copilot review, poll for results, triage |
 | `code-review-gate` | Run the built-in `/code-review` through a fallback lane chain; used by `review-pipeline` at Phase 0.5 |
 | `review-pipeline` | Orchestrator — runs the full flow from local changes to reviewed PR |

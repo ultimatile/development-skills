@@ -39,7 +39,7 @@ Specific questions:
 </task>
 
 <failure_scenarios>
-The plan above carries a Failure scenarios section; the definitions it uses, the records the run holds about its scenarios, and the hypotheses the plan rests on follow. A scenario the table lists as Covered `no` is one the plan deliberately leaves unguarded: do not report a missing guard for it, whatever the dig_deeper_nudge block asks. Report any evidence you read that the section is not accurate for the change, as its definitions define accurate, quoting that evidence, grounded in code you read or in the records given here. Apart from that grounding, the grounding_rules, verification_loop and missing_context_gating blocks do not apply to these reports.
+The plan above carries a Failure scenarios section; the definitions it uses, the records the run holds about its scenarios, and the hypotheses the plan rests on follow. A scenario the table lists as Covered `no` is one the plan deliberately leaves unguarded: do not report a missing guard for it, whatever the dig_deeper_nudge block asks. Report, as a finding, any evidence you read that the section is not accurate for the change, as its definitions define accurate, quoting that evidence, grounded in code you read or in the records given here. Apart from that grounding, the grounding_rules, verification_loop and missing_context_gating blocks do not apply to these reports.
 <FAILURE_SCENARIOS_DEFINITIONS_RECORDS_AND_HYPOTHESES>
 </failure_scenarios>
 
@@ -50,12 +50,11 @@ If a point is an inference rather than a verified fact, label it as such.
 </grounding_rules>
 
 <structured_output_contract>
-Return:
-1. verdict — one of: approve / approve with conditions / reject
-2. findings ordered by severity, each tagged [P1/P2/P3] with file:line where applicable
-3. supporting evidence for each finding (quoted code or exact file reference)
-4. open questions you could not resolve from the repository alone
-Keep the output compact. Do not restate the plan.
+Your final response follows the supplied JSON schema:
+- verdict: one of approve / approve with conditions / reject
+- findings: ordered by severity; location is file:line where applicable, else empty; evidence is quoted code or an exact file reference
+- open_questions: what you could not resolve from the repository alone
+Keep each field compact. Do not restate the plan.
 </structured_output_contract>
 
 <dig_deeper_nudge>
@@ -91,15 +90,15 @@ Block selection rationale:
 
 ### 2. Run Codex
 
+Run `mktemp -d`, write the prompt with the Write tool to a new file `<prompt-file>` inside the directory it prints, then run:
+
 ```bash
-codex exec "<prompt>" < /dev/null -o /tmp/codex-plan-review.md
+"${CLAUDE_SKILL_DIR}/../run-codex/scripts/run-codex.sh" prompt --schema "${CLAUDE_SKILL_DIR}/schema.json" <prompt-file>
 ```
 
-**Important:**
-
-- Always use `< /dev/null`
-- Set timeout to 600000ms (10 minutes)
-- Use `-o` to capture output to a file
+Set the Bash timeout to 600000 ms.
+When the status line reads `completed`, triage the file the `result:` line names.
+Otherwise, report what the script printed to the user and wait for their direction.
 
 ### 3. Triage the feedback
 

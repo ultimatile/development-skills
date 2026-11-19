@@ -1,0 +1,29 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["verdict", "findings", "open_questions"],
+  "properties": {
+    "verdict": {
+      "type": "string",
+      "enum": ["approve", "approve with conditions", "reject"]
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["severity", "location", "summary", "evidence"],
+        "properties": {
+          "severity": { "type": "string", "enum": ["P1", "P2", "P3"] },
+          "location": { "type": "string" },
+          "summary": { "type": "string" },
+          "evidence": { "type": "string" }
+        }
+      }
+    },
+    "open_questions": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}
