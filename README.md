@@ -8,7 +8,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 
 | Skill | Description |
 | -- | -- |
-| `research` | Hypothesis-driven investigation under the four-state decision discipline (confirmed / rejected / inconclusive / deferred). Classifies hypotheses as empirical (probe-verified) vs derivational (deduced in main context); posts the resulting plan to the issue body (umbrella-spawned sub-issue) or comment (single-scope issue). |
+| `research` | Hypothesis-driven investigation under the four-state decision discipline (confirmed / rejected / inconclusive / deferred). Classifies hypotheses as empirical (probe-verified) vs derivational (deduced in main context); posts the resulting plan as a comment on a single-scope issue, and files an umbrella sub-issue or a new issue carrying it through `file-issue`. |
 | `codex-plan-review` | Review the implementation plan with Codex against the actual codebase before coding |
 | `implement` | Execute a plan with drift surfacing and done-check before completion. Reads the plan from the sub-issue body (umbrella-spawned) or comments (single-scope). |
 | `research-and-implement` | End-to-end wrapper that runs `research` (Phase 1) then `implement` (Phase 2), with a branch and root baseline gate up front. |
@@ -18,7 +18,7 @@ End-to-end development workflow skills for Claude Code — from a GitHub issue t
 
 | Skill | Description |
 | -- | -- |
-| `file-issue` | Draft and file a GitHub issue following formatting conventions (semantic line breaks, LaTeX math, no local references). Includes an umbrella sub-issue variant (Parent: linkage, Goal/Scope/Out of scope/Acceptance shape) used by `research` when spawning sub-issues from an umbrella |
+| `file-issue` | Draft and file a GitHub issue following formatting conventions (semantic line breaks, LaTeX math, no local references). Takes a caller's finished body as the draft, as `research` hands its plan for an umbrella sub-issue or a new issue, and includes an umbrella sub-issue variant (Parent: linkage, Goal/Scope/Out of scope/Acceptance shape) |
 | `file-adr` | Draft an Architecture Decision Record (a timeless decision, distinct from an implementation schedule) and write the file under the project's ADR directory. Enforces classification against `file-issue` and a frozen-after-Acceptance discipline |
 | `file-pullreq` | Draft and file a GitHub PR following the PR body skeleton, routed through the `gh-post` wrapper. Supports a gate mode that stops at user approval before posting |
 | `gh-body-conventions` | Single source of truth for GitHub issue / PR body conventions — semantic line breaks, LaTeX-safe math, reference / exclusion policies, language defaults. Drafting and audit skills apply these conventions by reference. |

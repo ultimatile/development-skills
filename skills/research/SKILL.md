@@ -265,9 +265,9 @@ After Step 3 produces a plan and before the plan goes to the user for approval:
 
 3. **Loop gate**: after patching, re-run `codex-plan-review` per its Step 4 re-run rule. Exit the loop when the last valid verdict is `approve` or `approve with conditions`. Cap: 3 iterations within the same premise. If the cap is reached, or if the loop sits at `reject` with no further re-run warranted, surface the verdict and outstanding findings to the user and ask whether to proceed as-is, patch further manually, or escalate. Premise concerns return to Step 1 and reset the counter — iteration count is per-premise, not lifetime.
 
-4. **The plan that exits this step is the contract.** Step 7 posts that plan once and does not revise it afterwards; there is no "post then revise" loop. The one exception is a split plan whose filing the user stops partway and chooses to revise, which Issue creation rule 1 returns to Step 6. Every revision — this step's, the user's at approval, a discharge, a `gh-body-audit` fix — happens before posting.
+4. **The plan that exits this step is the contract.** Step 7 posts that plan once and does not revise it afterwards; there is no "post then revise" loop. Every revision — this step's, the user's at approval, a discharge, a `gh-body-audit` fix — happens before posting.
 
-## Step 6 — Route the plan, and approve a plan comment or a split
+## Step 6 — Route the plan, and approve it on the comment route
 
 Decide where the plan goes, based on what `$ARGUMENTS` resolves to:
 
@@ -279,19 +279,19 @@ When ambiguous, ask the user. Umbrella sub-issue is the D1 default.
 
 On the single-scope issue route, discharge the plan's evidence claims per `gh-body-conventions` § Evidence claims. Then run `gh-body-audit` on the plan body with artifact kind `issue`. Any ⚠ blocks presenting the plan on `gh-body-audit` step 4's terms. Present the plan and ask for approval before posting to GitHub. If the user requests changes, revise, re-discharge the plan's evidence claims, re-run `gh-body-audit`, and re-show. If the user declines the plan, post nothing and stop.
 
-On the umbrella and new-task routes, Step 7 hands the plan to `file-issue`. Where Issue creation rule 1 splits the plan, first present the split — each issue's part of the plan and the `Depends on` links between them — and ask for approval of it before Step 7; if the user requests changes, revise the split and re-show it. Otherwise Step 6 does nothing more on these routes.
+On the umbrella and new-task routes, Step 6 does nothing more: Step 7 hands the plan to `file-issue`.
 
 ## Step 7 — Post plan to GitHub
 
 Post the plan on the route Step 6 decided:
 
 - **Existing single-scope issue** → write the plan as approved at Step 6 to a file and run `gh-post issue comment <n> --repo <owner>/<repo> --body-file <file>`, `<n>` being the issue number `$ARGUMENTS` names and `<owner>/<repo>` the repository `gh repo view` resolves, which is the one Step 1 read the issue from.
-- **Existing umbrella issue** → invoke `file-issue` to file the sub-issue in its `Variants > Umbrella sub-issue` form, handing it the umbrella's issue number, the row of the umbrella's Phases table or sub-tasks list the plan covers, and the plan as the body. When no row covers the plan, or more than one does, ask the user which row to hand. Report the sub-issue number `file-issue` reports.
-- **New task** → invoke `file-issue`, handing it the plan as the body; report the issue number `file-issue` reports.
+- **Existing umbrella issue** → invoke `file-issue` to file the sub-issue in its `Variants > Umbrella sub-issue` form, handing it the umbrella's issue number, the row of the umbrella's Phases table or sub-tasks list the plan covers, and the plan as the body. When no row covers the plan, or more than one does, ask the user which row to hand. Report each issue number `file-issue` reports.
+- **New task** → invoke `file-issue`, handing it the plan as the body; report each issue number `file-issue` reports.
 
-For a plan that Issue creation rule 1 below splits, that rule takes the place of the umbrella and new-task bullets above: how the parts go to `file-issue`, what to report, and what follows a decline. Where the user declines the body of an unsplit plan at `file-issue`'s approval, nothing is filed: report that and stop.
+For a plan that Issue creation rule 1 below splits, that rule says how its parts go to `file-issue`. Where a `file-issue` run files nothing — the user declines the body at its approval, or it stops before filing — file nothing more: report the issue numbers filed so far, if any, and stop.
 
 **Issue creation rules** (research-specific; body shape and the language / reference / evidence-claim / exclusion rules come from `gh-body-conventions` via `file-issue`):
 
-1. **Split issues by commit unit.** On the umbrella and new-task routes, each issue corresponds to one atomic, independently committable change, and multi-commit plans become multiple issues with `Depends on #N` links; derive each issue's body from the plan and hand it to its own `file-issue` invocation in place of the whole plan, on the umbrella route with the row that issue covers, settled as Step 7's umbrella bullet settles a row for a whole plan. Each derived body keeps the plan's shape from Step 3, narrowed to that issue, its `Inconclusive / Deferred items` section included. File the issues in dependency order, so that each body's `Depends on #N` names an issue number an earlier `file-issue` run reported, and report every number filed, in that order. If the user declines one of them at `file-issue`'s approval, file no further issue: report the numbers already filed and ask whether to revise the split or stop. To revise it, return to Step 6's approval of the split, with the issues already filed kept as they are and left out of the revised split.
+1. **Split issues by commit unit.** On the umbrella and new-task routes, each issue corresponds to one atomic, independently committable change, and multi-commit plans become multiple issues with `Depends on #N` links; derive each issue's body from the plan and hand it to its own `file-issue` invocation in place of the whole plan.
 2. **No "rejected alternatives" sections** unless explicitly requested. The Hypotheses section is not one.

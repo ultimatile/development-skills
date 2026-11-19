@@ -23,6 +23,7 @@ A typical issue body is 5–25 lines. Longer is fine when warranted (e.g., a des
 
 When the new issue is a phase / sub-issue of an existing umbrella tracking issue, the body shape and title convention differ from a standalone issue.
 
+- **Row.** The umbrella's Phases table row or sub-tasks list item this sub-issue covers: the one the caller hands, or else the one the user confirms. The title, the "Out of scope" extraction, and the umbrella edit after filing all take this row.
 - **First body line.** `Parent: #<umbrella#>`. Always included so tooling can detect the umbrella linkage.
 - **Title.** `Phase N: <topic>` when the umbrella uses phase naming; otherwise mirror the umbrella's sub-task naming convention.
 - **Body shape.** Goal / Scope / Out of scope / Acceptance (in place of the default problem-statement shape). When the caller hands a finished body, as step 2 defines one, the body after the `Parent:` first line is those four sections, derived from the handed body except where the "Out of scope" extraction below says otherwise, followed by the handed body in full, as steps 3 to 5 may still correct it, and then any links step 2 adds — the sub-issue body is the canonical contract surface, not a thin pointer to a comment elsewhere.
@@ -45,7 +46,7 @@ Before drafting, identify:
 
 Produce a title and body following the conventions above.
 
-When the caller hands a finished body, written to be filed as it stands (as `research` hands its plan) rather than points to draft from, that body is the draft: at this step, write the title, add only two things — what the variant in use adds to a handed body, and, after the handed body, links to the related issues and PRs step 1 identified — and do not reshape or shorten the handed body.
+When the caller hands a finished body, written to be filed as it stands (as `research` hands its plan) rather than points to draft from, that body is the draft: at this step, write the title, add only two things — what the variant in use adds to a handed body, and, after the handed body, links to the related issues and PRs step 1 identified that the handed body does not already name — and do not reshape or shorten the handed body.
 
 **Title** — a single descriptive line under ~70 characters. No leading type prefix unless the repo's existing issues use one.
 
