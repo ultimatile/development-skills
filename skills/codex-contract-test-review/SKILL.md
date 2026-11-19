@@ -127,8 +127,10 @@ Block selection rationale:
 
 ### 3. Run Codex
 
+Write the prompt to a new file `<prompt-file>` with the Write tool, then run:
+
 ```bash
-"${CLAUDE_SKILL_DIR}/../run-codex/scripts/run-codex.sh" prompt --schema "${CLAUDE_SKILL_DIR}/schema.json" "<prompt>"
+"${CLAUDE_SKILL_DIR}/../run-codex/scripts/run-codex.sh" prompt --schema "${CLAUDE_SKILL_DIR}/schema.json" <prompt-file>
 ```
 
 Set the Bash timeout to 600000 ms.

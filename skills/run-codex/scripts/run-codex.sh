@@ -3,13 +3,13 @@
 # status, model, result, log. Exit 0 when the status is `completed`, 1 for any other status,
 # 2 without status lines when codex is not run.
 #
-#   run-codex.sh prompt [--schema <schema-file>] <prompt>
+#   run-codex.sh prompt [--schema <schema-file>] <prompt-file>
 #   run-codex.sh review <review-target-arguments>...
 
 set -uo pipefail
 
 usage() {
-  echo "usage: run-codex.sh prompt [--schema <schema-file>] <prompt>" >&2
+  echo "usage: run-codex.sh prompt [--schema <schema-file>] <prompt-file>" >&2
   echo "       run-codex.sh review <review-target-arguments>..." >&2
   exit 2
 }
@@ -25,6 +25,7 @@ prompt)
     shift 2
   fi
   [[ $# -eq 1 ]] || usage
+  prompt="$(cat -- "$1")" || exit 2
   ;;
 review)
   [[ $# -ge 1 ]] || usage
@@ -55,7 +56,7 @@ hook="hooks.PostModelRequest=[{hooks=[{type=\"command\",command=\"cat >> '$reque
 if [[ "$mode" == prompt ]]; then
   args=(exec --ephemeral -o "$result" -c "$hook")
   [[ -n "$schema" ]] && args+=(--output-schema "$schema")
-  args+=(-- "$1")
+  args+=(-- "$prompt")
 else
   args=(exec review --ephemeral -o "$result" -c "$hook" "$@")
 fi

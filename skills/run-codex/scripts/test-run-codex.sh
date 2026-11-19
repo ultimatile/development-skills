@@ -53,6 +53,9 @@ cat >"$tmpdir/schema.json" <<'EOF'
 {"type":"object","required":["verdict","findings"],"properties":{"verdict":{"type":"string"},"findings":{"type":"array"}}}
 EOF
 
+P="$tmpdir/prompt"
+printf 'p' >"$P"
+
 export PATH="$tmpdir/bin:$PATH"
 export RECORD="$tmpdir/record"
 export TMPDIR="$tmpdir/runs"
@@ -86,37 +89,37 @@ expect() {
 
 completed='{"model":"m1","hook_event_name":"PostModelRequest","status":"completed"}'
 
-STUB_EXIT=1 STUB_RESULT='{"verdict":"approve","findings":[]}' run prompt "p"
+STUB_EXIT=1 STUB_RESULT='{"verdict":"approve","findings":[]}' run prompt "$P"
 expect "nonzero exit -> failed" "$(field status)" "failed"
 expect "nonzero exit -> script exit 1" "$code" "1"
 
-STUB_EXIT=1 STUB_RESULT=absent run prompt "p"
+STUB_EXIT=1 STUB_RESULT=absent run prompt "$P"
 expect "nonzero exit without result -> failed" "$(field status)" "failed"
 
-STUB_EXIT=1 STUB_RESULT='not json' run prompt --schema "$tmpdir/schema.json" "p"
+STUB_EXIT=1 STUB_RESULT='not json' run prompt --schema "$tmpdir/schema.json" "$P"
 expect "nonzero exit with invalid result -> failed" "$(field status)" "failed"
 
-STUB_RESULT=absent run prompt "p"
+STUB_RESULT=absent run prompt "$P"
 expect "no result -> missing-result" "$(field status)" "missing-result"
 expect "missing-result -> script exit 1" "$code" "1"
 
-STUB_RESULT=empty run prompt --schema "$tmpdir/schema.json" "p"
+STUB_RESULT=empty run prompt --schema "$tmpdir/schema.json" "$P"
 expect "empty result with schema -> missing-result" "$(field status)" "missing-result"
 
-STUB_RESULT='not json' run prompt --schema "$tmpdir/schema.json" "p"
+STUB_RESULT='not json' run prompt --schema "$tmpdir/schema.json" "$P"
 expect "non-JSON result -> invalid-result" "$(field status)" "invalid-result"
 expect "invalid-result -> script exit 1" "$code" "1"
 
-STUB_RESULT='{"verdict":"approve"}' run prompt --schema "$tmpdir/schema.json" "p"
+STUB_RESULT='{"verdict":"approve"}' run prompt --schema "$tmpdir/schema.json" "$P"
 expect "missing required key -> invalid-result" "$(field status)" "invalid-result"
 
-STUB_RESULT='["verdict","findings"]' run prompt --schema "$tmpdir/schema.json" "p"
+STUB_RESULT='["verdict","findings"]' run prompt --schema "$tmpdir/schema.json" "$P"
 expect "non-object JSON -> invalid-result" "$(field status)" "invalid-result"
 
-STUB_RESULT='"x" {"verdict":"approve","findings":[]}' run prompt --schema "$tmpdir/schema.json" "p"
+STUB_RESULT='"x" {"verdict":"approve","findings":[]}' run prompt --schema "$tmpdir/schema.json" "$P"
 expect "two JSON values -> invalid-result" "$(field status)" "invalid-result"
 
-STUB_RESULT='{"verdict":"approve","findings":[]}' run prompt --schema "$tmpdir/schema.json" "p"
+STUB_RESULT='{"verdict":"approve","findings":[]}' run prompt --schema "$tmpdir/schema.json" "$P"
 expect "conforming result -> completed" "$(field status)" "completed"
 expect "completed -> script exit 0" "$code" "0"
 dir="$(dirname "$(field result)")"
@@ -125,34 +128,35 @@ expect "prompt argv" "$(tr '\n' '|' <"$RECORD/argv")" \
   "exec|--ephemeral|-o|$dir/result|-c|$hook|--output-schema|$tmpdir/schema.json|--|p|"
 expect "run directory is under TMPDIR" "$(dirname "$dir")" "$TMPDIR"
 
-STUB_RESULT='prose review' run prompt "p"
+STUB_RESULT='prose review' run prompt "$P"
 expect "prose result without schema -> completed" "$(field status)" "completed"
 expect "no schema flag without --schema" "$(rg -c -x -- '--output-schema' "$RECORD/argv" || true)" ""
 
-STUB_RESULT=x STUB_PAYLOADS="$completed"$'\n'"$completed" run prompt "p"
+STUB_RESULT=x STUB_PAYLOADS="$completed"$'\n'"$completed" run prompt "$P"
 expect "completed payloads naming m1 -> model m1" "$(field model)" "m1"
 
-STUB_RESULT=x run prompt "p"
+STUB_RESULT=x run prompt "$P"
 expect "no payload -> model unknown" "$(field model)" "unknown"
 
-STUB_RESULT=x STUB_PAYLOADS='{"model":"m1","hook_event_name":"PostModelRequest","status":"failed"}' run prompt "p"
+STUB_RESULT=x STUB_PAYLOADS='{"model":"m1","hook_event_name":"PostModelRequest","status":"failed"}' run prompt "$P"
 expect "only a non-completed payload -> model unknown" "$(field model)" "unknown"
 
-STUB_RESULT=x STUB_PAYLOADS="$completed"$'\n''{"model":"m2","hook_event_name":"PostModelRequest","status":"completed"}' run prompt "p"
+STUB_RESULT=x STUB_PAYLOADS="$completed"$'\n''{"model":"m2","hook_event_name":"PostModelRequest","status":"completed"}' run prompt "$P"
 expect "two models -> model unknown" "$(field model)" "unknown"
 
-STUB_RESULT=x STUB_PAYLOADS='{"model":"m2","hook_event_name":"PreModelRequest","status":"completed"}'$'\n'"$completed" run prompt "p"
+STUB_RESULT=x STUB_PAYLOADS='{"model":"m2","hook_event_name":"PreModelRequest","status":"completed"}'$'\n'"$completed" run prompt "$P"
 expect "other hook events ignored" "$(field model)" "m1"
 
-STUB_RESULT=x STUB_PAYLOADS='{"model":null,"hook_event_name":"PostModelRequest","status":"completed"}'$'\n'"$completed" run prompt "p"
+STUB_RESULT=x STUB_PAYLOADS='{"model":null,"hook_event_name":"PostModelRequest","status":"completed"}'$'\n'"$completed" run prompt "$P"
 expect "non-string model ignored" "$(field model)" "m1"
 
 printf '{"type":"object"}' >"$tmpdir/norequired.json"
-STUB_RESULT='{}' run prompt --schema "$tmpdir/norequired.json" "p"
+STUB_RESULT='{}' run prompt --schema "$tmpdir/norequired.json" "$P"
 expect "schema without required -> completed" "$(field status)" "completed"
 
-STUB_RESULT=x run prompt "-m reply ok"
-expect "prompt follows --" "$(tail -2 "$RECORD/argv" | tr '\n' '|')" "--|-m reply ok|"
+printf '%s' '-m reply `ok` "$HOME"' >"$tmpdir/dash-prompt"
+STUB_RESULT=x run prompt "$tmpdir/dash-prompt"
+expect "prompt file content follows -- verbatim" "$(tail -2 "$RECORD/argv" | tr '\n' '|')" '--|-m reply `ok` "$HOME"|'
 
 STUB_RESULT=x run review --base X
 result_path="$(field result)"
@@ -163,7 +167,7 @@ expect "review argv" "$(tr '\n' '|' <"$RECORD/argv")" \
 expect "log holds stdout and stderr" "$(tr '\n' '|' <"$(field log)")" "stub stdout|stub stderr|"
 expect "stdout is the four lines" "$(printf '%s\n' "$out" | cut -d: -f1 | tr '\n' '|')" "status|model|result|log|"
 
-STUB_RESULT=x run prompt "p" <<<"piped data"
+STUB_RESULT=x run prompt "$P" <<<"piped data"
 expect "codex reads nothing on stdin" "$(wc -c <"$RECORD/stdin" | tr -d ' ')" "0"
 
 # expect_not_run <name>: the last run did not run codex, exited 2, printed no
@@ -181,29 +185,34 @@ for usage_case in "bogus p" "" "prompt" "prompt p q" "prompt --schema" "review" 
 done
 
 mkdir "$tmpdir/nojq"
-ln -s "$(command -v bash)" "$tmpdir/nojq/bash"
+for tool in bash cat mktemp; do ln -s "$(command -v "$tool")" "$tmpdir/nojq/$tool"; done
 ln -s "$tmpdir/bin/codex" "$tmpdir/nojq/codex"
 rm -rf "$RECORD"
 mkdir "$RECORD"
-out="$(STUB_RESULT=x PATH="$tmpdir/nojq" "$RUN" prompt "p" 2>"$tmpdir/stderr")"
+out="$(STUB_RESULT=x PATH="$tmpdir/nojq" "$RUN" prompt "$P" 2>"$tmpdir/stderr")"
 code=$?
 expect_not_run "no jq"
+expect "no jq -> stderr names jq" "$(cat "$tmpdir/stderr")" "run-codex.sh: jq is required"
 
 mkdir "$tmpdir/nocodex"
-ln -s "$(command -v bash)" "$tmpdir/nocodex/bash"
+for tool in bash cat mktemp; do ln -s "$(command -v "$tool")" "$tmpdir/nocodex/$tool"; done
 ln -s "$(command -v jq)" "$tmpdir/nocodex/jq"
 rm -rf "$RECORD"
 mkdir "$RECORD"
-out="$(PATH="$tmpdir/nocodex" "$RUN" prompt "p" 2>"$tmpdir/stderr")"
+out="$(PATH="$tmpdir/nocodex" "$RUN" prompt "$P" 2>"$tmpdir/stderr")"
 code=$?
 expect_not_run "no codex"
+expect "no codex -> stderr names codex" "$(cat "$tmpdir/stderr")" "run-codex.sh: codex is required"
 
-TMPDIR="$tmpdir/missing" run prompt "p"
+TMPDIR="$tmpdir/missing" run prompt "$P"
 expect_not_run "no run directory"
 
-STUB_RESULT=x run prompt "p"
+run prompt "$tmpdir/no-such-prompt"
+expect_not_run "unreadable prompt file"
+
+STUB_RESULT=x run prompt "$P"
 first="$(field result)"
-STUB_RESULT=x run prompt "p"
+STUB_RESULT=x run prompt "$P"
 expect "two runs use different result paths" "$([[ "$first" != "$(field result)" ]] && echo distinct || echo same)" "distinct"
 
 exit "$fail"

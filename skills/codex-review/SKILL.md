@@ -31,13 +31,13 @@ When a `run-codex.sh` command's status line reads `completed`, triage the file i
 | -- | -- |
 | `run-codex.sh review --uncommitted` | Staged + unstaged + untracked changes |
 | `run-codex.sh review --commit <SHA>` | A single commit's diff |
-| `run-codex.sh prompt "<inline prompt>"` | Free-form prompt with inline context (see "Switching to `exec` with inline context" below) |
+| `run-codex.sh prompt <prompt-file>` | Free-form prompt with inline context (see "Switching to `exec` with inline context" below) |
 
 `run-codex.sh` is `"${CLAUDE_SKILL_DIR}/../run-codex/scripts/run-codex.sh"`.
 
 ## Switching to `exec` with inline context
 
-`codex exec review` starts without this conversation's history, and with `--base` it takes no instructions beyond its built-in review prompt, so nothing points it at design intent encoded outside the diff — a GitHub Issue, an ADR. For self-contained changes this is fine; for **phased rollouts** where the judgement criteria live outside the diff, `review` mode systematically misjudges intentional design decisions as regressions. Switch to free-form `run-codex.sh prompt "<inline prompt>"` to attach the context.
+`codex exec review` starts without this conversation's history, and with `--base` it takes no instructions beyond its built-in review prompt, so nothing points it at design intent encoded outside the diff — a GitHub Issue, an ADR. For self-contained changes this is fine; for **phased rollouts** where the judgement criteria live outside the diff, `review` mode systematically misjudges intentional design decisions as regressions. Switch to free-form `run-codex.sh prompt <prompt-file>` to attach the context.
 
 **Trigger — before every codex review, check:**
 
@@ -45,9 +45,9 @@ When a `run-codex.sh` command's status line reads `completed`, triage the file i
 - Does the relevant ADR contain phrases like "unmeasured → sentinel X", "tracked separately in a follow-up", "intentional default until <later phase>", "out of this phase's scope"?
 - Are there thresholds, defaults, or scoped-off paths that look like bugs from the diff but are ADR / Issue-intentional?
 
-If any of the above is yes, skip `run-codex.sh review` and use `run-codex.sh prompt "<inline prompt>"` instead.
+If any of the above is yes, skip `run-codex.sh review` and use `run-codex.sh prompt <prompt-file>` instead.
 
-**Why the workaround is needed:** `--base` and the positional `[PROMPT]` are mutually exclusive on `codex exec review`, so phase context cannot be attached to a `review` invocation. The free-form `codex exec "..."` accepts an arbitrary prompt that can direct codex to read the surrounding context first.
+**Why the workaround is needed:** `--base` and the positional `[PROMPT]` are mutually exclusive on `codex exec review`, so phase context cannot be attached to a `review` invocation. The free-form `run-codex.sh prompt` accepts an arbitrary prompt that can direct codex to read the surrounding context first.
 
 **Inline prompt template** — when the change has a tracking Issue, save it before each prompt is written, to a fresh file from `mktemp`:
 
@@ -65,6 +65,8 @@ The prompt names, each by its absolute path so codex doesn't have to search, the
 3. Enumerate explicitly which states are intentional (sentinel values, scoped-off paths, deferred behaviors) and must NOT be flagged as regressions.
 4. List what the review should focus on (forwarding correctness, default / expert contract consistency, docstring drift, missed call sites, etc. — project-specific).
 5. List what to ignore — the enumerated intentional states from step 3.
+
+Write the prompt to a new file with the Write tool and pass that file as `<prompt-file>`.
 
 **For non-phased self-contained changes**, keep using `run-codex.sh review --base ...` in the form Core commands gives. The inline-context workaround is only needed when judgement criteria live outside the diff.
 
