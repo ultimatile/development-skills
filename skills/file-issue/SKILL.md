@@ -23,7 +23,7 @@ A typical issue body is 5–25 lines. Longer is fine when warranted (e.g., a des
 
 When the new issue is a phase / sub-issue of an existing umbrella tracking issue, the body shape and title convention differ from a standalone issue.
 
-- **Row.** The umbrella's Phases table row or sub-tasks list item this sub-issue covers: the one the caller hands, or else the one the user confirms. The title, the "Out of scope" extraction, and the umbrella edit after filing all take this row.
+- **Row.** The umbrella's Phases table row or sub-tasks list item this sub-issue covers: the one the caller hands, or else the one the user confirms. The title and the umbrella edit after filing take this row, and so does the "Out of scope" extraction where the umbrella has a Phases table.
 - **First body line.** `Parent: #<umbrella#>`. Always included so tooling can detect the umbrella linkage.
 - **Title.** `Phase N: <topic>` when the umbrella uses phase naming; otherwise mirror the umbrella's sub-task naming convention.
 - **Body shape.** Goal / Scope / Out of scope / Acceptance (in place of the default problem-statement shape). When the caller hands a finished body, as step 2 defines one, the body after the `Parent:` first line is those four sections, derived from the handed body except where the "Out of scope" extraction below says otherwise, followed by the handed body in full, as steps 3 to 5 may still correct it, and then any links step 2 adds — the sub-issue body is the canonical contract surface, not a thin pointer to a comment elsewhere.
