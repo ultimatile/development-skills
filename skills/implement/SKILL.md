@@ -61,7 +61,7 @@ Once per session, read any contributor / agent guidance docs present at the repo
 
 ### 3.1 Baseline
 
-Before any code change, build and run existing tests to record pre-existing failures, and run the project's linter (e.g., `cargo clippy`, `clang-tidy`, `ruff check`, `eslint`), including any linter a pre-commit hook runs, to record pre-existing warnings. Run every linter here without its file-rewriting options. Compare against both baselines whenever the tests or the linter run. Formatters are excluded.
+Before any code change, build and run existing tests to record pre-existing failures, and run the project's linter (e.g., `cargo clippy`, `clang-tidy`, `ruff check`, `eslint`), including any linter a pre-commit hook runs, to record pre-existing warnings; for a hook's linter, the baseline covers every warning that hook would report on any file. Run every linter here so that it rewrites no file, whatever its arguments or configuration enable. Compare against both baselines whenever the tests or the linter run. Formatters are excluded.
 
 ### 3.2 Discovery handling during a unit
 
