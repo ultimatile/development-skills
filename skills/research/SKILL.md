@@ -11,9 +11,9 @@ Investigates an issue or task through falsifiable hypotheses and posts the resul
 
 ## Step 0 — Determine issue context
 
-Check whether `$ARGUMENTS` is a number (existing issue) or free text (new task).
+Check whether `$ARGUMENTS` names an existing issue or is free text describing a new task. It names an issue when it is an issue number (`267` or `#267`), alone or followed only by `root:<root>`, the form in which a caller passes the diff root beside the issue number (`267 root:main`); anything else is free text, including text that mentions an issue number.
 
-- **Number** → proceed with that issue.
+- **Issue number** → proceed with that issue.
 - **Free text** → use the text as the task description; an issue will be created in Step 7.
 
 ## Step 1 — Read issue/task and form hypotheses
@@ -249,7 +249,7 @@ Output: **clean** (proceed to Step 5) or **flagged** (list firings + proposed re
 
 ## Step 5 — Plan review gate (mandatory offer)
 
-After Step 3 produces a plan and before Step 6 collects user approval:
+After Step 3 produces a plan and before the plan goes to the user for approval:
 
 1. **Always offer `codex-plan-review`** — never silently skip. Phrase it as a recommendation, not a question:
 
@@ -265,31 +265,33 @@ After Step 3 produces a plan and before Step 6 collects user approval:
 
 3. **Loop gate**: after patching, re-run `codex-plan-review` per its Step 4 re-run rule. Exit the loop when the last valid verdict is `approve` or `approve with conditions`. Cap: 3 iterations within the same premise. If the cap is reached, or if the loop sits at `reject` with no further re-run warranted, surface the verdict and outstanding findings to the user and ask whether to proceed as-is, patch further manually, or escalate. Premise concerns return to Step 1 and reset the counter — iteration count is per-premise, not lifetime.
 
-4. **The plan that exits this step is the contract.** Step 7 posts that plan once and does not revise it afterwards; there is no "post then revise" loop. Every revision — this step's, the user's at Step 6, a discharge, a `gh-body-audit` fix — happens before posting.
+4. **The plan that exits this step is the contract.** Step 7 posts that plan once and does not revise it afterwards; there is no "post then revise" loop. Every revision — this step's, the user's at approval, a discharge, a `gh-body-audit` fix — happens before posting.
 
-## Step 6 — User approval
+## Step 6 — Route the plan, and approve it on the comment route
 
-Discharge the plan's evidence claims per `gh-body-conventions` § Evidence claims.
+Decide where the plan goes, based on what `$ARGUMENTS` resolves to:
 
-Then run `gh-body-audit` on the plan body with artifact kind `issue`. Any ⚠ blocks presenting the plan on `gh-body-audit` step 4's terms.
-
-Present the plan and ask for approval before posting to GitHub.
-
-If the user requests changes, revise, re-discharge the plan's evidence claims, re-run `gh-body-audit`, and re-show.
-
-## Step 7 — Post plan to GitHub
-
-Route the plan as last approved at Step 6 based on what `$ARGUMENTS` resolves to:
-
-- **Existing single-scope issue** → `gh-post issue comment $ARGUMENTS` (per `file-issue` step 6) with the plan as body.
-- **Existing umbrella issue** (the body contains a Phases table or sub-tasks list) → spawn a new sub-issue whose body IS the plan, following `file-issue`'s `Variants > Umbrella sub-issue` shape: `Parent: #<umbrella>` on the first line, `Phase N: <topic>` title, Goal / Scope / Out of scope / Acceptance derived from the plan. After creation, append the new sub-issue's number to the umbrella's Phases table row. Do not also post the plan as an umbrella comment.
-- **New task** → `gh-post issue create` (per `file-issue` step 6) with the plan in the body; report the new issue number.
-
-Where the routed body is derived from the plan rather than posted verbatim — an umbrella sub-issue's Goal / Scope / Out of scope / Acceptance, or one of several issues a multi-commit plan splits into — discharge that body's evidence claims and run `gh-body-audit` against it with artifact kind `issue`; any ⚠ blocks filing on `gh-body-audit` step 4's terms. Show the derived body for approval before filing it; if the user requests changes, revise, re-discharge, re-run the check, and re-show.
+- **Existing single-scope issue** → Step 7 posts the plan as one comment on it, whatever number of commits the plan spans.
+- **Existing umbrella issue** (the body contains a Phases table or sub-tasks list) → Step 7 files a sub-issue of it. Do not also post the plan as an umbrella comment.
+- **New task** → Step 7 files a new issue.
 
 When ambiguous, ask the user. Umbrella sub-issue is the D1 default.
 
+On the single-scope issue route, discharge the plan's evidence claims per `gh-body-conventions` § Evidence claims. Then run `gh-body-audit` on the plan body with artifact kind `issue`. Any ⚠ blocks presenting the plan on `gh-body-audit` step 4's terms. Present the plan and ask for approval before posting to GitHub. If the user requests changes, revise, re-discharge the plan's evidence claims, re-run `gh-body-audit`, and re-show. If the user declines the plan, post nothing and stop.
+
+On the umbrella and new-task routes, Step 6 does nothing more: Step 7 hands the plan to `file-issue`.
+
+## Step 7 — Post plan to GitHub
+
+Post the plan on the route Step 6 decided:
+
+- **Existing single-scope issue** → write the plan as approved at Step 6 to a file and run `gh-post issue comment <n> --body-file <file>`, `<n>` being the issue number `$ARGUMENTS` names. The command passes no `--repo`, so it targets the repository Step 1's read of the issue resolved the same way.
+- **Existing umbrella issue** → invoke `file-issue` to file the sub-issue in its `Variants > Umbrella sub-issue` form, handing it the umbrella's issue number, the row of the umbrella's Phases table or sub-tasks list the plan covers, and the plan as the body. When no row covers the plan, or more than one does, ask the user which row to hand. Report each issue number `file-issue` reports.
+- **New task** → invoke `file-issue`, handing it the plan as the body; report each issue number `file-issue` reports.
+
+For a plan that Issue creation rule 1 below splits, that rule says how its parts go to `file-issue`. Where a `file-issue` run files nothing, file nothing more: report the issue numbers filed so far, if any, and stop.
+
 **Issue creation rules** (research-specific; body shape and the language / reference / evidence-claim / exclusion rules come from `gh-body-conventions` via `file-issue`):
 
-1. **Split issues by commit unit.** Each issue corresponds to one atomic, independently committable change. Multi-commit plans become multiple issues with `Depends on #N` links.
+1. **Split issues by commit unit.** On the umbrella and new-task routes, each issue corresponds to one atomic, independently committable change, and multi-commit plans become multiple issues with `Depends on #N` links; derive each issue's body from the plan and hand it to its own `file-issue` invocation in place of the whole plan.
 2. **No "rejected alternatives" sections** unless explicitly requested. The Hypotheses section is not one.
