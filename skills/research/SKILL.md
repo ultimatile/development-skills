@@ -11,7 +11,7 @@ Investigates an issue or task through falsifiable hypotheses and posts the resul
 
 ## Step 0 — Determine issue context
 
-Check whether `$ARGUMENTS` names an existing issue or is free text describing a new task. It names an issue when it is an issue number (`267` or `#267`), alone or followed only by a diff root token `root:<branch>` (`267 root:main`); anything else is free text, including text that mentions an issue number.
+Check whether `$ARGUMENTS` names an existing issue or is free text describing a new task. It names an issue when it is an issue number (`267` or `#267`), alone or followed only by a diff root token `root:<root>` (`267 root:main`); anything else is free text, including text that mentions an issue number.
 
 - **Issue number** → proceed with that issue.
 - **Free text** → use the text as the task description; an issue will be created in Step 7.
@@ -285,7 +285,7 @@ On the umbrella and new-task routes, Step 6 does nothing more: Step 7 hands the 
 
 Post the plan on the route Step 6 decided:
 
-- **Existing single-scope issue** → write the plan as approved at Step 6 to a file and run `gh-post issue comment <n> --repo <owner>/<repo> --body-file <file>`, `<n>` being the issue number `$ARGUMENTS` names and `<owner>/<repo>` the repository `gh repo view` resolves, which is the one Step 1 read the issue from.
+- **Existing single-scope issue** → write the plan as approved at Step 6 to a file and run `gh-post issue comment <n> --body-file <file>`, `<n>` being the issue number `$ARGUMENTS` names. The command passes no `--repo`, so it targets the repository Step 1's read of the issue resolved the same way.
 - **Existing umbrella issue** → invoke `file-issue` to file the sub-issue in its `Variants > Umbrella sub-issue` form, handing it the umbrella's issue number, the row of the umbrella's Phases table or sub-tasks list the plan covers, and the plan as the body. When no row covers the plan, or more than one does, ask the user which row to hand. Report each issue number `file-issue` reports.
 - **New task** → invoke `file-issue`, handing it the plan as the body; report each issue number `file-issue` reports.
 
