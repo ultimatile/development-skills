@@ -11,7 +11,7 @@ Investigates an issue or task through falsifiable hypotheses and posts the resul
 
 ## Step 0 — Determine issue context
 
-Check whether `$ARGUMENTS` names an existing issue or is free text describing a new task. It names an issue when it is an issue number (`267` or `#267`), alone or followed only by a diff root token `root:<root>` (`267 root:main`); anything else is free text, including text that mentions an issue number.
+Check whether `$ARGUMENTS` names an existing issue or is free text describing a new task. It names an issue when it is an issue number (`267` or `#267`), alone or followed only by `root:<root>`, the form in which a caller passes the diff root beside the issue number (`267 root:main`); anything else is free text, including text that mentions an issue number.
 
 - **Issue number** → proceed with that issue.
 - **Free text** → use the text as the task description; an issue will be created in Step 7.
@@ -289,7 +289,7 @@ Post the plan on the route Step 6 decided:
 - **Existing umbrella issue** → invoke `file-issue` to file the sub-issue in its `Variants > Umbrella sub-issue` form, handing it the umbrella's issue number, the row of the umbrella's Phases table or sub-tasks list the plan covers, and the plan as the body. When no row covers the plan, or more than one does, ask the user which row to hand. Report each issue number `file-issue` reports.
 - **New task** → invoke `file-issue`, handing it the plan as the body; report each issue number `file-issue` reports.
 
-For a plan that Issue creation rule 1 below splits, that rule says how its parts go to `file-issue`. Where a `file-issue` run files nothing — the user declines the body at its approval, or it stops before filing — file nothing more: report the issue numbers filed so far, if any, and stop.
+For a plan that Issue creation rule 1 below splits, that rule says how its parts go to `file-issue`. Where a `file-issue` run files nothing, file nothing more: report the issue numbers filed so far, if any, and stop.
 
 **Issue creation rules** (research-specific; body shape and the language / reference / evidence-claim / exclusion rules come from `gh-body-conventions` via `file-issue`):
 
