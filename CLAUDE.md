@@ -62,16 +62,6 @@ Language-specific skills go under `skills/languages/<Language>/<skill-name>/` (c
 
 Work on this repository in a **git worktree** by default. The main checkout is for reading and for the exceptional direct commit only. A worktree cannot check out `main` (the main checkout holds it), so worktree changes land through the "PR + squash merge" lane below.
 
-### Wire the skills into the worktree
-
-Immediately after creating the worktree, **before editing any file**, wire the worktree's own skills into it, from inside the worktree:
-
-```sh
-cd <worktree> && add-skill .
-```
-
-Verify before the first skill dispatch: `ls -l <worktree>/.claude/skills/done-check` must resolve to a path under the worktree. Any step that resolves `<SKILLS_DIR>` (`done-check`, `todo-check`, and the like) must land on the worktree side — check the resolved path, not the skill name.
-
 ### Settle the version number at the merge gate
 
 Concurrent worktrees all bump from the same `main`, so the number a branch picks while implementing is provisional — another branch can land it first. At the merge gate, before merging, read the published value with `git show origin/main:.claude-plugin/marketplace.json` (fetch first). If the branch's `metadata.version` is no longer the next patch counter from that value, re-bump to the correct one and push that fix-up. This does not add a second bump: the branch still carries exactly one bump (see "Landing a branch"), and only its value is revised. The tag applied after the merge is the settled value.
